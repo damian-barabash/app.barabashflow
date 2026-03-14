@@ -59,85 +59,114 @@ body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-he
       <div class="logo-name">Barabash <span>Flow</span></div>
       <div class="logo-sub">Panel zarządzania projektami</div>
     </div>
-    <div class="err" id="err"><i class="ri-error-warning-line" style="flex-shrink:0;margin-top:1px"></i><span id="errTxt"></span></div>
+    <div class="err" id="err">
+      <i class="ri-error-warning-line" style="flex-shrink:0;margin-top:1px"></i>
+      <span id="errTxt"></span>
+    </div>
     <form id="form">
       <div class="fg">
         <label class="lbl">Email / Login</label>
-        <div class="iw"><i class="ri-mail-line ii"></i><input class="inp" id="email" type="text" placeholder="twoj@email.com lub Admin" autocomplete="username" required></div>
+        <div class="iw">
+          <i class="ri-mail-line ii"></i>
+          <input class="inp" id="email" type="text" placeholder="twoj@email.com lub Admin" autocomplete="username" required>
+        </div>
       </div>
       <div class="fg">
         <label class="lbl">Hasło</label>
-        <div class="iw"><i class="ri-lock-line ii"></i><input class="inp" id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye"><i class="ri-eye-off-line"></i></button></div>
+        <div class="iw">
+          <i class="ri-lock-line ii"></i>
+          <input class="inp" id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="eye" id="eye"><i class="ri-eye-off-line"></i></button>
+        </div>
       </div>
-      <button type="submit" class="btn" id="btn">Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i></button>
+      <button type="submit" class="btn" id="btn">
+        Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>
+      </button>
     </form>
     <div class="ft">© 2026 Barabash Flow &nbsp;·&nbsp; Dmytrii Barabash</div>
   </div>
 </div>
+
 <script>
-const SB  ='https://ztcyhlitwwganjhgbbtm.supabase.co';
-const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
+// ─── CONFIG ───────────────────────────────────────────────────────
+// Логин идёт через Edge Function — нет ограничений по домену!
+const EDGE = 'https://ztcyhlitwwganjhgbbtm.supabase.co/functions/v1';
 
-// Already logged in?
-const t=localStorage.getItem('bf_token'),r=localStorage.getItem('bf_role');
-if(t&&r) location.replace(r==='admin'?'admin.html':'client.html');
+// Уже вошёл?
+(function(){
+  const t = localStorage.getItem('bf_token');
+  const r = localStorage.getItem('bf_role');
+  if (t && r) location.replace(r === 'admin' ? 'admin.html' : 'client.html');
+})();
 
-document.getElementById('eye').onclick=function(){
-  const i=document.getElementById('pass'),on=i.type==='password';
-  i.type=on?'text':'password';
-  this.querySelector('i').className=on?'ri-eye-line':'ri-eye-off-line';
+// Eye toggle
+document.getElementById('eye').onclick = function() {
+  const i = document.getElementById('pass');
+  const on = i.type === 'password';
+  i.type = on ? 'text' : 'password';
+  this.querySelector('i').className = on ? 'ri-eye-line' : 'ri-eye-off-line';
 };
 
-const errEl=document.getElementById('err'),errTxt=document.getElementById('errTxt');
-function showErr(m){errTxt.textContent=m;errEl.classList.add('show');}
-function hideErr(){errEl.classList.remove('show');}
+function showErr(m) {
+  document.getElementById('errTxt').textContent = m;
+  document.getElementById('err').classList.add('show');
+}
+function hideErr() {
+  document.getElementById('err').classList.remove('show');
+}
 
-document.getElementById('form').addEventListener('submit',async function(e){
-  e.preventDefault(); hideErr();
-  const btn=document.getElementById('btn');
-  let email=document.getElementById('email').value.trim();
-  const pass=document.getElementById('pass').value;
-  if(email.toLowerCase()==='admin') email='admin@barabashflow.pl';
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Logowanie...';
-  try{
-    // Step 1: authenticate
-    const ar=await fetch(SB+'/auth/v1/token?grant_type=password',{
-      method:'POST',
-      headers:{apikey:ANON,'Content-Type':'application/json'},
-      body:JSON.stringify({email,password:pass})
+// ─── SUBMIT ────────────────────────────────────────────────────────
+document.getElementById('form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  hideErr();
+
+  const btn  = document.getElementById('btn');
+  let email  = document.getElementById('email').value.trim();
+  const pass = document.getElementById('pass').value;
+
+  // Шорткат Admin
+  if (email.toLowerCase() === 'admin') email = 'admin@barabashflow.pl';
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Logowanie...';
+
+  try {
+    // Логин через Edge Function (сервер-сайд, нет CORS/domain issues)
+    const res = await fetch(EDGE + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
     });
-    const s=await ar.json();
-    if(!s.access_token){
-      const msg=s.error_description||s.msg||s.error||'';
-      showErr(msg.toLowerCase().includes('invalid')||ar.status===400
-        ?'Nieprawidłowy email lub hasło.'
-        :'Błąd: '+(msg||ar.status));
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      const msg = data.error || 'Błąd logowania';
+      showErr(
+        msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credential')
+          ? 'Nieprawidłowy email lub hasło.'
+          : 'Błąd: ' + msg
+      );
       return;
     }
-    // Step 2: get profile via edge function (bypasses RLS)
-    const pr=await fetch(SB+'/functions/v1/get-profile',{
-      method:'GET',
-      headers:{Authorization:'Bearer '+s.access_token}
-    });
-    const pd=await pr.json();
-    if(!pr.ok||!pd.profile){
-      showErr('Błąd profilu: '+(pd.error||pr.status));
-      return;
-    }
-    const p=pd.profile;
-    localStorage.setItem('bf_token',  s.access_token);
-    localStorage.setItem('bf_user_id',s.user.id);
-    localStorage.setItem('bf_role',   p.role);
-    localStorage.setItem('bf_name',   p.display_name||email.split('@')[0]);
-    localStorage.setItem('bf_email',  s.user.email);
-    location.replace(p.role==='admin'?'admin.html':'client.html');
-  }catch(ex){
+
+    // Сохраняем сессию
+    const p = data.profile;
+    localStorage.setItem('bf_token',   data.access_token);
+    localStorage.setItem('bf_user_id', data.user_id);
+    localStorage.setItem('bf_role',    p.role);
+    localStorage.setItem('bf_name',    p.display_name || email.split('@')[0]);
+    localStorage.setItem('bf_email',   p.email);
+    localStorage.setItem('bf_avatar',  p.avatar_url || '');
+
+    location.replace(p.role === 'admin' ? 'admin.html' : 'client.html');
+
+  } catch(ex) {
     console.error(ex);
-    showErr('Błąd połączenia. Sprawdź internet i spróbuj ponownie.');
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';
+    showErr('Błąd połączenia z serwerem. Sprawdź internet.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';
   }
 });
 </script>
