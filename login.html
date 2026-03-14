@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logowanie — Barabash Flow</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/fonts/remixicon.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--a:#e040fb;--a2:#c0392b;--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bd:#333;--t:#fff;--t2:#aaa;--t3:#666;--red:#f87171}
+body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.blobs{position:fixed;inset:0;pointer-events:none;z-index:0}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12}
+.b1{width:500px;height:500px;top:-150px;left:-200px;background:radial-gradient(var(--a),transparent);animation:f1 10s ease-in-out infinite}
+.b2{width:400px;height:400px;bottom:-100px;right:-150px;background:radial-gradient(var(--a2),transparent);animation:f2 12s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-20px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:24px}
+.back{display:flex;align-items:center;gap:6px;color:var(--t2);text-decoration:none;font-size:13px;margin-bottom:28px;transition:color .2s}
+.back:hover{color:var(--t)}
+.box{background:var(--bg2);border:1px solid var(--bd);border-radius:24px;padding:40px;position:relative;overflow:hidden}
+.box::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(224,64,251,.5),transparent)}
+.logo{text-align:center;margin-bottom:32px}
+.logo img{height:48px;display:block;margin:0 auto 14px}
+.logo-name{font-size:26px;font-weight:800}
+.logo-name span{background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:13px;color:var(--t3);margin-top:6px}
+.fg{margin-bottom:18px}
+.lbl{display:block;font-size:11px;color:var(--t2);margin-bottom:7px;text-transform:uppercase;letter-spacing:.8px;font-weight:500}
+.iw{position:relative}
+.ii{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:17px;pointer-events:none}
+.inp{width:100%;padding:13px 14px 13px 44px;background:var(--bg3);border:1px solid var(--bd);border-radius:12px;color:var(--t);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(224,64,251,.1)}
+.inp::placeholder{color:var(--t3)}
+.eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:17px;padding:4px;transition:color .2s}
+.eye:hover{color:var(--t2)}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:8px}
+.btn:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:18px;display:none;gap:8px;align-items:flex-start}
+.err.show{display:flex;animation:shake .3s ease}
+.ft{text-align:center;margin-top:24px;font-size:12px;color:var(--t3)}
+.spin{animation:spin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+<div class="blobs"><div class="blob b1"></div><div class="blob b2"></div></div>
+<div class="wrap">
+  <a href="index.html" class="back"><i class="ri-arrow-left-line"></i> Strona główna</a>
+  <div class="box">
+    <div class="logo">
+      <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
+      <div class="logo-name">Barabash <span>Flow</span></div>
+      <div class="logo-sub">Panel zarządzania projektami</div>
+    </div>
+    <div class="err" id="err"><i class="ri-error-warning-line" style="flex-shrink:0;margin-top:1px"></i><span id="errTxt"></span></div>
+    <form id="form">
+      <div class="fg">
+        <label class="lbl">Email / Login</label>
+        <div class="iw"><i class="ri-mail-line ii"></i><input class="inp" id="email" type="text" placeholder="twoj@email.com lub Admin" autocomplete="username" required></div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Hasło</label>
+        <div class="iw"><i class="ri-lock-line ii"></i><input class="inp" id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye"><i class="ri-eye-off-line"></i></button></div>
+      </div>
+      <button type="submit" class="btn" id="btn">Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i></button>
+    </form>
+    <div class="ft">© 2026 Barabash Flow &nbsp;·&nbsp; Dmytrii Barabash</div>
+  </div>
+</div>
+<script>
+const SB  ='https://ztcyhlitwwganjhgbbtm.supabase.co';
+const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
+
+// Already logged in?
+const t=localStorage.getItem('bf_token'),r=localStorage.getItem('bf_role');
+if(t&&r) location.replace(r==='admin'?'admin.html':'client.html');
+
+document.getElementById('eye').onclick=function(){
+  const i=document.getElementById('pass'),on=i.type==='password';
+  i.type=on?'text':'password';
+  this.querySelector('i').className=on?'ri-eye-line':'ri-eye-off-line';
+};
+
+const errEl=document.getElementById('err'),errTxt=document.getElementById('errTxt');
+function showErr(m){errTxt.textContent=m;errEl.classList.add('show');}
+function hideErr(){errEl.classList.remove('show');}
+
+document.getElementById('form').addEventListener('submit',async function(e){
+  e.preventDefault(); hideErr();
+  const btn=document.getElementById('btn');
+  let email=document.getElementById('email').value.trim();
+  const pass=document.getElementById('pass').value;
+  if(email.toLowerCase()==='admin') email='admin@barabashflow.pl';
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Logowanie...';
+  try{
+    // Step 1: authenticate
+    const ar=await fetch(SB+'/auth/v1/token?grant_type=password',{
+      method:'POST',
+      headers:{apikey:ANON,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass})
+    });
+    const s=await ar.json();
+    if(!s.access_token){
+      const msg=s.error_description||s.msg||s.error||'';
+      showErr(msg.toLowerCase().includes('invalid')||ar.status===400
+        ?'Nieprawidłowy email lub hasło.'
+        :'Błąd: '+(msg||ar.status));
+      return;
+    }
+    // Step 2: get profile via edge function (bypasses RLS)
+    const pr=await fetch(SB+'/functions/v1/get-profile',{
+      method:'GET',
+      headers:{Authorization:'Bearer '+s.access_token}
+    });
+    const pd=await pr.json();
+    if(!pr.ok||!pd.profile){
+      showErr('Błąd profilu: '+(pd.error||pr.status));
+      return;
+    }
+    const p=pd.profile;
+    localStorage.setItem('bf_token',  s.access_token);
+    localStorage.setItem('bf_user_id',s.user.id);
+    localStorage.setItem('bf_role',   p.role);
+    localStorage.setItem('bf_name',   p.display_name||email.split('@')[0]);
+    localStorage.setItem('bf_email',  s.user.email);
+    location.replace(p.role==='admin'?'admin.html':'client.html');
+  }catch(ex){
+    console.error(ex);
+    showErr('Błąd połączenia. Sprawdź internet i spróbuj ponownie.');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';
+  }
+});
+</script>
+</body>
+</html>
