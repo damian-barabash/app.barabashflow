@@ -11,161 +11,165 @@
 <link rel="stylesheet" href="panel.css">
 </head>
 <body>
-<div class="preloader" id="preloader"><div class="pre-logo">Barabash <span>Flow</span></div><div class="pre-bar"><div class="pre-bar-inner" id="preBar"></div></div></div>
 
-<div class="panel-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
-      <div class="logo-text">Admin Panel</div>
+<!-- PRELOADER -->
+<div class="preloader" id="preloader"><div class="pre-logo">Barabash <span>Flow</span></div><div class="pre-track"><div class="pre-bar" id="preBar"></div></div></div>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
+    <div class="brand">Admin Panel</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-link active" data-view="dashboard"><i class="ri-dashboard-line"></i>Dashboard</div>
+    <div class="nav-link" data-view="clients"><i class="ri-team-line"></i>Klienci<span class="nav-badge" id="nb-clients"></span></div>
+    <div class="nav-link" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="nav-badge" id="nb-orders"></span></div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-av" id="adminAv">D</div>
+      <div class="user-info"><div class="user-name" id="adminName">Admin</div><div class="user-role">Administrator</div></div>
     </div>
-    <nav class="sidebar-nav">
-      <a href="#" data-view="dashboard" class="active"><i class="ri-dashboard-line"></i>Dashboard</a>
-      <a href="#" data-view="clients"><i class="ri-team-line"></i>Klienci<span class="badge" id="bc" style="display:none"></span></a>
-      <a href="#" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="badge" id="bo" style="display:none"></span></a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-avatar" id="sav">DB</div>
-        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sname">Admin</div><div class="sidebar-user-role">Administrator</div></div>
+    <button class="btn-logout" onclick="Auth.logout()"><i class="ri-logout-box-line"></i>Wyloguj się</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ri-menu-line"></i></button>
+    <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub" id="pageSub"></div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i>Dodaj klienta</button>
+    </div>
+  </div>
+  <div class="content" id="content">
+
+    <!-- DASHBOARD -->
+    <div id="v-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-n" id="sc-c">—</div><div class="stat-l">Klientów</div></div>
+        <div class="stat-card"><div class="stat-n" id="sc-p">—</div><div class="stat-l">Projektów</div></div>
+        <div class="stat-card"><div class="stat-n" id="sc-o">—</div><div class="stat-l">Nowe formularze</div></div>
       </div>
-      <button class="btn-logout" onclick="Auth.logout()"><i class="ri-logout-box-line"></i>Wyloguj się</button>
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><i class="ri-team-line" style="font-size:20px;color:var(--a)"></i><div class="card-title">Ostatni klienci</div></div><div id="d-clients"></div></div>
+        <div class="card"><div class="card-header"><i class="ri-file-list-3-line" style="font-size:20px;color:var(--a)"></i><div class="card-title">Nowe formularze</div></div><div id="d-orders"></div></div>
+      </div>
     </div>
-  </aside>
 
-  <main class="panel-main">
-    <div class="topbar">
-      <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ri-menu-line"></i></button>
-      <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub" id="pageSub"></div></div>
-      <div style="margin-left:auto;display:flex;gap:8px">
+    <!-- CLIENTS -->
+    <div id="v-clients" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div class="card-title">Wszyscy klienci</div>
         <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i>Dodaj klienta</button>
       </div>
+      <div class="card" style="padding:8px"><div id="cl-list"></div></div>
     </div>
-    <div class="content" id="content">
 
-      <!-- DASHBOARD -->
-      <div id="v-dashboard">
-        <div class="grid-3" style="margin-bottom:20px">
-          <div class="card stat-card"><div class="stat-num" id="sc">—</div><div class="stat-label">Klientów</div></div>
-          <div class="card stat-card"><div class="stat-num" id="sp">—</div><div class="stat-label">Projektów</div></div>
-          <div class="card stat-card"><div class="stat-num" id="so">—</div><div class="stat-label">Nowe formularze</div></div>
-        </div>
-        <div class="grid-2">
-          <div class="card"><div class="card-header"><i class="ri-team-line" style="font-size:20px;color:var(--accent)"></i><div class="card-title">Ostatni klienci</div></div><div id="d-clients"></div></div>
-          <div class="card"><div class="card-header"><i class="ri-file-list-3-line" style="font-size:20px;color:var(--accent)"></i><div class="card-title">Nowe formularze</div></div><div id="d-orders"></div></div>
-        </div>
-      </div>
-
-      <!-- CLIENTS LIST -->
-      <div id="v-clients" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div class="card-title">Wszyscy klienci</div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i>Dodaj klienta</button>
-        </div>
-        <div class="card" style="padding:8px"><div id="cl-list"></div></div>
-      </div>
-
-      <!-- ORDERS -->
-      <div id="v-orders" style="display:none">
-        <div class="card-title" style="margin-bottom:20px">Formularze kontaktowe</div>
-        <div id="or-list"></div>
-      </div>
-
-      <!-- CLIENT DETAIL -->
-      <div id="v-cdetail" style="display:none">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
-          <div style="flex:1"><div style="font-size:18px;font-weight:700" id="cd-name">—</div><div style="font-size:12px;color:var(--text3)" id="cd-email">—</div></div>
-          <button class="btn btn-primary btn-sm" onclick="openNewProj()"><i class="ri-add-line"></i>Nowy projekt</button>
-        </div>
-        <div id="cd-projs"></div>
-      </div>
-
-      <!-- PROJECT -->
-      <div id="v-project" style="display:none">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" id="back-proj"><i class="ri-arrow-left-line"></i></button>
-          <div style="flex:1"><div style="font-size:18px;font-weight:700" id="pj-name">—</div><div style="font-size:12px;color:var(--text3)" id="pj-client">—</div></div>
-          <span class="status" id="pj-badge">—</span>
-        </div>
-        <div class="tabs" id="proj-tabs">
-          <button class="tab-btn active" data-tab="posts">Projekt</button>
-          <button class="tab-btn" data-tab="chat">Czat</button>
-          <button class="tab-btn" data-tab="docs">Dokumenty</button>
-        </div>
-        <!-- POSTS TAB -->
-        <div class="tab-pane active" id="tab-posts">
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:16px">Dodaj materiał</div>
-            <div class="grid-2" style="margin-bottom:12px">
-              <div class="form-group" style="margin:0"><label class="form-label">Tytuł</label><input class="form-control" id="pt-title" placeholder="Tytuł posta"></div>
-              <div class="form-group" style="margin:0"><label class="form-label">Typ</label>
-                <select class="form-control" id="pt-type">
-                  <option value="text">📝 Tekst</option>
-                  <option value="link">🔗 Link</option>
-                  <option value="image">🖼️ Zdjęcie (URL)</option>
-                  <option value="file">📎 Plik (URL)</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group"><label class="form-label">Treść / URL</label><textarea class="form-control" id="pt-content" rows="3" placeholder="Treść lub URL..."></textarea></div>
-            <button class="btn btn-primary btn-sm" onclick="addPost()"><i class="ri-send-plane-line"></i>Opublikuj</button>
-          </div>
-          <div id="posts-list"></div>
-        </div>
-        <!-- CHAT TAB -->
-        <div class="tab-pane" id="tab-chat">
-          <div class="card" style="padding:0">
-            <div class="chat-wrap">
-              <div class="chat-messages" id="chat-box"></div>
-              <div class="chat-input">
-                <input class="form-control" id="chat-inp" placeholder="Napisz wiadomość...">
-                <button class="btn btn-primary btn-sm" onclick="sendMsg()"><i class="ri-send-plane-fill"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- DOCS TAB -->
-        <div class="tab-pane" id="tab-docs">
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:16px">Dodaj dokument</div>
-            <div class="grid-2" style="margin-bottom:12px">
-              <div class="form-group" style="margin:0"><label class="form-label">Nazwa</label><input class="form-control" id="dc-name" placeholder="Umowa_2026.pdf"></div>
-              <div class="form-group" style="margin:0"><label class="form-label">URL</label><input class="form-control" id="dc-url" placeholder="https://drive.google.com/..."></div>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="addDoc()"><i class="ri-upload-line"></i>Dodaj dokument</button>
-          </div>
-          <div id="docs-list"></div>
-        </div>
-      </div>
-
+    <!-- ORDERS -->
+    <div id="v-orders" style="display:none">
+      <div class="card-title" style="margin-bottom:18px">Formularze kontaktowe</div>
+      <div id="or-list"></div>
     </div>
-  </main>
+
+    <!-- CLIENT DETAIL -->
+    <div id="v-cdetail" style="display:none">
+      <div class="page-header">
+        <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
+        <div><h2 id="cd-name">—</h2><div class="sub" id="cd-email">—</div></div>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openNewProj()"><i class="ri-add-line"></i>Nowy projekt</button>
+      </div>
+      <div id="cd-projs"></div>
+    </div>
+
+    <!-- PROJECT -->
+    <div id="v-project" style="display:none">
+      <div class="page-header">
+        <button class="btn btn-outline btn-sm" id="proj-back"><i class="ri-arrow-left-line"></i></button>
+        <div><h2 id="pj-name">—</h2><div class="sub" id="pj-client">—</div></div>
+        <span class="badge" id="pj-badge" style="margin-left:auto"></span>
+      </div>
+      <div class="tabs" id="proj-tabs">
+        <button class="tab-btn active" data-tab="posts">Projekt</button>
+        <button class="tab-btn" data-tab="chat">Czat</button>
+        <button class="tab-btn" data-tab="docs">Dokumenty</button>
+      </div>
+      <!-- TAB: POSTS -->
+      <div class="tab-pane active" id="tab-posts">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:14px">Dodaj materiał</div>
+          <div class="grid-2" style="margin-bottom:12px">
+            <div class="form-group" style="margin:0"><label class="form-label">Tytuł</label><input class="form-control" id="pt-title" placeholder="Tytuł posta"></div>
+            <div class="form-group" style="margin:0"><label class="form-label">Typ</label>
+              <select class="form-control" id="pt-type">
+                <option value="text">📝 Tekst</option>
+                <option value="link">🔗 Link</option>
+                <option value="image">🖼️ Zdjęcie (URL)</option>
+                <option value="file">📎 Plik (URL)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Treść / URL</label><textarea class="form-control" id="pt-body" rows="3" placeholder="Wpisz treść lub wklej URL..."></textarea></div>
+          <button class="btn btn-primary btn-sm" onclick="addPost()"><i class="ri-send-plane-line"></i>Opublikuj</button>
+        </div>
+        <div id="posts-list"></div>
+      </div>
+      <!-- TAB: CHAT -->
+      <div class="tab-pane" id="tab-chat">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="chat-wrap">
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-input-row">
+              <input class="form-control" id="chat-inp" placeholder="Napisz wiadomość...">
+              <button class="btn btn-primary btn-sm" onclick="sendMsg()"><i class="ri-send-plane-fill"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TAB: DOCS -->
+      <div class="tab-pane" id="tab-docs">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:14px">Dodaj dokument</div>
+          <div class="grid-2" style="margin-bottom:12px">
+            <div class="form-group" style="margin:0"><label class="form-label">Nazwa pliku</label><input class="form-control" id="dc-name" placeholder="np. Umowa_2026.pdf"></div>
+            <div class="form-group" style="margin:0"><label class="form-label">URL pliku</label><input class="form-control" id="dc-url" placeholder="https://..."></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addDoc()"><i class="ri-upload-line"></i>Dodaj dokument</button>
+        </div>
+        <div id="docs-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
 </div>
 
 <!-- MODAL: Add Client -->
-<div class="modal-overlay" id="m-client">
+<div class="modal-backdrop" id="m-client">
   <div class="modal">
     <div class="modal-title">Dodaj nowego klienta</div>
-    <div class="modal-sub">Klient otrzyma email z danymi do logowania.</div>
+    <div class="modal-sub">Klient otrzyma e-mail z danymi dostępowymi.</div>
     <div class="form-group"><label class="form-label">Imię i nazwisko</label><input class="form-control" id="ac-name" placeholder="Jan Kowalski"></div>
-    <div class="form-group"><label class="form-label">Email *</label><input class="form-control" id="ac-email" type="email" placeholder="jan@firma.pl"></div>
-    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="ac-pass" placeholder="min. 6 znaków"></div>
-    <div class="modal-err" id="ac-err"></div>
+    <div class="form-group"><label class="form-label">E-mail *</label><input class="form-control" id="ac-email" type="email" placeholder="jan@firma.pl"></div>
+    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="ac-pass" placeholder="min. 6 znaków" type="password"></div>
+    <div class="form-err" id="ac-err"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-client')">Anuluj</button>
-      <button class="btn btn-primary" onclick="createClient()"><i class="ri-user-add-line"></i>Utwórz klienta</button>
+      <button class="btn btn-primary" id="ac-btn" onclick="createClient()"><i class="ri-user-add-line"></i>Utwórz klienta</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL: New Project -->
-<div class="modal-overlay" id="m-proj">
+<div class="modal-backdrop" id="m-proj">
   <div class="modal">
     <div class="modal-title">Nowy projekt</div>
     <div class="modal-sub" id="np-sub">Dla klienta</div>
-    <div class="form-group"><label class="form-label">Nazwa *</label><input class="form-control" id="np-name" placeholder="np. Strona WWW"></div>
-    <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="np-desc" placeholder="Krótki opis..."></textarea></div>
+    <div class="form-group"><label class="form-label">Nazwa projektu *</label><input class="form-control" id="np-name" placeholder="np. Strona WWW"></div>
+    <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="np-desc" placeholder="Krótki opis projektu..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-proj')">Anuluj</button>
       <button class="btn btn-primary" onclick="createProject()"><i class="ri-add-line"></i>Utwórz projekt</button>
@@ -174,206 +178,229 @@
 </div>
 
 <!-- MODAL: Convert Order -->
-<div class="modal-overlay" id="m-convert">
+<div class="modal-backdrop" id="m-convert">
   <div class="modal">
     <div class="modal-title">Utwórz konto dla klienta</div>
     <div class="modal-sub" id="cv-sub">—</div>
-    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="cv-pass" placeholder="min. 6 znaków"></div>
-    <div class="modal-err" id="cv-err"></div>
+    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="cv-pass" placeholder="min. 6 znaków" type="password"></div>
+    <div class="form-err" id="cv-err"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-convert')">Anuluj</button>
-      <button class="btn btn-primary" onclick="convertOrder()"><i class="ri-user-add-line"></i>Utwórz &amp; wyślij email</button>
+      <button class="btn btn-primary" id="cv-btn" onclick="convertOrder()"><i class="ri-send-plane-line"></i>Utwórz i wyślij e-mail</button>
     </div>
   </div>
 </div>
 
 <script src="panel.js"></script>
 <script>
-if(!Auth.requireAdmin()) throw 0;
+if (!Auth.requireAdmin()) throw 0;
 runPreloader();
-document.getElementById('sname').textContent = Auth.name||'Admin';
-document.getElementById('sav').textContent   = avatarInitials(Auth.name);
-document.getElementById('pageSub').textContent = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('adminName').textContent = Auth.name || 'Admin';
+document.getElementById('adminAv').textContent   = initials(Auth.name);
+document.getElementById('pageSub').textContent   = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-// ─── STATE ───
-let cid='',cname='',cemail='',pid='',oid='',chatIv=null,chatLen=0;
+// ── STATE ──
+let CID='',CNAME='',CEMAIL='',PID='',OID='',chatIv=null,chatLen=0;
+const LOGO = 'https://ztcyhlitwwganjhgbbtm.supabase.co/storage/v1/object/public/assets/logo.png';
 
-// ─── NAV ─────
-document.querySelectorAll('[data-view]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();nav(a.dataset.view);}));
+// ── NAV ──
+document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>nav(a.dataset.view)));
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
-function nav(v){
+function nav(v) {
   ['dashboard','clients','orders','cdetail','project'].forEach(id=>{
     const el=document.getElementById('v-'+id);
-    if(el)el.style.display=id===v?'block':'none';
+    if(el) el.style.display=id===v?'block':'none';
   });
-  document.querySelectorAll('[data-view]').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
-  if(chatIv&&v!=='project'){clearInterval(chatIv);chatIv=null;}
-  const titles={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:cname,project:document.getElementById('pj-name').textContent};
+  document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+  const titles={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent};
   document.getElementById('pageTitle').textContent=titles[v]||'';
-  if(v==='dashboard')loadDash();
-  if(v==='clients')  loadClients();
-  if(v==='orders')   loadOrders();
+  if(chatIv && v!=='project'){clearInterval(chatIv);chatIv=null;}
+  if(v==='dashboard') loadDash();
+  if(v==='clients')   loadClients();
+  if(v==='orders')    loadOrders();
 }
 
-function switchTab(tab){
+function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+tab));
-  if(tab==='chat')loadChat();
+  if(tab==='chat') { chatLen=0; loadChat(); }
+  if(tab==='posts') loadPosts();
+  if(tab==='docs')  loadDocs();
 }
 
-// ─── DASHBOARD ───
-async function loadDash(){
-  const [clients,projects,orders]=await Promise.all([
+// ── DASHBOARD ──
+async function loadDash() {
+  const [clients,projects,orders] = await Promise.all([
     dbGet('profiles','?role=eq.client&select=*&order=created_at.desc'),
-    dbGet('projects','?select=id&order=created_at.desc'),
+    dbGet('projects','?select=id'),
     dbGet('orders','?status=eq.open&select=*&order=created_at.desc'),
   ]);
-  document.getElementById('sc').textContent=clients.length;
-  document.getElementById('sp').textContent=projects.length;
-  document.getElementById('so').textContent=orders.length;
-  const bo=document.getElementById('bo');
-  if(orders.length){bo.style.display='inline-flex';bo.textContent=orders.length;}else bo.style.display='none';
-  document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>`
-    <div class="client-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="client-avatar">${avatarInitials(c.display_name||c.email)}</div>
-      <div class="client-info"><div class="client-name">${esc(c.display_name||c.email)}</div><div class="client-email">${esc(c.email)}</div></div>
-      <div class="client-time">${timeAgo(c.created_at)}</div>
-    </div>`).join('')||emptyState('ri-team-line','Brak klientów');
-  document.getElementById('d-orders').innerHTML=orders.slice(0,4).map(o=>`
-    <div class="order-card order-open" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-        <div><strong>${esc(o.name)}</strong> <span style="font-size:12px;color:var(--text3)">${esc(o.email)}</span></div>
-        <span class="status status-open">Otwarty</span>
+  document.getElementById('sc-c').textContent = clients.length;
+  document.getElementById('sc-p').textContent = projects.length;
+  document.getElementById('sc-o').textContent = orders.length;
+  const nb = document.getElementById('nb-orders');
+  if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
+
+  document.getElementById('d-clients').innerHTML = clients.slice(0,5).map(c=>`
+    <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
+      <div class="item-av">${initials(c.display_name||c.email)}</div>
+      <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
+      <div class="item-time">${timeAgo(c.created_at)}</div>
+    </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
+
+  document.getElementById('d-orders').innerHTML = orders.slice(0,4).map(o=>`
+    <div class="order-card open">
+      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div><strong>${esc(o.name)}</strong> <span style="font-size:12px;color:var(--t3)">${esc(o.email)}</span></div>
+        <span class="badge badge-open">Otwarty</span>
       </div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">${esc(o.message).slice(0,100)}${o.message.length>100?'…':''}</p>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:10px;line-height:1.5">${esc(o.message).slice(0,120)}${o.message.length>120?'…':''}</p>
       <button class="btn btn-primary btn-sm" onclick="openConvert('${o.id}','${esc(o.name)}','${esc(o.email)}')"><i class="ri-user-add-line"></i>Utwórz konto</button>
-    </div>`).join('')||emptyState('ri-file-list-3-line','Brak nowych formularzy');
+    </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak nowych formularzy');
 }
 
-// ─── CLIENTS ───
-async function loadClients(){
-  const clients=await dbGet('profiles','?role=eq.client&select=*&order=created_at.desc');
-  const bc=document.getElementById('bc');
-  if(clients.length){bc.style.display='inline-flex';bc.textContent=clients.length;}else bc.style.display='none';
-  document.getElementById('cl-list').innerHTML=clients.map(c=>`
-    <div class="client-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="client-avatar">${avatarInitials(c.display_name||c.email)}</div>
-      <div class="client-info"><div class="client-name">${esc(c.display_name||c.email)}</div><div class="client-email">${esc(c.email)}</div></div>
-      <div class="client-time">${timeAgo(c.updated_at||c.created_at)}</div>
-      <i class="ri-arrow-right-s-line" style="color:var(--text3)"></i>
-    </div>`).join('')||emptyState('ri-team-line','Brak klientów');
+// ── CLIENTS ──
+async function loadClients() {
+  const clients = await dbGet('profiles','?role=eq.client&select=*&order=created_at.desc');
+  const nb = document.getElementById('nb-clients');
+  if(clients.length){nb.textContent=clients.length;nb.classList.add('show');}else nb.classList.remove('show');
+  document.getElementById('cl-list').innerHTML = clients.map(c=>`
+    <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
+      <div class="item-av">${initials(c.display_name||c.email)}</div>
+      <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
+      <div class="item-time">${timeAgo(c.updated_at||c.created_at)}</div>
+      <i class="ri-arrow-right-s-line item-arrow"></i>
+    </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
 }
 
-async function openClient(id,name,email){
-  cid=id;cname=name;cemail=email;
-  document.getElementById('cd-name').textContent=name;
-  document.getElementById('cd-email').textContent=email;
+async function openClient(id,name,email) {
+  CID=id;CNAME=name;CEMAIL=email;
+  document.getElementById('cd-name').textContent  = name;
+  document.getElementById('cd-email').textContent = email;
   nav('cdetail');
-  const projs=await dbGet('projects',`?client_id=eq.${id}&select=*&order=updated_at.desc`);
-  document.getElementById('cd-projs').innerHTML=projs.map(p=>`
-    <div class="project-item" onclick="openProject('${p.id}','${esc(p.name)}')" style="margin-bottom:12px">
-      <div class="project-icon">🚀</div>
-      <div class="project-info"><div class="project-name">${esc(p.name)}</div><div class="project-meta">${esc(p.description||'')} · ${timeAgo(p.updated_at)}</div></div>
-      <span class="status status-${p.status}">${statusLabel(p.status)}</span>
-      <i class="ri-arrow-right-s-line" style="color:var(--text3)"></i>
-    </div>`).join('')||emptyState('ri-folder-line','Brak projektów. Utwórz pierwszy projekt.');
+  const projs = await dbGet('projects',`?client_id=eq.${id}&select=*&order=updated_at.desc`);
+  // Count unread notifs per project
+  const notifs = await dbGet('notifications',`?user_id=eq.${id}&is_read=eq.false&select=project_id`);
+  const nmap = {};
+  notifs.forEach(n=>{if(n.project_id)nmap[n.project_id]=(nmap[n.project_id]||0)+1;});
+  document.getElementById('cd-projs').innerHTML = projs.map(p=>`
+    <div class="proj-card" onclick="openProject('${p.id}','${esc(p.name)}')">
+      <div class="proj-icon">🚀</div>
+      <div class="proj-info"><div class="proj-name">${esc(p.name)}</div><div class="proj-meta">${esc(p.description||'—')} · ${timeAgo(p.updated_at)}</div></div>
+      ${nmap[p.id]?`<span class="proj-notif show">${nmap[p.id]}</span>`:''}
+      <span class="badge badge-${statusClass(p.status)}">${statusLabel(p.status)}</span>
+      <i class="ri-arrow-right-s-line item-arrow"></i>
+    </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów. Utwórz pierwszy.');
 }
 
-// ─── ORDERS ───
-async function loadOrders(){
-  const orders=await dbGet('orders','?select=*&order=created_at.desc');
-  document.getElementById('or-list').innerHTML=orders.map(o=>`
-    <div class="order-card order-${o.status}" style="margin-bottom:12px">
+// ── ORDERS ──
+async function loadOrders() {
+  const orders = await dbGet('orders','?select=*&order=created_at.desc');
+  document.getElementById('or-list').innerHTML = orders.map(o=>`
+    <div class="order-card ${o.status}">
       <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-        <div><strong>${esc(o.name)}</strong>&nbsp;<a href="mailto:${esc(o.email)}" style="font-size:12px;color:var(--accent)">${esc(o.email)}</a></div>
-        <div style="display:flex;gap:8px;align-items:center"><span class="status status-${o.status}">${o.status==='open'?'Otwarty':'Zakończony'}</span><span style="font-size:11px;color:var(--text3)">${timeAgo(o.created_at)}</span></div>
+        <div><strong>${esc(o.name)}</strong> &nbsp;<a href="mailto:${esc(o.email)}" style="font-size:12px;color:var(--a)">${esc(o.email)}</a></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge badge-${o.status==='open'?'open':'completed'}">${o.status==='open'?'Otwarty':'Zakończony'}</span>
+          <span style="font-size:11px;color:var(--t3)">${timeAgo(o.created_at)}</span>
+        </div>
       </div>
-      <p style="font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:14px">${esc(o.message)}</p>
+      <p style="font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:14px">${esc(o.message)}</p>
       ${o.status==='open'
-        ?`<button class="btn btn-primary btn-sm" onclick="openConvert('${o.id}','${esc(o.name)}','${esc(o.email)}')"><i class="ri-user-add-line"></i>Utwórz konto &amp; wyślij email</button>`
-        :`<span style="font-size:12px;color:var(--green)">✅ Klient już utworzony</span>`}
-    </div>`).join('')||emptyState('ri-file-list-3-line','Brak formularzy');
+        ?`<button class="btn btn-primary btn-sm" onclick="openConvert('${o.id}','${esc(o.name)}','${esc(o.email)}')"><i class="ri-user-add-line"></i>Utwórz konto i wyślij e-mail</button>`
+        :`<span style="font-size:12px;color:var(--green)">✅ Klient utworzony</span>`}
+    </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak formularzy');
 }
 
-// ─── PROJECT ───
+// ── PROJECT ──
 function openNewProj(){
-  document.getElementById('np-sub').textContent='Dla: '+cname;
-  document.getElementById('np-name').value='';document.getElementById('np-desc').value='';
+  document.getElementById('np-sub').textContent='Dla: '+CNAME;
+  document.getElementById('np-name').value='';
+  document.getElementById('np-desc').value='';
   openModal('m-proj');
 }
 async function createProject(){
   const name=document.getElementById('np-name').value.trim();
   const desc=document.getElementById('np-desc').value.trim();
   if(!name){toast('Wpisz nazwę projektu','error');return;}
-  await dbPost('projects',{client_id:cid,name,description:desc,status:'active'});
+  await dbPost('projects',{client_id:CID,name,description:desc,status:'active'});
   closeModal('m-proj');toast('Projekt utworzony ✅');
-  openClient(cid,cname,cemail);
+  openClient(CID,CNAME,CEMAIL);
 }
 async function openProject(id,name){
-  pid=id;chatLen=0;
+  PID=id;chatLen=0;
   document.getElementById('pj-name').textContent=name;
-  document.getElementById('pj-client').textContent=cname;
-  document.getElementById('back-proj').onclick=()=>openClient(cid,cname,cemail);
+  document.getElementById('pj-client').textContent=CNAME;
+  document.getElementById('proj-back').onclick=()=>openClient(CID,CNAME,CEMAIL);
   nav('project');switchTab('posts');
-  const p=(await dbGet('projects',`?id=eq.${pid}&select=status`))[0];
-  if(p){const b=document.getElementById('pj-badge');b.textContent=statusLabel(p.status);b.className='status status-'+p.status;}
+  const [p]=await dbGet('projects',`?id=eq.${PID}&select=status`);
+  if(p){const b=document.getElementById('pj-badge');b.textContent=statusLabel(p.status);b.className='badge badge-'+statusClass(p.status);}
   loadPosts();loadDocs();
 }
 
-// ─── POSTS ───
+// ── POSTS ──
 async function loadPosts(){
-  const [posts,comments]=await Promise.all([
-    dbGet('posts',`?project_id=eq.${pid}&select=*&order=created_at.desc`),
+  const [posts,comments] = await Promise.all([
+    dbGet('posts',`?project_id=eq.${PID}&select=*&order=created_at.desc`),
     dbGet('post_comments',`?select=*,author:profiles(display_name,email)&order=created_at.asc`)
   ]);
-  document.getElementById('posts-list').innerHTML=posts.map(p=>{
-    const pc=comments.filter(c=>c.post_id===p.id);
+  document.getElementById('posts-list').innerHTML = posts.map(p=>{
+    const pc = comments.filter(c=>c.post_id===p.id);
     let media='';
     if(p.type==='image'&&p.url) media=`<img src="${esc(p.url)}" class="post-img" alt="">`;
     else if((p.type==='link'||p.type==='file')&&p.url) media=`<a href="${esc(p.url)}" class="post-link" target="_blank" rel="noopener">🔗 ${esc(p.url)}</a>`;
     return `<div class="post-card">
-      <div class="post-header"><div class="post-type-icon">${postIcon(p.type)}</div><div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div></div>
-      ${p.content?`<div class="post-content">${esc(p.content)}</div>`:''}${media}
+      <div class="post-head"><div class="post-ico">${postIcon(p.type)}</div>
+        <div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div>
+      </div>
+      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}${media}
       <div class="comments-section">
-        <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">Komentarze (${pc.length})</div>
-        ${pc.map(c=>`<div class="comment-item"><div class="comment-avatar">${avatarInitials(c.author?.display_name||c.author?.email)}</div><div class="comment-body"><div class="comment-author">${esc(c.author?.display_name||c.author?.email||'?')}</div><div class="comment-text">${esc(c.content)}</div></div></div>`).join('')||'<div style="font-size:12px;color:var(--text3)">Brak komentarzy</div>'}
+        <div class="comments-title">Komentarze (${pc.length})</div>
+        ${pc.map(c=>`<div class="comment-item">
+          <div class="comment-av">${initials(c.author?.email)}</div>
+          <div class="comment-body"><div class="comment-author">${esc(c.author?.display_name||c.author?.email||'?')}</div>
+          <div class="comment-text">${esc(c.content)}</div></div>
+        </div>`).join('')||'<div style="font-size:12px;color:var(--t3)">Brak komentarzy</div>'}
       </div>
     </div>`;
-  }).join('')||emptyState('ri-file-text-line','Brak materiałów. Dodaj pierwszy post.');
+  }).join('')||emptyHTML('ri-file-text-line','Brak materiałów. Dodaj pierwszy post.');
 }
+
 async function addPost(){
   const title=document.getElementById('pt-title').value.trim();
   const type=document.getElementById('pt-type').value;
-  const content=document.getElementById('pt-content').value.trim();
+  const body=document.getElementById('pt-body').value.trim();
   if(!title){toast('Wpisz tytuł','error');return;}
-  const body={project_id:pid,author_id:Auth.userId,title,type};
-  if(['link','image','file'].includes(type))body.url=content;else body.content=content;
-  await dbPost('posts',body);
-  document.getElementById('pt-title').value='';document.getElementById('pt-content').value='';
-  const proj=(await dbGet('projects',`?id=eq.${pid}&select=client_id`))[0];
-  if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:pid,content:`Admin opublikował nowy materiał: <strong>${title}</strong>`,type:'post'});
+  const obj={project_id:PID,author_id:Auth.userId,title,type};
+  if(['link','image','file'].includes(type))obj.url=body;else obj.content=body;
+  await dbPost('posts',obj);
+  document.getElementById('pt-title').value='';document.getElementById('pt-body').value='';
+  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Admin opublikował nowy materiał: <strong>${title}</strong>`,type:'post'});
   toast('Post opublikowany ✅');loadPosts();
 }
 
-// ─── CHAT ───
+// ── CHAT ──
 async function loadChat(){
-  const msgs=await dbGet('messages',`?project_id=eq.${pid}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`);
-  if(msgs.length===chatLen&&chatIv)return;chatLen=msgs.length;
-  const LOGO='https://ztcyhlitwwganjhgbbtm.supabase.co/storage/v1/object/public/assets/logo.png';
-  const box=document.getElementById('chat-box');
+  const msgs = await dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`);
+  if(msgs.length===chatLen&&chatIv)return;
+  chatLen=msgs.length;
+  const box=document.getElementById('chat-msgs');
   box.innerHTML=msgs.map(m=>{
     const isMe=m.sender_id===Auth.userId;
-    if(m.type==='system')return`<div class="chat-system-msg">${esc(m.content)}</div>`;
+    if(m.type==='system')return`<div class="chat-system">${esc(m.content)}</div>`;
     const isAdmin=m.sender?.role==='admin';
     const av=isAdmin
-      ?`<div class="chat-msg-avatar"><img src="${LOGO}" alt="DB" onerror="this.parentElement.textContent='DB'"></div>`
-      :`<div class="chat-msg-avatar">${avatarInitials(m.sender?.email)}</div>`;
-    return`<div class="chat-msg ${isMe?'mine':''}">${av}<div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;${isMe?'text-align:right':''}">${esc(isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'?'))}</div>
-      <div class="chat-bubble">${esc(m.content)}</div>
-      <div class="chat-msg-time">${timeAgo(m.created_at)}</div>
-    </div></div>`;
+      ?`<div class="msg-av"><img src="${LOGO}" alt="DB" onerror="this.textContent='DB'"></div>`
+      :`<div class="msg-av">${initials(m.sender?.email)}</div>`;
+    return`<div class="msg ${isMe?'mine':''}">
+      ${av}<div class="msg-content">
+        <div class="msg-sender">${esc(isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'?'))}</div>
+        <div class="msg-bubble">${esc(m.content)}</div>
+        <div class="msg-time">${timeAgo(m.created_at)}</div>
+      </div>
+    </div>`;
   }).join('');
   box.scrollTop=box.scrollHeight;
   if(chatIv)clearInterval(chatIv);
@@ -382,66 +409,74 @@ async function loadChat(){
 async function sendMsg(){
   const inp=document.getElementById('chat-inp');
   const txt=inp.value.trim();if(!txt)return;inp.value='';
-  await dbPost('messages',{project_id:pid,sender_id:Auth.userId,content:txt,type:'text'});
-  const proj=(await dbGet('projects',`?id=eq.${pid}&select=client_id`))[0];
-  if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:pid,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message'});
+  await dbPost('messages',{project_id:PID,sender_id:Auth.userId,content:txt,type:'text'});
+  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message'});
   loadChat();
 }
 document.getElementById('chat-inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
-// ─── DOCS ───
+// ── DOCS ──
 async function loadDocs(){
-  const docs=await dbGet('documents',`?project_id=eq.${pid}&select=*&order=created_at.desc`);
+  const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
   document.getElementById('docs-list').innerHTML=docs.map(d=>`
     <div class="doc-item"><div class="doc-icon">📄</div>
       <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${timeAgo(d.created_at)}</div></div>
-      <a href="${esc(d.url)}" target="_blank" rel="noopener" class="doc-download"><i class="ri-download-line"></i></a>
-    </div>`).join('')||emptyState('ri-folder-open-line','Brak dokumentów');
+      <a href="${esc(d.url)}" target="_blank" rel="noopener" class="doc-dl"><i class="ri-download-line"></i></a>
+    </div>`).join('')||emptyHTML('ri-folder-open-line','Brak dokumentów');
 }
 async function addDoc(){
   const name=document.getElementById('dc-name').value.trim();
   const url=document.getElementById('dc-url').value.trim();
   if(!name||!url){toast('Uzupełnij nazwę i URL','error');return;}
-  await dbPost('documents',{project_id:pid,uploaded_by:Auth.userId,name,url});
+  await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url});
   document.getElementById('dc-name').value='';document.getElementById('dc-url').value='';
-  const proj=(await dbGet('projects',`?id=eq.${pid}&select=client_id`))[0];
-  if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:pid,content:`Dodano nowy dokument: <strong>${name}</strong>`,type:'doc'});
+  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Dodano nowy dokument: <strong>${name}</strong>`,type:'doc'});
   toast('Dokument dodany ✅');loadDocs();
 }
 
-// ─── CREATE CLIENT ───
+// ── CREATE CLIENT ──
 async function createClient(){
   const name=document.getElementById('ac-name').value.trim();
   const email=document.getElementById('ac-email').value.trim();
   const pass=document.getElementById('ac-pass').value.trim();
   const errEl=document.getElementById('ac-err');errEl.textContent='';
-  if(!email||!pass){errEl.textContent='Email i hasło są wymagane';return;}
-  if(pass.length<6){errEl.textContent='Hasło musi mieć min. 6 znaków';return;}
-  const res=await edgeFn('create-client',{email,password:pass,displayName:name});
-  if(res.error){errEl.textContent=res.error;return;}
+  if(!email||!pass){errEl.textContent='E-mail i hasło są wymagane';return;}
+  if(pass.length<6){errEl.textContent='Hasło min. 6 znaków';return;}
+  const btn=document.getElementById('ac-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Tworzenie...';
+  const r=await edgeFn('create-client',{email,password:pass,displayName:name});
+  btn.disabled=false;btn.innerHTML='<i class="ri-user-add-line"></i>Utwórz klienta';
+  if(r.error){errEl.textContent=r.error;return;}
   closeModal('m-client');
   ['ac-name','ac-email','ac-pass'].forEach(id=>document.getElementById(id).value='');
-  toast('Klient utworzony, email wysłany ✅');loadDash();
+  toast('Klient utworzony, e-mail wysłany ✅');
+  loadDash();
 }
 
-// ─── CONVERT ORDER ───
+// ── CONVERT ORDER ──
 function openConvert(id,name,email){
-  oid=id;
-  document.getElementById('cv-sub').textContent=name+' · '+email;
-  document.getElementById('cv-pass').value='';document.getElementById('cv-err').textContent='';
+  OID=id;
+  document.getElementById('cv-sub').textContent=`${name} · ${email}`;
+  document.getElementById('cv-pass').value='';
+  document.getElementById('cv-err').textContent='';
   openModal('m-convert');
 }
 async function convertOrder(){
   const pass=document.getElementById('cv-pass').value.trim();
   const errEl=document.getElementById('cv-err');errEl.textContent='';
   if(!pass||pass.length<6){errEl.textContent='Hasło min. 6 znaków';return;}
-  const res=await edgeFn('convert-order-to-client',{orderId:oid,password:pass});
-  if(res.error){errEl.textContent=res.error;return;}
-  closeModal('m-convert');toast('Klient utworzony, email wysłany ✅');
+  const btn=document.getElementById('cv-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Wysyłanie...';
+  const r=await edgeFn('convert-order-to-client',{orderId:OID,password:pass});
+  btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Utwórz i wyślij e-mail';
+  if(r.error){errEl.textContent=r.error;return;}
+  closeModal('m-convert');toast('Klient utworzony, e-mail wysłany ✅');
   loadOrders();loadDash();
 }
 
-// ─── INIT ───
+// init
 loadDash();
 </script>
 </body>
