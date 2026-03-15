@@ -11,12 +11,9 @@
 <link rel="stylesheet" href="panel.css">
 </head>
 <body>
-
-<!-- PRELOADER -->
 <div class="preloader" id="preloader"><div class="pre-logo">Barabash <span>Flow</span></div><div class="pre-track"><div class="pre-bar" id="preBar"></div></div></div>
 
 <div class="layout">
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
@@ -36,7 +33,6 @@
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="topbar">
     <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ri-menu-line"></i></button>
@@ -92,32 +88,47 @@
         <div><h2 id="pj-name">—</h2><div class="sub" id="pj-client">—</div></div>
         <span class="badge" id="pj-badge" style="margin-left:auto"></span>
       </div>
-      <div class="tabs" id="proj-tabs">
+      <div class="tabs">
         <button class="tab-btn active" data-tab="posts">Projekt</button>
         <button class="tab-btn" data-tab="chat">Czat</button>
         <button class="tab-btn" data-tab="docs">Dokumenty</button>
       </div>
-      <!-- TAB: POSTS -->
+
+      <!-- TAB POSTS -->
       <div class="tab-pane active" id="tab-posts">
         <div class="card" style="margin-bottom:16px">
           <div class="card-title" style="margin-bottom:14px">Dodaj materiał</div>
           <div class="grid-2" style="margin-bottom:12px">
             <div class="form-group" style="margin:0"><label class="form-label">Tytuł</label><input class="form-control" id="pt-title" placeholder="Tytuł posta"></div>
             <div class="form-group" style="margin:0"><label class="form-label">Typ</label>
-              <select class="form-control" id="pt-type">
+              <select class="form-control" id="pt-type" onchange="onTypeChange()">
                 <option value="text">📝 Tekst</option>
-                <option value="link">🔗 Link</option>
-                <option value="image">🖼️ Zdjęcie (URL)</option>
-                <option value="file">📎 Plik (URL)</option>
+                <option value="file">📎 Plik / Zdjęcie / PDF</option>
+                <option value="link">🔗 Link URL</option>
               </select>
             </div>
           </div>
-          <div class="form-group"><label class="form-label">Treść / URL</label><textarea class="form-control" id="pt-body" rows="3" placeholder="Wpisz treść lub wklej URL..."></textarea></div>
-          <button class="btn btn-primary btn-sm" onclick="addPost()"><i class="ri-send-plane-line"></i>Opublikuj</button>
+          <div id="pt-body-wrap">
+            <div class="form-group" id="pt-text-wrap"><label class="form-label">Treść</label><textarea class="form-control" id="pt-body" rows="3" placeholder="Wpisz treść..."></textarea></div>
+            <div class="form-group" id="pt-file-wrap" style="display:none">
+              <label class="form-label">Plik (zdjęcie, PDF, dokument)</label>
+              <div class="upload-area" id="pt-upload-area">
+                <input type="file" id="pt-file" accept="image/*,application/pdf,.doc,.docx,.ppt,.pptx,.zip,.txt" onchange="onFileSelected('pt-file','pt-upload-preview','pt-upload-area')">
+                <i class="ri-upload-cloud-2-line"></i>
+                <p>Kliknij lub przeciągnij plik</p>
+                <span>Zdjęcia, PDF, dokumenty — maks. 50MB</span>
+              </div>
+              <div id="pt-upload-preview" style="margin-top:8px"></div>
+              <div class="upload-progress" id="pt-upload-progress"><div class="upload-progress-bar" id="pt-upload-bar"></div></div>
+            </div>
+            <div class="form-group" id="pt-link-wrap" style="display:none"><label class="form-label">URL</label><input class="form-control" id="pt-link" placeholder="https://..."></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addPost()" id="pt-btn"><i class="ri-send-plane-line"></i>Opublikuj</button>
         </div>
         <div id="posts-list"></div>
       </div>
-      <!-- TAB: CHAT -->
+
+      <!-- TAB CHAT -->
       <div class="tab-pane" id="tab-chat">
         <div class="card" style="padding:0;overflow:hidden">
           <div class="chat-wrap">
@@ -129,32 +140,45 @@
           </div>
         </div>
       </div>
-      <!-- TAB: DOCS -->
+
+      <!-- TAB DOCS -->
       <div class="tab-pane" id="tab-docs">
         <div class="card" style="margin-bottom:16px">
           <div class="card-title" style="margin-bottom:14px">Dodaj dokument</div>
-          <div class="grid-2" style="margin-bottom:12px">
-            <div class="form-group" style="margin:0"><label class="form-label">Nazwa pliku</label><input class="form-control" id="dc-name" placeholder="np. Umowa_2026.pdf"></div>
-            <div class="form-group" style="margin:0"><label class="form-label">URL pliku</label><input class="form-control" id="dc-url" placeholder="https://..."></div>
+          <div class="form-group"><label class="form-label">Plik dokumentu</label>
+            <div class="upload-area" id="dc-upload-area">
+              <input type="file" id="dc-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,image/*" onchange="onFileSelected('dc-file','dc-upload-preview','dc-upload-area')">
+              <i class="ri-folder-upload-line"></i>
+              <p>Kliknij lub przeciągnij dokument</p>
+              <span>PDF, Word, Excel, PowerPoint, Zdjęcia — maks. 50MB</span>
+            </div>
+            <div id="dc-upload-preview" style="margin-top:8px"></div>
+            <div class="upload-progress" id="dc-upload-progress"><div class="upload-progress-bar" id="dc-upload-bar"></div></div>
           </div>
+          <div class="form-group"><label class="form-label">Nazwa (opcjonalna)</label><input class="form-control" id="dc-name" placeholder="Zostawi puste = nazwa pliku"></div>
           <button class="btn btn-primary btn-sm" onclick="addDoc()"><i class="ri-upload-line"></i>Dodaj dokument</button>
         </div>
         <div id="docs-list"></div>
       </div>
     </div>
-
-  </div><!-- /content -->
+  </div>
 </main>
 </div>
 
-<!-- MODAL: Add Client -->
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="ri-close-line"></i></button>
+  <div id="lb-content"></div>
+</div>
+
+<!-- MODALS -->
 <div class="modal-backdrop" id="m-client">
   <div class="modal">
     <div class="modal-title">Dodaj nowego klienta</div>
     <div class="modal-sub">Klient otrzyma e-mail z danymi dostępowymi.</div>
     <div class="form-group"><label class="form-label">Imię i nazwisko</label><input class="form-control" id="ac-name" placeholder="Jan Kowalski"></div>
     <div class="form-group"><label class="form-label">E-mail *</label><input class="form-control" id="ac-email" type="email" placeholder="jan@firma.pl"></div>
-    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="ac-pass" placeholder="min. 6 znaków" type="password"></div>
+    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="ac-pass" type="password" placeholder="min. 6 znaków"></div>
     <div class="form-err" id="ac-err"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-client')">Anuluj</button>
@@ -163,13 +187,12 @@
   </div>
 </div>
 
-<!-- MODAL: New Project -->
 <div class="modal-backdrop" id="m-proj">
   <div class="modal">
     <div class="modal-title">Nowy projekt</div>
     <div class="modal-sub" id="np-sub">Dla klienta</div>
-    <div class="form-group"><label class="form-label">Nazwa projektu *</label><input class="form-control" id="np-name" placeholder="np. Strona WWW"></div>
-    <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="np-desc" placeholder="Krótki opis projektu..."></textarea></div>
+    <div class="form-group"><label class="form-label">Nazwa *</label><input class="form-control" id="np-name" placeholder="np. Strona WWW"></div>
+    <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="np-desc" placeholder="Krótki opis..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-proj')">Anuluj</button>
       <button class="btn btn-primary" onclick="createProject()"><i class="ri-add-line"></i>Utwórz projekt</button>
@@ -177,12 +200,11 @@
   </div>
 </div>
 
-<!-- MODAL: Convert Order -->
 <div class="modal-backdrop" id="m-convert">
   <div class="modal">
     <div class="modal-title">Utwórz konto dla klienta</div>
     <div class="modal-sub" id="cv-sub">—</div>
-    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="cv-pass" placeholder="min. 6 znaków" type="password"></div>
+    <div class="form-group"><label class="form-label">Hasło tymczasowe *</label><input class="form-control" id="cv-pass" type="password" placeholder="min. 6 znaków"></div>
     <div class="form-err" id="cv-err"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-convert')">Anuluj</button>
@@ -193,66 +215,87 @@
 
 <script src="panel.js"></script>
 <script>
-if (!Auth.requireAdmin()) throw 0;
+if(!Auth.requireAdmin()) throw 0;
 runPreloader();
-document.getElementById('adminName').textContent = Auth.name || 'Admin';
+document.getElementById('adminName').textContent = Auth.name||'Admin';
 document.getElementById('adminAv').textContent   = initials(Auth.name);
 document.getElementById('pageSub').textContent   = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-// ── STATE ──
-let CID='',CNAME='',CEMAIL='',PID='',OID='',chatIv=null,chatLen=0;
-const LOGO = 'https://ztcyhlitwwganjhgbbtm.supabase.co/storage/v1/object/public/assets/logo.png';
+let CID='',CNAME='',CEMAIL='',PID='',OID='',chatIv=null,chatLen=0,pollIv=null;
+let _ptFile=null, _dcFile=null;
 
-// ── NAV ──
+// NAV
 document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>nav(a.dataset.view)));
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
-function nav(v) {
+function nav(v){
   ['dashboard','clients','orders','cdetail','project'].forEach(id=>{
     const el=document.getElementById('v-'+id);
-    if(el) el.style.display=id===v?'block':'none';
+    if(el)el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
-  const titles={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent};
-  document.getElementById('pageTitle').textContent=titles[v]||'';
-  if(chatIv && v!=='project'){clearInterval(chatIv);chatIv=null;}
-  if(v==='dashboard') loadDash();
-  if(v==='clients')   loadClients();
-  if(v==='orders')    loadOrders();
+  const t={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent};
+  document.getElementById('pageTitle').textContent=t[v]||'';
+  if(chatIv&&v!=='project'){clearInterval(chatIv);chatIv=null;}
+  if(v==='dashboard')loadDash();
+  if(v==='clients')loadClients();
+  if(v==='orders')loadOrders();
 }
-
-function switchTab(tab) {
+function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+tab));
-  if(tab==='chat') { chatLen=0; loadChat(); }
-  if(tab==='posts') loadPosts();
-  if(tab==='docs')  loadDocs();
+  if(tab==='chat'){chatLen=0;loadChat();}
+  if(tab==='posts')loadPosts();
+  if(tab==='docs')loadDocs();
+}
+function onTypeChange(){
+  const t=document.getElementById('pt-type').value;
+  document.getElementById('pt-text-wrap').style.display=t==='text'?'block':'none';
+  document.getElementById('pt-file-wrap').style.display=t==='file'?'block':'none';
+  document.getElementById('pt-link-wrap').style.display=t==='link'?'block':'none';
 }
 
-// ── DASHBOARD ──
-async function loadDash() {
-  const [clients,projects,orders] = await Promise.all([
+// FILE SELECTION PREVIEW
+function onFileSelected(inputId, previewId, areaId) {
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  const previewEl = document.getElementById(previewId);
+  const isImg = file.type.startsWith('image/');
+  const isPdf = file.type==='application/pdf';
+  if (inputId==='pt-file') _ptFile = file;
+  if (inputId==='dc-file') _dcFile = file;
+  if (isImg) {
+    const url = URL.createObjectURL(file);
+    previewEl.innerHTML = `<img src="${url}" style="max-height:120px;border-radius:8px;object-fit:cover;max-width:100%">`;
+  } else {
+    const icon = isPdf ? '📄' : '📎';
+    previewEl.innerHTML = `<div class="file-chip">${icon} ${esc(file.name)} <span style="color:var(--t3);font-size:11px">(${fmtSize(file.size)})</span></div>`;
+  }
+  document.getElementById(areaId).style.borderColor='var(--a)';
+}
+
+// DASHBOARD
+async function loadDash(){
+  const [clients,projects,orders]=await Promise.all([
     dbGet('profiles','?role=eq.client&select=*&order=created_at.desc'),
     dbGet('projects','?select=id'),
     dbGet('orders','?status=eq.open&select=*&order=created_at.desc'),
   ]);
-  document.getElementById('sc-c').textContent = clients.length;
-  document.getElementById('sc-p').textContent = projects.length;
-  document.getElementById('sc-o').textContent = orders.length;
-  const nb = document.getElementById('nb-orders');
+  document.getElementById('sc-c').textContent=clients.length;
+  document.getElementById('sc-p').textContent=projects.length;
+  document.getElementById('sc-o').textContent=orders.length;
+  const nb=document.getElementById('nb-orders');
   if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
-
-  document.getElementById('d-clients').innerHTML = clients.slice(0,5).map(c=>`
+  document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>`
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
       <div class="item-av">${initials(c.display_name||c.email)}</div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
       <div class="item-time">${timeAgo(c.created_at)}</div>
     </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
-
-  document.getElementById('d-orders').innerHTML = orders.slice(0,4).map(o=>`
-    <div class="order-card open">
-      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        <div><strong>${esc(o.name)}</strong> <span style="font-size:12px;color:var(--t3)">${esc(o.email)}</span></div>
+  document.getElementById('d-orders').innerHTML=orders.slice(0,4).map(o=>`
+    <div class="order-card open" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        <div><strong>${esc(o.name)}</strong> <span style="font-size:11px;color:var(--t3)">${esc(o.email)}</span></div>
         <span class="badge badge-open">Otwarty</span>
       </div>
       <p style="font-size:13px;color:var(--t2);margin-bottom:10px;line-height:1.5">${esc(o.message).slice(0,120)}${o.message.length>120?'…':''}</p>
@@ -260,12 +303,12 @@ async function loadDash() {
     </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak nowych formularzy');
 }
 
-// ── CLIENTS ──
-async function loadClients() {
-  const clients = await dbGet('profiles','?role=eq.client&select=*&order=created_at.desc');
-  const nb = document.getElementById('nb-clients');
+// CLIENTS
+async function loadClients(){
+  const clients=await dbGet('profiles','?role=eq.client&select=*&order=created_at.desc');
+  const nb=document.getElementById('nb-clients');
   if(clients.length){nb.textContent=clients.length;nb.classList.add('show');}else nb.classList.remove('show');
-  document.getElementById('cl-list').innerHTML = clients.map(c=>`
+  document.getElementById('cl-list').innerHTML=clients.map(c=>`
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
       <div class="item-av">${initials(c.display_name||c.email)}</div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
@@ -273,31 +316,30 @@ async function loadClients() {
       <i class="ri-arrow-right-s-line item-arrow"></i>
     </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
 }
-
-async function openClient(id,name,email) {
+async function openClient(id,name,email){
   CID=id;CNAME=name;CEMAIL=email;
-  document.getElementById('cd-name').textContent  = name;
-  document.getElementById('cd-email').textContent = email;
+  document.getElementById('cd-name').textContent=name;
+  document.getElementById('cd-email').textContent=email;
   nav('cdetail');
-  const projs = await dbGet('projects',`?client_id=eq.${id}&select=*&order=updated_at.desc`);
-  // Count unread notifs per project
-  const notifs = await dbGet('notifications',`?user_id=eq.${id}&is_read=eq.false&select=project_id`);
-  const nmap = {};
-  notifs.forEach(n=>{if(n.project_id)nmap[n.project_id]=(nmap[n.project_id]||0)+1;});
-  document.getElementById('cd-projs').innerHTML = projs.map(p=>`
+  const [projs,notifs]=await Promise.all([
+    dbGet('projects',`?client_id=eq.${id}&select=*&order=updated_at.desc`),
+    dbGet('notifications',`?user_id=eq.${id}&is_read=eq.false&select=project_id`)
+  ]);
+  const nm={};notifs.forEach(n=>{if(n.project_id)nm[n.project_id]=(nm[n.project_id]||0)+1;});
+  document.getElementById('cd-projs').innerHTML=projs.map(p=>`
     <div class="proj-card" onclick="openProject('${p.id}','${esc(p.name)}')">
       <div class="proj-icon">🚀</div>
       <div class="proj-info"><div class="proj-name">${esc(p.name)}</div><div class="proj-meta">${esc(p.description||'—')} · ${timeAgo(p.updated_at)}</div></div>
-      ${nmap[p.id]?`<span class="proj-notif show">${nmap[p.id]}</span>`:''}
+      ${nm[p.id]?`<span class="proj-notif show">${nm[p.id]}</span>`:''}
       <span class="badge badge-${statusClass(p.status)}">${statusLabel(p.status)}</span>
       <i class="ri-arrow-right-s-line item-arrow"></i>
-    </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów. Utwórz pierwszy.');
+    </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów.');
 }
 
-// ── ORDERS ──
-async function loadOrders() {
-  const orders = await dbGet('orders','?select=*&order=created_at.desc');
-  document.getElementById('or-list').innerHTML = orders.map(o=>`
+// ORDERS
+async function loadOrders(){
+  const orders=await dbGet('orders','?select=*&order=created_at.desc');
+  document.getElementById('or-list').innerHTML=orders.map(o=>`
     <div class="order-card ${o.status}">
       <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <div><strong>${esc(o.name)}</strong> &nbsp;<a href="mailto:${esc(o.email)}" style="font-size:12px;color:var(--a)">${esc(o.email)}</a></div>
@@ -313,7 +355,7 @@ async function loadOrders() {
     </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak formularzy');
 }
 
-// ── PROJECT ──
+// PROJECT
 function openNewProj(){
   document.getElementById('np-sub').textContent='Dla: '+CNAME;
   document.getElementById('np-name').value='';
@@ -325,8 +367,7 @@ async function createProject(){
   const desc=document.getElementById('np-desc').value.trim();
   if(!name){toast('Wpisz nazwę projektu','error');return;}
   await dbPost('projects',{client_id:CID,name,description:desc,status:'active'});
-  closeModal('m-proj');toast('Projekt utworzony ✅');
-  openClient(CID,CNAME,CEMAIL);
+  closeModal('m-proj');toast('Projekt utworzony ✅');openClient(CID,CNAME,CEMAIL);
 }
 async function openProject(id,name){
   PID=id;chatLen=0;
@@ -336,32 +377,29 @@ async function openProject(id,name){
   nav('project');switchTab('posts');
   const [p]=await dbGet('projects',`?id=eq.${PID}&select=status`);
   if(p){const b=document.getElementById('pj-badge');b.textContent=statusLabel(p.status);b.className='badge badge-'+statusClass(p.status);}
-  loadPosts();loadDocs();
 }
 
-// ── POSTS ──
+// POSTS
 async function loadPosts(){
-  const [posts,comments] = await Promise.all([
+  const [posts,comments]=await Promise.all([
     dbGet('posts',`?project_id=eq.${PID}&select=*&order=created_at.desc`),
     dbGet('post_comments',`?select=*,author:profiles(display_name,email)&order=created_at.asc`)
   ]);
-  document.getElementById('posts-list').innerHTML = posts.map(p=>{
-    const pc = comments.filter(c=>c.post_id===p.id);
-    let media='';
-    if(p.type==='image'&&p.url) media=`<img src="${esc(p.url)}" class="post-img" alt="">`;
-    else if((p.type==='link'||p.type==='file')&&p.url) media=`<a href="${esc(p.url)}" class="post-link" target="_blank" rel="noopener">🔗 ${esc(p.url)}</a>`;
+  document.getElementById('posts-list').innerHTML=posts.map(p=>{
+    const pc=comments.filter(c=>c.post_id===p.id);
+    const fileHtml = renderFilePreview(p.file_url||p.url, p.file_name||p.url, p.mime_type);
     return `<div class="post-card">
       <div class="post-head"><div class="post-ico">${postIcon(p.type)}</div>
         <div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div>
       </div>
-      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}${media}
+      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}
+      ${fileHtml}
       <div class="comments-section">
         <div class="comments-title">Komentarze (${pc.length})</div>
         ${pc.map(c=>`<div class="comment-item">
-          <div class="comment-av">${initials(c.author?.email)}</div>
+          <div class="comment-av">${initials(c.author?.display_name||c.author?.email)}</div>
           <div class="comment-body"><div class="comment-author">${esc(c.author?.display_name||c.author?.email||'?')}</div>
-          <div class="comment-text">${esc(c.content)}</div></div>
-        </div>`).join('')||'<div style="font-size:12px;color:var(--t3)">Brak komentarzy</div>'}
+          <div class="comment-text">${esc(c.content)}</div></div></div>`).join('')||'<div style="font-size:12px;color:var(--t3)">Brak komentarzy</div>'}
       </div>
     </div>`;
   }).join('')||emptyHTML('ri-file-text-line','Brak materiałów. Dodaj pierwszy post.');
@@ -370,37 +408,57 @@ async function loadPosts(){
 async function addPost(){
   const title=document.getElementById('pt-title').value.trim();
   const type=document.getElementById('pt-type').value;
-  const body=document.getElementById('pt-body').value.trim();
   if(!title){toast('Wpisz tytuł','error');return;}
-  const obj={project_id:PID,author_id:Auth.userId,title,type};
-  if(['link','image','file'].includes(type))obj.url=body;else obj.content=body;
-  await dbPost('posts',obj);
-  document.getElementById('pt-title').value='';document.getElementById('pt-body').value='';
-  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Admin opublikował nowy materiał: <strong>${title}</strong>`,type:'post'});
-  toast('Post opublikowany ✅');loadPosts();
+  const btn=document.getElementById('pt-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Publikowanie...';
+  try {
+    const obj={project_id:PID,author_id:Auth.userId,title,type};
+    if(type==='text'){
+      obj.content=document.getElementById('pt-body').value.trim();
+    } else if(type==='file'&&_ptFile){
+      const prog=document.getElementById('pt-upload-progress');
+      const bar=document.getElementById('pt-upload-bar');
+      prog.classList.add('show');bar.style.width='30%';
+      const up=await uploadFile(_ptFile,'post-files');
+      bar.style.width='100%';
+      obj.file_url=up.url;obj.file_name=up.name;obj.file_size=up.size;obj.mime_type=up.mime;obj.url=up.url;
+      setTimeout(()=>prog.classList.remove('show'),800);
+    } else if(type==='link'){
+      obj.url=document.getElementById('pt-link').value.trim();
+    }
+    await dbPost('posts',obj);
+    document.getElementById('pt-title').value='';
+    document.getElementById('pt-body').value='';
+    document.getElementById('pt-link').value='';
+    _ptFile=null;
+    document.getElementById('pt-upload-preview').innerHTML='';
+    document.getElementById('pt-upload-area').style.borderColor='';
+    const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Admin opublikował nowy materiał: <strong>${title}</strong>`,type:'post'});
+    toast('Post opublikowany ✅');loadPosts();
+  } catch(e){toast('Błąd: '+e.message,'error');}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Opublikuj';}
 }
 
-// ── CHAT ──
+// CHAT — FIXED AVATARS
 async function loadChat(){
-  const msgs = await dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`);
-  if(msgs.length===chatLen&&chatIv)return;
-  chatLen=msgs.length;
+  const msgs=await dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`);
+  if(msgs.length===chatLen&&chatIv)return;chatLen=msgs.length;
   const box=document.getElementById('chat-msgs');
   box.innerHTML=msgs.map(m=>{
     const isMe=m.sender_id===Auth.userId;
     if(m.type==='system')return`<div class="chat-system">${esc(m.content)}</div>`;
     const isAdmin=m.sender?.role==='admin';
+    // FIXED: use img tag with onerror fallback for admin logo
     const av=isAdmin
-      ?`<div class="msg-av"><img src="${LOGO}" alt="DB" onerror="this.textContent='DB'"></div>`
-      :`<div class="msg-av">${initials(m.sender?.email)}</div>`;
+      ?`<div class="msg-av" style="background:none;padding:0"><img src="${LOGO_URL}" alt="DB" style="width:30px;height:30px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff\\'>DB</div>'"></div>`
+      :`<div class="msg-av" style="background:linear-gradient(135deg,#5b21b6,#e040fb)">${initials(m.sender?.display_name||m.sender?.email)}</div>`;
     return`<div class="msg ${isMe?'mine':''}">
       ${av}<div class="msg-content">
         <div class="msg-sender">${esc(isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'?'))}</div>
         <div class="msg-bubble">${esc(m.content)}</div>
         <div class="msg-time">${timeAgo(m.created_at)}</div>
-      </div>
-    </div>`;
+      </div></div>`;
   }).join('');
   box.scrollTop=box.scrollHeight;
   if(chatIv)clearInterval(chatIv);
@@ -411,32 +469,52 @@ async function sendMsg(){
   const txt=inp.value.trim();if(!txt)return;inp.value='';
   await dbPost('messages',{project_id:PID,sender_id:Auth.userId,content:txt,type:'text'});
   const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message'});
+  if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message'});
   loadChat();
 }
 document.getElementById('chat-inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
-// ── DOCS ──
+// DOCS — with file upload
 async function loadDocs(){
   const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
-  document.getElementById('docs-list').innerHTML=docs.map(d=>`
-    <div class="doc-item"><div class="doc-icon">📄</div>
-      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${timeAgo(d.created_at)}</div></div>
-      <a href="${esc(d.url)}" target="_blank" rel="noopener" class="doc-dl"><i class="ri-download-line"></i></a>
-    </div>`).join('')||emptyHTML('ri-folder-open-line','Brak dokumentów');
+  document.getElementById('docs-list').innerHTML=docs.map(d=>{
+    const url=d.file_url||d.url;
+    const mime=d.mime_type||'';
+    const isImg=mime.startsWith('image/');
+    const isPdf=mime==='application/pdf';
+    return`<div class="doc-item">
+      <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
+      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
+      ${(isImg||isPdf)?`<button class="doc-dl" onclick="openLightbox('${isImg?'img':'pdf'}','${esc(url)}')"><i class="ri-eye-line"></i></button>`:''}
+      <a href="${esc(url)}" download="${esc(d.name)}" target="_blank" class="doc-dl"><i class="ri-download-line"></i></a>
+    </div>`;
+  }).join('')||emptyHTML('ri-folder-open-line','Brak dokumentów');
 }
 async function addDoc(){
-  const name=document.getElementById('dc-name').value.trim();
-  const url=document.getElementById('dc-url').value.trim();
-  if(!name||!url){toast('Uzupełnij nazwę i URL','error');return;}
-  await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url});
-  document.getElementById('dc-name').value='';document.getElementById('dc-url').value='';
-  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-  if(proj) await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Dodano nowy dokument: <strong>${name}</strong>`,type:'doc'});
-  toast('Dokument dodany ✅');loadDocs();
+  if(!_dcFile){toast('Wybierz plik','error');return;}
+  const btn=document.querySelector('[onclick="addDoc()"]');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
+  try {
+    const prog=document.getElementById('dc-upload-progress');
+    const bar=document.getElementById('dc-upload-bar');
+    prog.classList.add('show');bar.style.width='40%';
+    const up=await uploadFile(_dcFile,'doc-files');
+    bar.style.width='100%';
+    const name=document.getElementById('dc-name').value.trim()||up.name;
+    await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url:up.url,file_url:up.url,mime_type:up.mime,file_size:up.size});
+    document.getElementById('dc-name').value='';
+    document.getElementById('dc-upload-preview').innerHTML='';
+    document.getElementById('dc-upload-area').style.borderColor='';
+    _dcFile=null;
+    const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Dodano nowy dokument: <strong>${name}</strong>`,type:'doc'});
+    toast('Dokument dodany ✅');loadDocs();
+    setTimeout(()=>prog.classList.remove('show'),800);
+  } catch(e){toast('Błąd przesyłania: '+e.message,'error');}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ri-upload-line"></i>Dodaj dokument';}
 }
 
-// ── CREATE CLIENT ──
+// CREATE CLIENT
 async function createClient(){
   const name=document.getElementById('ac-name').value.trim();
   const email=document.getElementById('ac-email').value.trim();
@@ -451,11 +529,10 @@ async function createClient(){
   if(r.error){errEl.textContent=r.error;return;}
   closeModal('m-client');
   ['ac-name','ac-email','ac-pass'].forEach(id=>document.getElementById(id).value='');
-  toast('Klient utworzony, e-mail wysłany ✅');
-  loadDash();
+  toast('Klient utworzony, e-mail wysłany ✅');loadDash();
 }
 
-// ── CONVERT ORDER ──
+// CONVERT ORDER
 function openConvert(id,name,email){
   OID=id;
   document.getElementById('cv-sub').textContent=`${name} · ${email}`;
@@ -472,11 +549,9 @@ async function convertOrder(){
   const r=await edgeFn('convert-order-to-client',{orderId:OID,password:pass});
   btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Utwórz i wyślij e-mail';
   if(r.error){errEl.textContent=r.error;return;}
-  closeModal('m-convert');toast('Klient utworzony, e-mail wysłany ✅');
-  loadOrders();loadDash();
+  closeModal('m-convert');toast('Klient utworzony, e-mail wysłany ✅');loadOrders();loadDash();
 }
 
-// init
 loadDash();
 </script>
 </body>
