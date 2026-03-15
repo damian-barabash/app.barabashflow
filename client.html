@@ -41,6 +41,7 @@
   </div>
   <div class="content">
     <div id="v-projects"><div id="proj-grid"></div></div>
+
     <div id="v-project" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('projects')"><i class="ri-arrow-left-line"></i></button>
@@ -66,6 +67,7 @@
       <div class="tab-pane" id="tab-posts"><div id="posts-list"></div></div>
       <div class="tab-pane" id="tab-docs"><div id="docs-list"></div></div>
     </div>
+
     <div id="v-notifications" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="card-title">Powiadomienia</div>
@@ -90,11 +92,8 @@ document.getElementById('clientName').textContent = Auth.name||'Klient';
 document.getElementById('clientAv').textContent   = initials(Auth.name||Auth.email);
 document.getElementById('pageSub').textContent    = 'Witaj, '+(Auth.name||'');
 
-let PID='',chatIv=null,chatLen=0,pollIv=null,chatMsgIds=[];
-
-// SIDEBAR MOBILE
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+let PID='', chatIv=null, chatLen=0, pollIv=null;
+let _lastMsgIdForPopup=null, _lastNotifId=null;
 
 // NAV
 document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>{nav(a.dataset.view);closeSidebar();}));
@@ -129,74 +128,71 @@ async function loadProjects(){
     </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów. Administrator wkrótce utworzy Twój projekt.');
 }
 async function openProject(id,name,status){
-  PID=id;chatLen=0;chatMsgIds=[];
+  PID=id;chatLen=0;_lastMsgIdForPopup=null;
   document.getElementById('pj-name').textContent=name;
   document.getElementById('pj-status').textContent='Status: '+statusLabel(status);
   const b=document.getElementById('pj-badge');b.textContent=statusLabel(status);b.className='badge badge-'+statusClass(status);
   nav('project');switchTab('chat');
-  // Start realtime polling — show popup for new messages
+
+  // Popup polling for new messages while in project
   if(pollIv)clearInterval(pollIv);
-  let lastMsgId=null;
   pollIv=setInterval(async()=>{
     const msgs=await dbGet('messages',`?project_id=eq.${PID}&select=id,content,sender_id,sender:profiles(display_name,email,role)&order=created_at.desc&limit=1`);
-    if(msgs.length&&msgs[0].id!==lastMsgId){
-      if(lastMsgId&&msgs[0].sender_id!==Auth.userId){
-        const isAdmin=msgs[0].sender?.role==='admin';
+    if(!msgs.length) return;
+    const m=msgs[0];
+    const isFromAdmin=m.sender?.role==='admin';
+    if(!isFromAdmin||m.sender_id===Auth.userId) return;
+    if(m.id!==_lastMsgIdForPopup){
+      if(_lastMsgIdForPopup){ // Not first load — show popup
+        const senderName=m.sender?.display_name||'Dmytrii Barabash';
         showPopup({
-          title:isAdmin?'Dmytrii Barabash':(msgs[0].sender?.display_name||msgs[0].sender?.email||'Klient'),
-          text:msgs[0].content,
-          icon:isAdmin?LOGO_URL:null,
+          title:senderName,
+          text:m.content,
+          icon:LOGO_URL,
           actionLabel:'Przejdź do czatu',
-          onAction:()=>{switchTab('chat');}
+          onAction:()=>switchTab('chat')
         });
       }
-      lastMsgId=msgs[0].id;
+      _lastMsgIdForPopup=m.id;
     }
   },5000);
 }
 
-// CHAT — with read receipts + FIXED AVATARS
+// CHAT — uses createMsgElement (DOM-based, FIXED avatars)
 async function loadChat(){
   const [msgs,reads]=await Promise.all([
     dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`),
     dbGet('message_reads',`?select=message_id,user_id`)
   ]);
-  if(msgs.length===chatLen&&chatIv)return;
+  if(msgs.length===chatLen&&chatIv) return;
   chatLen=msgs.length;
-  chatMsgIds=msgs.map(m=>m.id);
 
-  // Mark all messages as read by this client (reset throttle)
-  const unreadFromAdmin=msgs.filter(m=>m.sender_id!==Auth.userId&&!reads.some(r=>r.message_id===m.id&&r.user_id===Auth.userId));
-  if(unreadFromAdmin.length>0){
-    await edgeFn('mark-messages-read',{messageIds:unreadFromAdmin.map(m=>m.id),projectId:PID,userId:Auth.userId});
+  // Mark unread messages from admin as read
+  const unread=msgs.filter(m=>
+    m.sender_id!==Auth.userId &&
+    !reads.some(r=>r.message_id===m.id&&r.user_id===Auth.userId)
+  );
+  if(unread.length>0){
+    // Fire-and-forget — don't await to not block UI
+    edgeFn('mark-messages-read',{
+      messageIds:unread.map(m=>m.id),
+      projectId:PID,
+      userId:Auth.userId
+    }).catch(()=>{});
   }
 
   const box=document.getElementById('chat-msgs');
-  box.innerHTML=msgs.map(m=>{
-    const isMe=m.sender_id===Auth.userId;
-    if(m.type==='system')return`<div class="chat-system">${esc(m.content)}</div>`;
-    const isAdmin=m.sender?.role==='admin';
-    const senderName=isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'Klient');
-    // FIXED: Admin = logo image; Client = initials with purple gradient (NOT question mark)
-    const avHtml=isAdmin
-      ?`<div class="msg-av" style="background:transparent;padding:0;overflow:hidden"><img src="${LOGO_URL}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:11px;font-weight:700\\'>DB</span>';this.parentElement.style.background='linear-gradient(135deg,#9b27af,#e040fb)';" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:block"></div>`
-      :`<div class="msg-av" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)">${initials(m.sender?.display_name||m.sender?.email)}</div>`;
-    const isRead=reads.some(r=>r.message_id===m.id&&r.user_id!==m.sender_id);
-    const rcpt=isMe?`<span class="msg-reads ${isRead?'read':''}">${isRead?'✓✓':'✓'}</span>`:'';
-    return`<div class="msg ${isMe?'mine':''}">
-      ${avHtml}<div class="msg-content">
-        <div class="msg-sender">${esc(senderName)}</div>
-        <div class="msg-bubble">${esc(m.content)}</div>
-        <div class="msg-time">${timeAgo(m.created_at)}${rcpt}</div>
-      </div></div>`;
-  }).join('');
+  box.innerHTML='';
+  msgs.forEach(m=>{
+    box.appendChild(createMsgElement(m, reads, Auth.userId));
+  });
   box.scrollTop=box.scrollHeight;
+
   if(chatIv)clearInterval(chatIv);
   chatIv=setInterval(loadChat,4000);
 }
 async function sendMsg(){
-  const inp=document.getElementById('chat-inp');
-  const txt=inp.value.trim();if(!txt)return;inp.value='';
+  const inp=document.getElementById('chat-inp'),txt=inp.value.trim();if(!txt)return;inp.value='';
   await dbPost('messages',{project_id:PID,sender_id:Auth.userId,content:txt,type:'text'});
   loadChat();
 }
@@ -210,12 +206,12 @@ async function loadPosts(){
   ]);
   document.getElementById('posts-list').innerHTML=posts.map(p=>{
     const pc=comments.filter(c=>c.post_id===p.id);
-    const fileHtml=renderFilePreview(p.file_url||p.url,p.file_name||p.url,p.mime_type);
     return`<div class="post-card">
       <div class="post-head"><div class="post-ico">${postIcon(p.type)}</div>
         <div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div>
       </div>
-      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}${fileHtml}
+      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}
+      ${renderFilePreview(p.file_url||p.url,p.file_name||p.url,p.mime_type)}
       <div class="comments-section">
         <div class="comments-title">Komentarze (${pc.length})</div>
         ${pc.map(c=>`<div class="comment-item"><div class="comment-av">${initials(c.author?.display_name||c.author?.email)}</div>
@@ -230,8 +226,7 @@ async function loadPosts(){
   }).join('')||emptyHTML('ri-file-text-line','Brak materiałów od administratora.');
 }
 async function addComment(postId,postTitle){
-  const inp=document.getElementById('cm-'+postId);
-  const content=inp.value.trim();if(!content)return;inp.value='';
+  const inp=document.getElementById('cm-'+postId),content=inp.value.trim();if(!content)return;inp.value='';
   await dbPost('post_comments',{post_id:postId,author_id:Auth.userId,content});
   await dbPost('messages',{project_id:PID,sender_id:Auth.userId,content:`💬 [komentarz do "${postTitle}"]: ${content}`,type:'text'});
   toast('Komentarz dodany ✅');loadPosts();
@@ -241,8 +236,7 @@ async function addComment(postId,postTitle){
 async function loadDocs(){
   const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
   document.getElementById('docs-list').innerHTML=docs.map(d=>{
-    const url=d.file_url||d.url;const mime=d.mime_type||'';
-    const isImg=mime.startsWith('image/');const isPdf=mime==='application/pdf';
+    const url=d.file_url||d.url,mime=d.mime_type||'',isImg=mime.startsWith('image/'),isPdf=mime==='application/pdf';
     return`<div class="doc-item">
       <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
       <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
@@ -280,16 +274,22 @@ loadProjects();
   const n=await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
   updateNotifBadge(n);
 })();
-// Poll for new notifications
+
+// Global notification poll
 setInterval(async()=>{
   const n=await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id,content,type,project_id&order=created_at.desc`);
   updateNotifBadge(n);
-  // Show popup for latest unread
-  if(n.length&&n[0].id!==window._lastNotifId){
-    if(window._lastNotifId){
-      showPopup({title:'Barabash Flow',text:n[0].content.replace(/<[^>]+>/g,''),icon:LOGO_URL,actionLabel:'Zobacz powiadomienia',onAction:()=>nav('notifications')});
+  if(n.length&&n[0].id!==_lastNotifId){
+    if(_lastNotifId){
+      showPopup({
+        title:'Barabash Flow',
+        text:n[0].content.replace(/<[^>]+>/g,''),
+        icon:LOGO_URL,
+        actionLabel:'Zobacz powiadomienia',
+        onAction:()=>nav('notifications')
+      });
     }
-    window._lastNotifId=n[0].id;
+    _lastNotifId=n[0].id;
   }
 },30000);
 </script>
