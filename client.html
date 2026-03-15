@@ -12,12 +12,14 @@
 </head>
 <body>
 <div class="preloader" id="preloader"><div class="pre-logo">Barabash <span>Flow</span></div><div class="pre-track"><div class="pre-bar" id="preBar"></div></div></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
     <div class="brand">Mój panel</div>
+    <button class="sidebar-close" onclick="closeSidebar()"><i class="ri-close-line"></i></button>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-link active" data-view="projects"><i class="ri-folder-line"></i>Projekty</div>
@@ -34,15 +36,11 @@
 
 <main class="main">
   <div class="topbar">
-    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ri-menu-line"></i></button>
+    <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Moje projekty</div><div class="topbar-sub" id="pageSub"></div></div>
   </div>
   <div class="content">
-
-    <!-- PROJECTS -->
     <div id="v-projects"><div id="proj-grid"></div></div>
-
-    <!-- PROJECT -->
     <div id="v-project" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('projects')"><i class="ri-arrow-left-line"></i></button>
@@ -54,8 +52,6 @@
         <button class="tab-btn" data-tab="posts">Projekt</button>
         <button class="tab-btn" data-tab="docs">Dokumenty</button>
       </div>
-
-      <!-- CHAT (first tab for client) -->
       <div class="tab-pane active" id="tab-chat">
         <div class="card" style="padding:0;overflow:hidden">
           <div class="chat-wrap">
@@ -67,15 +63,9 @@
           </div>
         </div>
       </div>
-
-      <!-- POSTS -->
       <div class="tab-pane" id="tab-posts"><div id="posts-list"></div></div>
-
-      <!-- DOCS -->
       <div class="tab-pane" id="tab-docs"><div id="docs-list"></div></div>
     </div>
-
-    <!-- NOTIFICATIONS -->
     <div id="v-notifications" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="card-title">Powiadomienia</div>
@@ -87,7 +77,6 @@
 </main>
 </div>
 
-<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" onclick="closeLightbox()"><i class="ri-close-line"></i></button>
   <div id="lb-content"></div>
@@ -101,16 +90,18 @@ document.getElementById('clientName').textContent = Auth.name||'Klient';
 document.getElementById('clientAv').textContent   = initials(Auth.name||Auth.email);
 document.getElementById('pageSub').textContent    = 'Witaj, '+(Auth.name||'');
 
-let PID='',chatIv=null,chatLen=0,pollIv=null;
+let PID='',chatIv=null,chatLen=0,pollIv=null,chatMsgIds=[];
+
+// SIDEBAR MOBILE
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
 
 // NAV
-document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>nav(a.dataset.view)));
+document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>{nav(a.dataset.view);closeSidebar();}));
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
 function nav(v){
-  ['projects','project','notifications'].forEach(id=>{
-    const el=document.getElementById('v-'+id);if(el)el.style.display=id===v?'block':'none';
-  });
+  ['projects','project','notifications'].forEach(id=>{const el=document.getElementById('v-'+id);if(el)el.style.display=id===v?'block':'none';});
   document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
   const t={projects:'Moje projekty',project:document.getElementById('pj-name').textContent,notifications:'Powiadomienia'};
   document.getElementById('pageTitle').textContent=t[v]||'';
@@ -138,37 +129,65 @@ async function loadProjects(){
     </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów. Administrator wkrótce utworzy Twój projekt.');
 }
 async function openProject(id,name,status){
-  PID=id;chatLen=0;
+  PID=id;chatLen=0;chatMsgIds=[];
   document.getElementById('pj-name').textContent=name;
   document.getElementById('pj-status').textContent='Status: '+statusLabel(status);
   const b=document.getElementById('pj-badge');b.textContent=statusLabel(status);b.className='badge badge-'+statusClass(status);
   nav('project');switchTab('chat');
-  // Start realtime polling for this project
+  // Start realtime polling — show popup for new messages
   if(pollIv)clearInterval(pollIv);
-  pollIv=startRealtimePolling(PID,
-    (refresh)=>{if(refresh)loadChat();},
-    (notif,refresh)=>{if(refresh)updateNotifBadge();}
-  );
+  let lastMsgId=null;
+  pollIv=setInterval(async()=>{
+    const msgs=await dbGet('messages',`?project_id=eq.${PID}&select=id,content,sender_id,sender:profiles(display_name,email,role)&order=created_at.desc&limit=1`);
+    if(msgs.length&&msgs[0].id!==lastMsgId){
+      if(lastMsgId&&msgs[0].sender_id!==Auth.userId){
+        const isAdmin=msgs[0].sender?.role==='admin';
+        showPopup({
+          title:isAdmin?'Dmytrii Barabash':(msgs[0].sender?.display_name||msgs[0].sender?.email||'Klient'),
+          text:msgs[0].content,
+          icon:isAdmin?LOGO_URL:null,
+          actionLabel:'Przejdź do czatu',
+          onAction:()=>{switchTab('chat');}
+        });
+      }
+      lastMsgId=msgs[0].id;
+    }
+  },5000);
 }
 
-// CHAT — FIXED AVATARS
+// CHAT — with read receipts + FIXED AVATARS
 async function loadChat(){
-  const msgs=await dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`);
-  if(msgs.length===chatLen&&chatIv)return;chatLen=msgs.length;
+  const [msgs,reads]=await Promise.all([
+    dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`),
+    dbGet('message_reads',`?select=message_id,user_id`)
+  ]);
+  if(msgs.length===chatLen&&chatIv)return;
+  chatLen=msgs.length;
+  chatMsgIds=msgs.map(m=>m.id);
+
+  // Mark all messages as read by this client (reset throttle)
+  const unreadFromAdmin=msgs.filter(m=>m.sender_id!==Auth.userId&&!reads.some(r=>r.message_id===m.id&&r.user_id===Auth.userId));
+  if(unreadFromAdmin.length>0){
+    await edgeFn('mark-messages-read',{messageIds:unreadFromAdmin.map(m=>m.id),projectId:PID,userId:Auth.userId});
+  }
+
   const box=document.getElementById('chat-msgs');
   box.innerHTML=msgs.map(m=>{
     const isMe=m.sender_id===Auth.userId;
     if(m.type==='system')return`<div class="chat-system">${esc(m.content)}</div>`;
     const isAdmin=m.sender?.role==='admin';
-    // Admin: logo image, Client: letter from their own email
-    const av=isAdmin
-      ?`<div class="msg-av" style="background:none;padding:0"><img src="${LOGO_URL}" alt="DB" style="width:30px;height:30px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff\\'>DB</div>'"></div>`
-      :`<div class="msg-av" style="background:linear-gradient(135deg,#5b21b6,#e040fb)">${initials(m.sender?.display_name||m.sender?.email)}</div>`;
+    const senderName=isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'Klient');
+    // FIXED: Admin = logo image; Client = initials with purple gradient (NOT question mark)
+    const avHtml=isAdmin
+      ?`<div class="msg-av" style="background:transparent;padding:0;overflow:hidden"><img src="${LOGO_URL}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:11px;font-weight:700\\'>DB</span>';this.parentElement.style.background='linear-gradient(135deg,#9b27af,#e040fb)';" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:block"></div>`
+      :`<div class="msg-av" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)">${initials(m.sender?.display_name||m.sender?.email)}</div>`;
+    const isRead=reads.some(r=>r.message_id===m.id&&r.user_id!==m.sender_id);
+    const rcpt=isMe?`<span class="msg-reads ${isRead?'read':''}">${isRead?'✓✓':'✓'}</span>`:'';
     return`<div class="msg ${isMe?'mine':''}">
-      ${av}<div class="msg-content">
-        <div class="msg-sender">${esc(isAdmin?'Dmytrii Barabash':(m.sender?.display_name||m.sender?.email||'?'))}</div>
+      ${avHtml}<div class="msg-content">
+        <div class="msg-sender">${esc(senderName)}</div>
         <div class="msg-bubble">${esc(m.content)}</div>
-        <div class="msg-time">${timeAgo(m.created_at)}</div>
+        <div class="msg-time">${timeAgo(m.created_at)}${rcpt}</div>
       </div></div>`;
   }).join('');
   box.scrollTop=box.scrollHeight;
@@ -196,12 +215,10 @@ async function loadPosts(){
       <div class="post-head"><div class="post-ico">${postIcon(p.type)}</div>
         <div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div>
       </div>
-      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}
-      ${fileHtml}
+      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}${fileHtml}
       <div class="comments-section">
         <div class="comments-title">Komentarze (${pc.length})</div>
-        ${pc.map(c=>`<div class="comment-item">
-          <div class="comment-av">${initials(c.author?.display_name||c.author?.email)}</div>
+        ${pc.map(c=>`<div class="comment-item"><div class="comment-av">${initials(c.author?.display_name||c.author?.email)}</div>
           <div class="comment-body"><div class="comment-author">${esc(c.author?.display_name||c.author?.email||'?')}</div>
           <div class="comment-text">${esc(c.content)}</div></div></div>`).join('')||'<div style="font-size:12px;color:var(--t3);padding:4px 0">Brak komentarzy</div>'}
         <div class="comment-form">
@@ -220,7 +237,7 @@ async function addComment(postId,postTitle){
   toast('Komentarz dodany ✅');loadPosts();
 }
 
-// DOCS — read only for client with previews
+// DOCS
 async function loadDocs(){
   const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
   document.getElementById('docs-list').innerHTML=docs.map(d=>{
@@ -251,9 +268,8 @@ async function markAllRead(){
   const v=document.getElementById('v-notifications');
   if(v&&v.style.display!=='none')loadNotifs();
 }
-async function updateNotifBadge(notifs){
-  const list=notifs||await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
-  const unread=list.filter(n=>!n.is_read).length;
+function updateNotifBadge(notifs){
+  const unread=(notifs||[]).filter(n=>!n.is_read).length;
   const nb=document.getElementById('nb-notif');
   if(unread>0){nb.textContent=unread;nb.classList.add('show');}else nb.classList.remove('show');
 }
@@ -264,10 +280,17 @@ loadProjects();
   const n=await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
   updateNotifBadge(n);
 })();
-// Global notification polling
+// Poll for new notifications
 setInterval(async()=>{
-  const n=await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
+  const n=await dbGet('notifications',`?user_id=eq.${Auth.userId}&is_read=eq.false&select=id,content,type,project_id&order=created_at.desc`);
   updateNotifBadge(n);
+  // Show popup for latest unread
+  if(n.length&&n[0].id!==window._lastNotifId){
+    if(window._lastNotifId){
+      showPopup({title:'Barabash Flow',text:n[0].content.replace(/<[^>]+>/g,''),icon:LOGO_URL,actionLabel:'Zobacz powiadomienia',onAction:()=>nav('notifications')});
+    }
+    window._lastNotifId=n[0].id;
+  }
 },30000);
 </script>
 </body>

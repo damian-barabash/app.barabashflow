@@ -12,7 +12,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--a:#e040fb;--a2:#c0392b;--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bd:#333;--t:#fff;--t2:#aaa;--t3:#666;--red:#f87171}
 body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.blobs{position:fixed;inset:0;pointer-events:none;z-index:0}
+.blobs{position:fixed;inset:0;pointer-events:none}
 .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.1}
 .b1{width:600px;height:600px;top:-200px;left:-250px;background:radial-gradient(var(--a),transparent);animation:f1 12s ease-in-out infinite}
 .b2{width:500px;height:500px;bottom:-150px;right:-200px;background:radial-gradient(var(--a2),transparent);animation:f2 14s ease-in-out infinite}
@@ -21,7 +21,7 @@ body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-he
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 .wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:20px}
-.back{display:flex;align-items:center;gap:6px;color:var(--t2);font-size:13px;margin-bottom:24px;transition:color .2s;cursor:pointer;text-decoration:none}
+.back{display:flex;align-items:center;gap:6px;color:var(--t2);font-size:13px;margin-bottom:24px;transition:color .2s;text-decoration:none}
 .back:hover{color:var(--t)}
 .box{background:var(--bg2);border:1px solid var(--bd);border-radius:22px;padding:36px;position:relative;overflow:hidden}
 .box::before{content:'';position:absolute;top:-1px;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(224,64,251,.6),transparent)}
@@ -58,63 +58,41 @@ body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-he
       <div class="logo-name">Barabash <span>Flow</span></div>
       <div class="logo-sub">Panel zarządzania projektami</div>
     </div>
-    <div class="err" id="err">
-      <i class="ri-error-warning-line" style="flex-shrink:0;margin-top:1px"></i>
-      <span id="errTxt"></span>
-    </div>
+    <div class="err" id="err"><i class="ri-error-warning-line" style="flex-shrink:0;margin-top:1px"></i><span id="errTxt"></span></div>
     <form id="form">
-      <div class="fg">
-        <label class="lbl">Email / Login</label>
-        <div class="iw"><i class="ri-mail-line ii"></i>
-          <input class="inp" id="email" type="text" placeholder="twoj@email.com lub Admin" autocomplete="username" required>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="lbl">Hasło</label>
-        <div class="iw"><i class="ri-lock-line ii"></i>
-          <input class="inp" id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
-          <button type="button" class="eye" id="eye"><i class="ri-eye-off-line"></i></button>
-        </div>
-      </div>
+      <div class="fg"><label class="lbl">Email / Login</label><div class="iw"><i class="ri-mail-line ii"></i><input class="inp" id="email" type="text" placeholder="twoj@email.com lub Admin" autocomplete="username" required></div></div>
+      <div class="fg"><label class="lbl">Hasło</label><div class="iw"><i class="ri-lock-line ii"></i><input class="inp" id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye"><i class="ri-eye-off-line"></i></button></div></div>
       <button type="submit" class="btn" id="btn">Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i></button>
     </form>
     <div class="ft">© 2026 Barabash Flow &nbsp;·&nbsp; Dmytrii Barabash</div>
   </div>
 </div>
 <script>
-const EDGE = 'https://ztcyhlitwwganjhgbbtm.supabase.co/functions/v1';
-const SESSION_DAYS = 15;
+const EDGE='https://ztcyhlitwwganjhgbbtm.supabase.co/functions/v1';
+const SESSION_MS = 15*24*60*60*1000; // 15 days
 
-// Check existing session (15 days)
+// Check existing valid session
 (()=>{
   const t=localStorage.getItem('bf_token');
-  const exp=localStorage.getItem('bf_exp');
+  const exp=Number(localStorage.getItem('bf_exp')||0);
   const r=localStorage.getItem('bf_role');
-  if(t&&r&&exp&&Date.now()<Number(exp)) {
+  if(t&&r&&exp&&Date.now()<exp){
     location.replace(r==='admin'?'admin.html':'client.html');
-  } else if(t) {
-    // Expired — clear
-    ['bf_token','bf_uid','bf_role','bf_name','bf_email','bf_exp'].forEach(k=>localStorage.removeItem(k));
   }
 })();
 
-document.getElementById('eye').onclick=function(){
-  const i=document.getElementById('pass'),on=i.type==='password';
-  i.type=on?'text':'password';
-  this.querySelector('i').className=on?'ri-eye-line':'ri-eye-off-line';
-};
-
+document.getElementById('eye').onclick=function(){const i=document.getElementById('pass'),on=i.type==='password';i.type=on?'text':'password';this.querySelector('i').className=on?'ri-eye-line':'ri-eye-off-line';};
 function showErr(m){document.getElementById('errTxt').textContent=m;document.getElementById('err').classList.add('show');}
 function hideErr(){document.getElementById('err').classList.remove('show');}
 
-document.getElementById('form').addEventListener('submit', async function(e){
-  e.preventDefault(); hideErr();
+document.getElementById('form').addEventListener('submit',async function(e){
+  e.preventDefault();hideErr();
   const btn=document.getElementById('btn');
   let email=document.getElementById('email').value.trim();
   const pass=document.getElementById('pass').value;
   if(email.toLowerCase()==='admin') email='admin@barabashflow.pl';
-  btn.disabled=true; btn.innerHTML='<span class="sp"><i class="ri-loader-4-line"></i></span>&nbsp;Logowanie...';
-  try {
+  btn.disabled=true;btn.innerHTML='<span class="sp"><i class="ri-loader-4-line"></i></span>&nbsp;Logowanie...';
+  try{
     const r=await fetch(EDGE+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
     const d=await r.json();
     if(!r.ok||d.error){
@@ -123,19 +101,15 @@ document.getElementById('form').addEventListener('submit', async function(e){
       return;
     }
     const p=d.profile;
-    const exp=Date.now()+SESSION_DAYS*24*60*60*1000; // 15 days
-    localStorage.setItem('bf_token',d.access_token);
-    localStorage.setItem('bf_uid',d.user_id);
-    localStorage.setItem('bf_role',p.role);
-    localStorage.setItem('bf_name',p.display_name||email.split('@')[0]);
-    localStorage.setItem('bf_email',p.email);
-    localStorage.setItem('bf_exp',String(exp));
+    localStorage.setItem('bf_token', d.access_token);
+    localStorage.setItem('bf_uid',   d.user_id);
+    localStorage.setItem('bf_role',  p.role);
+    localStorage.setItem('bf_name',  p.display_name||email.split('@')[0]);
+    localStorage.setItem('bf_email', p.email);
+    localStorage.setItem('bf_exp',   String(Date.now()+SESSION_MS));
     location.replace(p.role==='admin'?'admin.html':'client.html');
-  } catch(ex) {
-    console.error(ex); showErr('Błąd połączenia. Sprawdź internet.');
-  } finally {
-    btn.disabled=false; btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';
-  }
+  }catch(ex){console.error(ex);showErr('Błąd połączenia. Sprawdź internet.');}
+  finally{btn.disabled=false;btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';}
 });
 </script>
 </body>
