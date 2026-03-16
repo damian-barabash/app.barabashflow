@@ -45,7 +45,6 @@
   </div>
   <div class="content">
 
-    <!-- DASHBOARD -->
     <div id="v-dashboard">
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-n" id="sc-c">—</div><div class="stat-l">Klientów</div></div>
@@ -58,7 +57,6 @@
       </div>
     </div>
 
-    <!-- CLIENTS -->
     <div id="v-clients" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <div class="card-title">Wszyscy klienci</div>
@@ -67,13 +65,11 @@
       <div class="card" style="padding:8px"><div id="cl-list"></div></div>
     </div>
 
-    <!-- ORDERS -->
     <div id="v-orders" style="display:none">
       <div class="card-title" style="margin-bottom:18px">Formularze kontaktowe</div>
       <div id="or-list"></div>
     </div>
 
-    <!-- CLIENT DETAIL -->
     <div id="v-cdetail" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
@@ -83,7 +79,6 @@
       <div id="cd-projs"></div>
     </div>
 
-    <!-- PROJECT -->
     <div id="v-project" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" id="proj-back"><i class="ri-arrow-left-line"></i></button>
@@ -95,7 +90,7 @@
         <button class="tab-btn" data-tab="chat">Czat</button>
         <button class="tab-btn" data-tab="docs">Dokumenty</button>
       </div>
-      <!-- POSTS -->
+
       <div class="tab-pane active" id="tab-posts">
         <div class="card" style="margin-bottom:16px">
           <div class="card-title" style="margin-bottom:14px">Dodaj materiał</div>
@@ -124,7 +119,7 @@
         </div>
         <div id="posts-list"></div>
       </div>
-      <!-- CHAT -->
+
       <div class="tab-pane" id="tab-chat">
         <div class="card" style="padding:0;overflow:hidden">
           <div class="chat-wrap">
@@ -136,7 +131,7 @@
           </div>
         </div>
       </div>
-      <!-- DOCS -->
+
       <div class="tab-pane" id="tab-docs">
         <div class="card" style="margin-bottom:16px">
           <div class="card-title" style="margin-bottom:14px">Dodaj dokument</div>
@@ -159,13 +154,11 @@
 </main>
 </div>
 
-<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" onclick="closeLightbox()"><i class="ri-close-line"></i></button>
   <div id="lb-content"></div>
 </div>
 
-<!-- MODALS -->
 <div class="modal-backdrop" id="m-client">
   <div class="modal">
     <div class="modal-title">Dodaj nowego klienta</div>
@@ -210,31 +203,29 @@
 if(!Auth.requireAdmin()) throw 0;
 runPreloader();
 document.getElementById('adminName').textContent = Auth.name||'Admin';
-document.getElementById('adminAv').textContent   = initials(Auth.name);
+document.getElementById('adminAv').textContent   = initials(Auth.name)||'D';
 document.getElementById('pageSub').textContent   = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-let CID='',CNAME='',CEMAIL='',PID='',OID='',chatIv=null,chatLen=0;
-// GLOBAL POLL for any new messages while admin is on site
+// Pre-cache admin's own profile
+_profileCache[Auth.userId] = {id:Auth.userId, display_name:Auth.name, email:Auth.email, role:'admin'};
+
+let CID='',CNAME='',CEMAIL='',PID='',OID='',chatLen=0,chatIv=null;
 let _globalPollIv=null, _globalLastMsgId={};
 
-// NAV
 document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.addEventListener('click',()=>{nav(a.dataset.view);closeSidebar();}));
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
 function nav(v){
-  ['dashboard','clients','orders','cdetail','project'].forEach(id=>{
-    const el=document.getElementById('v-'+id);if(el)el.style.display=id===v?'block':'none';
-  });
+  ['dashboard','clients','orders','cdetail','project'].forEach(id=>{const el=document.getElementById('v-'+id);if(el)el.style.display=id===v?'block':'none';});
   document.querySelectorAll('.nav-link[data-view]').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
-  const t={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent};
-  document.getElementById('pageTitle').textContent=t[v]||'';
+  document.getElementById('pageTitle').textContent={dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent}[v]||'';
   if(chatIv&&v!=='project'){clearInterval(chatIv);chatIv=null;}
-  if(v==='dashboard')loadDash();if(v==='clients')loadClients();if(v==='orders')loadOrders();
+  if(v==='dashboard')loadDash(); if(v==='clients')loadClients(); if(v==='orders')loadOrders();
 }
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+tab));
-  if(tab==='chat'){chatLen=0;loadChat();}if(tab==='posts')loadPosts();if(tab==='docs')loadDocs();
+  if(tab==='chat'){chatLen=0;loadChat();} if(tab==='posts')loadPosts(); if(tab==='docs')loadDocs();
 }
 function onTypeChange(){
   const t=document.getElementById('pt-type').value;
@@ -243,51 +234,40 @@ function onTypeChange(){
   document.getElementById('pt-link-wrap').style.display=t==='link'?'block':'none';
 }
 
-// GLOBAL POLL — admin gets popup for new messages from ANY client
+// GLOBAL POLL — admin gets popups for new client messages
 async function startGlobalPoll(){
-  if(_globalPollIv) clearInterval(_globalPollIv);
-  _globalPollIv = setInterval(async()=>{
-    // Get all projects admin manages, check for new messages
-    const projects = await dbGet('projects','?select=id,client_id,name');
+  if(_globalPollIv)clearInterval(_globalPollIv);
+  _globalPollIv=setInterval(async()=>{
+    const projects=await dbGet('projects','?select=id,client_id,name');
     for(const proj of projects){
-      const msgs = await dbGet('messages',`?project_id=eq.${proj.id}&select=id,content,sender_id,sender:profiles(display_name,email,role)&order=created_at.desc&limit=1`);
-      if(!msgs.length) continue;
-      const m = msgs[0];
-      const isFromClient = m.sender?.role !== 'admin';
-      if(!isFromClient) continue; // Skip admin's own messages
-      if(m.id !== _globalLastMsgId[proj.id]){
-        if(_globalLastMsgId[proj.id]){ // Not first load — show popup
-          const senderName = m.sender?.display_name || m.sender?.email || 'Klient';
+      const msgs=await dbGet('messages',`?project_id=eq.${proj.id}&select=id,content,sender_id&order=created_at.desc&limit=1`);
+      if(!msgs.length)continue;
+      const m=msgs[0];
+      if(m.sender_id===Auth.userId)continue; // Skip own messages
+      if(m.id!==_globalLastMsgId[proj.id]){
+        if(_globalLastMsgId[proj.id]){
+          await loadProfiles([m.sender_id]);
+          const profile=getProfile(m.sender_id);
+          const senderName=profile?.display_name||profile?.email||'Klient';
           showPopup({
-            title: senderName + ' — ' + proj.name,
-            text: m.content,
-            icon: null, // Client has no logo, use default bell
-            actionLabel: 'Przejdź do czatu',
-            onAction: () => {
-              // Navigate to that project's chat
-              CID = proj.client_id;
-              openProjectById(proj.id, proj.name);
+            title:senderName+' — '+proj.name,
+            text:m.content,
+            icon:null,
+            actionLabel:'Przejdź do czatu',
+            onAction:async()=>{
+              CID=proj.client_id;
+              const [pr]=await dbGet('projects',`?id=eq.${proj.id}&select=*,client:profiles(id,display_name,email)`);
+              if(pr?.client){CNAME=pr.client.display_name||pr.client.email;CEMAIL=pr.client.email;}
+              openProject(proj.id,proj.name);
             }
           });
         }
-        _globalLastMsgId[proj.id] = m.id;
+        _globalLastMsgId[proj.id]=m.id;
       }
     }
-  }, 5000);
+  },5000);
 }
 
-async function openProjectById(id, name){
-  // Find client info
-  const [proj] = await dbGet('projects',`?id=eq.${id}&select=*,client:profiles(id,display_name,email)`);
-  if(proj?.client){
-    CID=proj.client.id;
-    CNAME=proj.client.display_name||proj.client.email;
-    CEMAIL=proj.client.email;
-  }
-  openProject(id,name);
-}
-
-// DASHBOARD
 async function loadDash(){
   const [clients,projects,orders]=await Promise.all([
     dbGet('profiles','?role=eq.client&select=*&order=created_at.desc'),
@@ -301,7 +281,7 @@ async function loadDash(){
   if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
   document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>`
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="item-av">${initials(c.display_name||c.email)}</div>
+      <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
       <div class="item-time">${timeAgo(c.created_at)}</div>
     </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
@@ -316,14 +296,13 @@ async function loadDash(){
     </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak nowych formularzy');
 }
 
-// CLIENTS
 async function loadClients(){
   const clients=await dbGet('profiles','?role=eq.client&select=*&order=created_at.desc');
   const nb=document.getElementById('nb-clients');
   if(clients.length){nb.textContent=clients.length;nb.classList.add('show');}else nb.classList.remove('show');
   document.getElementById('cl-list').innerHTML=clients.map(c=>`
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="item-av">${initials(c.display_name||c.email)}</div>
+      <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
       <div class="item-time">${timeAgo(c.updated_at||c.created_at)}</div>
       <i class="ri-arrow-right-s-line item-arrow"></i>
@@ -349,7 +328,6 @@ async function openClient(id,name,email){
     </div>`).join('')||emptyHTML('ri-folder-line','Brak projektów.');
 }
 
-// ORDERS
 async function loadOrders(){
   const orders=await dbGet('orders','?select=*&order=created_at.desc');
   document.getElementById('or-list').innerHTML=orders.map(o=>`
@@ -368,7 +346,6 @@ async function loadOrders(){
     </div>`).join('')||emptyHTML('ri-file-list-3-line','Brak formularzy');
 }
 
-// PROJECT
 function openNewProj(){document.getElementById('np-sub').textContent='Dla: '+CNAME;document.getElementById('np-name').value='';document.getElementById('np-desc').value='';openModal('m-proj');}
 async function createProject(){
   const name=document.getElementById('np-name').value.trim(),desc=document.getElementById('np-desc').value.trim();
@@ -386,7 +363,6 @@ async function openProject(id,name){
   if(p){const b=document.getElementById('pj-badge');b.textContent=statusLabel(p.status);b.className='badge badge-'+statusClass(p.status);}
 }
 
-// POSTS
 async function loadPosts(){
   const [posts,comments]=await Promise.all([
     dbGet('posts',`?project_id=eq.${PID}&select=*&order=created_at.desc`),
@@ -402,7 +378,7 @@ async function loadPosts(){
       ${renderFilePreview(p.file_url||p.url,p.file_name||p.url,p.mime_type)}
       <div class="comments-section">
         <div class="comments-title">Komentarze (${pc.length})</div>
-        ${pc.map(c=>`<div class="comment-item"><div class="comment-av">${initials(c.author?.display_name||c.author?.email)}</div>
+        ${pc.map(c=>`<div class="comment-item"><div class="comment-av">${initials(c.author?.display_name||c.author?.email)||'?'}</div>
           <div class="comment-body"><div class="comment-author">${esc(c.author?.display_name||c.author?.email||'?')}</div>
           <div class="comment-text">${esc(c.content)}</div></div></div>`).join('')||'<div style="font-size:12px;color:var(--t3)">Brak komentarzy</div>'}
       </div>
@@ -418,8 +394,7 @@ async function addPost(){
     if(type==='text')obj.content=document.getElementById('pt-body').value.trim();
     else if(type==='file'&&window._ptFile){
       document.getElementById('pt-upload-progress').classList.add('show');document.getElementById('pt-upload-bar').style.width='40%';
-      const up=await uploadFile(window._ptFile,'post-files');
-      document.getElementById('pt-upload-bar').style.width='100%';
+      const up=await uploadFile(window._ptFile,'post-files');document.getElementById('pt-upload-bar').style.width='100%';
       obj.file_url=up.url;obj.file_name=up.name;obj.file_size=up.size;obj.mime_type=up.mime;obj.url=up.url;
     } else if(type==='link')obj.url=document.getElementById('pt-link').value.trim();
     await dbPost('posts',obj);
@@ -433,20 +408,11 @@ async function addPost(){
   finally{btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Opublikuj';}
 }
 
-// CHAT — uses createMsgElement (DOM-based, no HTML escaping issues)
+// CHAT — uses renderChat() from panel.js (profile cache, no HTML issues)
 async function loadChat(){
-  const [msgs,reads]=await Promise.all([
-    dbGet('messages',`?project_id=eq.${PID}&select=*,sender:profiles(display_name,email,role)&order=created_at.asc`),
-    dbGet('message_reads',`?select=message_id,user_id`)
-  ]);
-  if(msgs.length===chatLen&&chatIv)return;
-  chatLen=msgs.length;
-  const box=document.getElementById('chat-msgs');
-  box.innerHTML='';
-  msgs.forEach(m=>{
-    box.appendChild(createMsgElement(m, reads, Auth.userId));
-  });
-  box.scrollTop=box.scrollHeight;
+  const newLen = await renderChat(PID, Auth.userId, 'chat-msgs');
+  if(newLen===chatLen&&chatIv)return;
+  chatLen=newLen;
   if(chatIv)clearInterval(chatIv);
   chatIv=setInterval(loadChat,4000);
 }
@@ -459,13 +425,11 @@ async function sendMsg(){
 }
 document.getElementById('chat-inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
-// DOCS
 async function loadDocs(){
   const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
   document.getElementById('docs-list').innerHTML=docs.map(d=>{
     const url=d.file_url||d.url,mime=d.mime_type||'',isImg=mime.startsWith('image/'),isPdf=mime==='application/pdf';
-    return`<div class="doc-item">
-      <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
+    return`<div class="doc-item"><div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
       <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
       ${(isImg||isPdf)?`<button class="doc-dl" onclick="openLightbox('${isImg?'img':'pdf'}','${esc(url)}')"><i class="ri-eye-line"></i></button>`:''}
       <a href="${esc(url)}" download="${esc(d.name)}" target="_blank" class="doc-dl"><i class="ri-download-line"></i></a>
@@ -477,8 +441,7 @@ async function addDoc(){
   const btn=document.getElementById('dc-btn');btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
   try{
     document.getElementById('dc-upload-progress').classList.add('show');document.getElementById('dc-upload-bar').style.width='40%';
-    const up=await uploadFile(window._dcFile,'doc-files');
-    document.getElementById('dc-upload-bar').style.width='100%';
+    const up=await uploadFile(window._dcFile,'doc-files');document.getElementById('dc-upload-bar').style.width='100%';
     const name=document.getElementById('dc-name').value.trim()||up.name;
     await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url:up.url,file_url:up.url,mime_type:up.mime,file_size:up.size});
     document.getElementById('dc-name').value='';document.getElementById('dc-upload-preview').innerHTML='';document.getElementById('dc-upload-area').style.borderColor='';window._dcFile=null;
@@ -490,7 +453,6 @@ async function addDoc(){
   finally{btn.disabled=false;btn.innerHTML='<i class="ri-upload-line"></i>Dodaj dokument';}
 }
 
-// CREATE CLIENT
 async function createClient(){
   const name=document.getElementById('ac-name').value.trim(),email=document.getElementById('ac-email').value.trim(),pass=document.getElementById('ac-pass').value.trim();
   const errEl=document.getElementById('ac-err');errEl.textContent='';
@@ -503,8 +465,6 @@ async function createClient(){
   closeModal('m-client');['ac-name','ac-email','ac-pass'].forEach(id=>document.getElementById(id).value='');
   toast('Klient utworzony, e-mail wysłany ✅');loadDash();
 }
-
-// CONVERT ORDER
 function openConvert(id,name,email){OID=id;document.getElementById('cv-sub').textContent=`${name} · ${email}`;document.getElementById('cv-pass').value='';document.getElementById('cv-err').textContent='';openModal('m-convert');}
 async function convertOrder(){
   const pass=document.getElementById('cv-pass').value.trim();const errEl=document.getElementById('cv-err');errEl.textContent='';
@@ -516,9 +476,8 @@ async function convertOrder(){
   closeModal('m-convert');toast('Klient utworzony, e-mail wysłany ✅');loadOrders();loadDash();
 }
 
-// INIT
 loadDash();
-startGlobalPoll(); // Admin gets popups for new client messages
+startGlobalPoll();
 </script>
 </body>
 </html>
