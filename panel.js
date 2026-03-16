@@ -390,6 +390,9 @@ function setupChatFileInput(inputRowId, onFilePicked) {
   const row = document.getElementById(inputRowId);
   if (!row) return ()=>{};
 
+  // Guard: don't add twice
+  if (row.querySelector('.chat-attach-btn')) return ()=>{};
+
   // Hidden file input
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
