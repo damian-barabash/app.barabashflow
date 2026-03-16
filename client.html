@@ -74,7 +74,25 @@
       </div>
 
       <div class="tab-pane" id="tab-posts"><div id="posts-list"></div></div>
-      <div class="tab-pane" id="tab-docs"><div id="docs-list"></div></div>
+      <div class="tab-pane" id="tab-docs">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:14px">Dodaj dokument</div>
+          <div class="form-group">
+            <label class="form-label">Plik</label>
+            <div class="upload-area" id="cl-dc-upload-area">
+              <input type="file" id="cl-dc-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,image/*" onchange="onFileSelected('cl-dc-file','cl-dc-preview','cl-dc-upload-area','_clDcFile')">
+              <i class="ri-folder-upload-line"></i>
+              <p>Kliknij lub przeciągnij dokument</p>
+              <span>PDF, Word, Excel, Zdjęcia — maks. 50MB</span>
+            </div>
+            <div id="cl-dc-preview" style="margin-top:8px"></div>
+            <div class="upload-progress" id="cl-dc-progress"><div class="upload-progress-bar" id="cl-dc-bar"></div></div>
+          </div>
+          <div class="form-group"><label class="form-label">Nazwa (opcjonalna)</label><input class="form-control" id="cl-dc-name" placeholder="Zostaw puste = nazwa pliku"></div>
+          <button class="btn btn-primary btn-sm" onclick="clientAddDoc()" id="cl-dc-btn"><i class="ri-upload-line"></i>Dodaj dokument</button>
+        </div>
+        <div id="docs-list"></div>
+      </div>
     </div>
 
     <div id="v-notifications" style="display:none">
@@ -293,6 +311,30 @@ async function addComment(postId, postTitle) {
 }
 
 // ── DOCS ──
+async function clientAddDoc() {
+  if (!window._clDcFile) { toast('Wybierz plik','error'); return; }
+  const btn = document.getElementById('cl-dc-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
+  try {
+    document.getElementById('cl-dc-progress').classList.add('show');
+    document.getElementById('cl-dc-bar').style.width='40%';
+    const up = await uploadFile(window._clDcFile, 'doc-files');
+    document.getElementById('cl-dc-bar').style.width='100%';
+    const name = document.getElementById('cl-dc-name').value.trim() || up.name;
+    await dbPost('documents', {
+      project_id:PID, uploaded_by:Auth.userId,
+      name, url:up.url, file_url:up.url, mime_type:up.mime, file_size:up.size
+    });
+    document.getElementById('cl-dc-name').value='';
+    document.getElementById('cl-dc-preview').innerHTML='';
+    document.getElementById('cl-dc-upload-area').style.borderColor='';
+    window._clDcFile = null;
+    setTimeout(()=>document.getElementById('cl-dc-progress').classList.remove('show'), 800);
+    toast('Dokument dodany ✅'); loadDocs();
+  } catch(e) { toast('Błąd przesyłania: '+e.message,'error'); }
+  finally { btn.disabled=false; btn.innerHTML='<i class="ri-upload-line"></i>Dodaj dokument'; }
+}
+
 async function loadDocs() {
   const docs = await dbGet('documents', `?project_id=eq.${PID}&select=*&order=created_at.desc`);
   document.getElementById('docs-list').innerHTML = docs.map(d => {
