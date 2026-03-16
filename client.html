@@ -41,10 +41,8 @@
   </div>
   <div class="content">
 
-    <!-- PROJECTS -->
     <div id="v-projects"><div id="proj-grid"></div></div>
 
-    <!-- PROJECT -->
     <div id="v-project" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('projects')"><i class="ri-arrow-left-line"></i></button>
@@ -73,7 +71,6 @@
       <div class="tab-pane" id="tab-docs"><div id="docs-list"></div></div>
     </div>
 
-    <!-- NOTIFICATIONS -->
     <div id="v-notifications" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="card-title">Powiadomienia</div>
@@ -93,7 +90,7 @@
 
 <script src="panel.js"></script>
 <script>
-if(!Auth.requireClient()) throw 0;
+if (!Auth.requireClient()) throw 0;
 runPreloader();
 
 const myName  = Auth.name  || Auth.email || 'Klient';
@@ -102,18 +99,12 @@ document.getElementById('clientName').textContent = myName;
 document.getElementById('clientAv').textContent   = initials(myName) || 'K';
 document.getElementById('pageSub').textContent    = 'Witaj, ' + myName;
 
-// Pre-cache own profile so avatar is correct immediately
-_profileCache[Auth.userId] = {
-  id: Auth.userId,
-  display_name: myName,
-  email: myEmail,
-  role: 'client'
-};
+// Pre-cache own profile
+_profileCache[Auth.userId] = {id:Auth.userId, display_name:myName, email:myEmail, role:'client'};
 
 let PID='', chatLen=0, chatIv=null, pollIv=null;
 let _lastMsgIdForPopup=null, _lastNotifId=null;
 
-// NAV
 document.querySelectorAll('.nav-link[data-view]').forEach(a =>
   a.addEventListener('click', () => { nav(a.dataset.view); closeSidebar(); })
 );
@@ -123,8 +114,7 @@ document.querySelectorAll('.tab-btn').forEach(b =>
 
 function nav(v) {
   ['projects','project','notifications'].forEach(id => {
-    const el = document.getElementById('v-'+id);
-    if (el) el.style.display = id===v ? 'block' : 'none';
+    const el = document.getElementById('v-'+id); if (el) el.style.display = id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
   document.getElementById('pageTitle').textContent = {
@@ -165,27 +155,24 @@ async function openProject(id, name, status) {
   document.getElementById('pj-name').textContent = name;
   document.getElementById('pj-status').textContent = 'Status: '+statusLabel(status);
   const b = document.getElementById('pj-badge');
-  b.textContent = statusLabel(status);
-  b.className = 'badge badge-'+statusClass(status);
+  b.textContent = statusLabel(status); b.className = 'badge badge-'+statusClass(status);
   nav('project'); switchTab('chat');
 
-  // Popup poll — new admin messages while viewing project
   if (pollIv) clearInterval(pollIv);
   pollIv = setInterval(async () => {
     const msgs = await dbGet('messages',
       `?project_id=eq.${PID}&select=id,content,sender_id&order=created_at.desc&limit=1`);
     if (!msgs.length) return;
     const m = msgs[0];
-    if (m.sender_id === Auth.userId) return; // own message
+    if (m.sender_id === Auth.userId) return;
     if (m.id !== _lastMsgIdForPopup) {
-      if (_lastMsgIdForPopup) { // not first load
+      if (_lastMsgIdForPopup) {
         await loadProfiles([m.sender_id]);
         const profile = getProfile(m.sender_id);
-        const senderName = profile?.display_name || profile?.email || 'Dmytrii Barabash';
         showPopup({
-          title: senderName,
-          text: m.content,
-          icon: LOGO_URL,
+          title: profile?.display_name || profile?.email || 'Dmytrii Barabash',
+          text:  m.content,
+          icon:  LOGO_URL,
           actionLabel: 'Przejdź do czatu',
           onAction: () => switchTab('chat')
         });
@@ -196,32 +183,29 @@ async function openProject(id, name, status) {
 }
 
 // ── CHAT ──
-// Uses renderChat() from panel.js which:
-//   1. Fetches messages (no join — just sender_id)
-//   2. Fetches all sender profiles separately via profile cache
-//   3. Builds DOM elements via createMsgElement() (no HTML strings)
-// This fixes:
-//   - ? avatar for admin (profile loaded separately, bypasses RLS join issue)
-//   - Correct display_name from DB for both admin and client
-//   - Read receipts (✓ / ✓✓ purple when read)
+// Flow:
+//   1. Mark all unread admin messages as read (creates reads for client)
+//   2. renderChat() now loads fresh reads including client's reads
+//   3. Client sees their own messages with ✓ or ✓✓ (if admin has opened chat)
 async function loadChat() {
-  const newLen = await renderChat(PID, Auth.userId, 'chat-msgs');
+  // Step 1: mark unread admin messages as read by client
+  const allMsgs  = await dbGet('messages', `?project_id=eq.${PID}&select=id,sender_id&order=created_at.asc`);
+  const allReads = await dbGet('message_reads', `?select=message_id,user_id`);
 
-  // After rendering, mark unread messages from admin as read
-  const msgs = await dbGet('messages',
-    `?project_id=eq.${PID}&select=id,sender_id&order=created_at.asc`);
-  const reads = await dbGet('message_reads', `?select=message_id,user_id`);
-  const unread = msgs.filter(m =>
+  const unread = allMsgs.filter(m =>
     m.sender_id !== Auth.userId &&
-    !reads.some(r => r.message_id===m.id && r.user_id===Auth.userId)
+    !allReads.some(r => r.message_id===m.id && r.user_id===Auth.userId)
   );
   if (unread.length > 0) {
-    edgeFn('mark-messages-read', {
+    await edgeFn('mark-messages-read', {
       messageIds: unread.map(m => m.id),
-      projectId: PID,
-      userId: Auth.userId
-    }).catch(() => {});
+      projectId:  PID,
+      userId:     Auth.userId
+    });
   }
+
+  // Step 2: render chat (fetches fresh reads, so ✓✓ appears if admin has read)
+  const newLen = await renderChat(PID, Auth.userId, 'chat-msgs');
 
   if (newLen === chatLen && chatIv) return;
   chatLen = newLen;
@@ -242,14 +226,13 @@ document.getElementById('chat-inp').addEventListener('keydown', e => {
 // ── POSTS ──
 async function loadPosts() {
   const [posts, comments] = await Promise.all([
-    dbGet('posts', `?project_id=eq.${PID}&select=*&order=created_at.desc`),
+    dbGet('posts',         `?project_id=eq.${PID}&select=*&order=created_at.desc`),
     dbGet('post_comments', `?select=*,author:profiles(display_name,email)&order=created_at.asc`)
   ]);
   document.getElementById('posts-list').innerHTML = posts.map(p => {
     const pc = comments.filter(c => c.post_id===p.id);
     return `<div class="post-card">
-      <div class="post-head">
-        <div class="post-ico">${postIcon(p.type)}</div>
+      <div class="post-head"><div class="post-ico">${postIcon(p.type)}</div>
         <div><div class="post-title">${esc(p.title)}</div><div class="post-date">${timeAgo(p.created_at)}</div></div>
       </div>
       ${p.content ? `<div class="post-body">${esc(p.content)}</div>` : ''}
@@ -280,8 +263,8 @@ async function addComment(postId, postTitle) {
   const content = inp.value.trim(); if (!content) return; inp.value='';
   await dbPost('post_comments', {post_id:postId, author_id:Auth.userId, content});
   await dbPost('messages', {
-    project_id: PID, sender_id: Auth.userId,
-    content: `💬 [komentarz do "${postTitle}"]: ${content}`, type:'text'
+    project_id:PID, sender_id:Auth.userId,
+    content:`💬 [komentarz do "${postTitle}"]: ${content}`, type:'text'
   });
   toast('Komentarz dodany ✅'); loadPosts();
 }
@@ -294,10 +277,7 @@ async function loadDocs() {
     const isImg=mime.startsWith('image/'), isPdf=mime==='application/pdf';
     return `<div class="doc-item">
       <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
-      <div class="doc-info">
-        <div class="doc-name">${esc(d.name)}</div>
-        <div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div>
-      </div>
+      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
       ${(isImg||isPdf) ? `<button class="doc-dl" onclick="openLightbox('${isImg?'img':'pdf'}','${esc(url)}')"><i class="ri-eye-line"></i></button>` : ''}
       <a href="${esc(url)}" download="${esc(d.name)}" target="_blank" class="doc-dl"><i class="ri-download-line"></i></a>
     </div>`;
@@ -322,14 +302,13 @@ async function markAllRead() {
   await dbPatch('notifications', `user_id=eq.${Auth.userId}&is_read=eq.false`, {is_read:true});
   document.getElementById('nb-notif').classList.remove('show');
   const v = document.getElementById('v-notifications');
-  if (v && v.style.display !== 'none') loadNotifs();
+  if (v && v.style.display!=='none') loadNotifs();
 }
 
 function updateNotifBadge(notifs) {
   const unread = (notifs||[]).filter(n => !n.is_read).length;
   const nb = document.getElementById('nb-notif');
-  if (unread>0) { nb.textContent=unread; nb.classList.add('show'); }
-  else nb.classList.remove('show');
+  if (unread>0) { nb.textContent=unread; nb.classList.add('show'); } else nb.classList.remove('show');
 }
 
 // ── INIT ──
@@ -339,7 +318,6 @@ loadProjects();
   updateNotifBadge(n);
 })();
 
-// Poll notifications every 30s
 setInterval(async () => {
   const n = await dbGet('notifications',
     `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id,content,type,project_id&order=created_at.desc`);
@@ -348,8 +326,8 @@ setInterval(async () => {
     if (_lastNotifId) {
       showPopup({
         title: 'Barabash Flow',
-        text: n[0].content.replace(/<[^>]+>/g,''),
-        icon: LOGO_URL,
+        text:  n[0].content.replace(/<[^>]+>/g,''),
+        icon:  LOGO_URL,
         actionLabel: 'Zobacz powiadomienia',
         onAction: () => nav('notifications')
       });
