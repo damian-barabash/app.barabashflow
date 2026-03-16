@@ -171,7 +171,13 @@
         <div class="card" style="padding:0;overflow:hidden">
           <div class="chat-wrap">
             <div class="chat-msgs" id="chat-msgs"></div>
-            <div class="chat-input-row">
+            <div id="chat-typing"></div>
+            <div class="chat-file-preview" id="chat-file-preview">
+              <i class="ri-attachment-2" style="font-size:16px;color:var(--a)"></i>
+              <div class="chat-file-preview-name" id="chat-file-preview-name">—</div>
+              <button class="chat-file-preview-cancel" onclick="cancelChatFile()" title="Usuń"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="chat-input-row" id="chat-input-row">
               <input class="form-control" id="chat-inp" placeholder="Napisz wiadomość...">
               <button class="btn btn-primary btn-sm" onclick="sendMsg()"><i class="ri-send-plane-fill"></i></button>
             </div>
@@ -295,7 +301,7 @@ function nav(v) {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id==='tab-'+tab));
-  if (tab==='chat')  { chatLen=0; loadChat(); }
+  if (tab==='chat')  { chatLen=0; initChatUI(); loadChat(); }
   if (tab==='posts') loadPosts();
   if (tab==='docs')  loadDocs();
 }
@@ -565,6 +571,7 @@ async function createProject(){
 }
 async function openProject(id,name){
   PID=id;chatLen=0;_projectArchived=false;
+  window._currentPID=id;
   document.getElementById('pj-name').textContent=name;
   document.getElementById('pj-client').textContent=CNAME;
   document.getElementById('proj-back').onclick=()=>openClient(CID,CNAME,CEMAIL,_clientArchived);
@@ -638,24 +645,64 @@ async function addPost(){
 }
 
 // ── CHAT ──
+let _typingIv=null, _chatFileToSend=null;
+
+function initChatUI(){
+  // Setup file attach button
+  setupChatFileInput('chat-input-row', (file)=>{
+    _chatFileToSend=file;
+    document.getElementById('chat-file-preview-name').textContent=file.name+' ('+fmtSize(file.size)+')';
+    document.getElementById('chat-file-preview').classList.add('show');
+  });
+  // Typing listener
+  document.getElementById('chat-inp').addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();return;}
+    onChatInputKey(e, PID);
+  });
+  document.getElementById('chat-inp').removeEventListener('keydown', _oldKeydown);
+}
+function _oldKeydown(){}
+
+function cancelChatFile(){_chatFileToSend=null;document.getElementById('chat-file-preview').classList.remove('show');}
+
 async function loadChat(){
   const allMsgs=await dbGet('messages',`?project_id=eq.${PID}&select=id,sender_id&order=created_at.asc`);
   const allReads=await dbGet('message_reads',`?select=message_id,user_id`);
   const unread=allMsgs.filter(m=>m.sender_id!==Auth.userId&&!allReads.some(r=>r.message_id===m.id&&r.user_id===Auth.userId));
   if(unread.length>0) await edgeFn('mark-messages-read',{messageIds:unread.map(m=>m.id),projectId:PID,userId:Auth.userId});
   const newLen=await renderChat(PID,Auth.userId,'chat-msgs');
+  // Poll typing
+  pollTyping(PID,Auth.userId,'chat-typing');
   if(newLen===chatLen&&chatIv)return;chatLen=newLen;
   if(chatIv)clearInterval(chatIv);
-  chatIv=setInterval(loadChat,4000);
+  chatIv=setInterval(()=>{loadChat();pollTyping(PID,Auth.userId,'chat-typing');},4000);
 }
+
 async function sendMsg(){
-  const inp=document.getElementById('chat-inp'),txt=inp.value.trim();if(!txt)return;inp.value='';
-  await dbPost('messages',{project_id:PID,sender_id:Auth.userId,content:txt,type:'text'});
+  const inp=document.getElementById('chat-inp'),txt=inp.value.trim();
+  if(!txt&&!_chatFileToSend)return;
+  inp.value='';
+  setTyping(PID,false); clearTimeout(_typingTimer);
+
+  let msgData={project_id:PID,sender_id:Auth.userId,type:'text'};
+
+  if(_chatFileToSend){
+    try{
+      toast('Wysyłanie pliku...','success');
+      const up=await uploadFile(_chatFileToSend,'post-files');
+      msgData.file_url=up.url;msgData.file_name=up.name;msgData.file_size=up.size;msgData.mime_type=up.mime;
+      msgData.content=txt||'';
+    }catch(e){toast('Błąd przesyłania: '+e.message,'error');return;}
+    finally{_chatFileToSend=null;document.getElementById('chat-file-preview').classList.remove('show');}
+  } else {
+    msgData.content=txt;
+  }
+
+  await dbPost('messages',msgData);
   const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
   if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message',isMessage:true});
   loadChat();
 }
-document.getElementById('chat-inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
 // ── DOCS ──
 async function loadDocs(){

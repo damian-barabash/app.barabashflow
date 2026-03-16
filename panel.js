@@ -1,4 +1,4 @@
-/* BARABASH FLOW — panel.js v7 */
+/* BARABASH FLOW — panel.js v8 */
 const SB   = 'https://ztcyhlitwwganjhgbbtm.supabase.co';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
 const EDGE = SB + '/functions/v1';
@@ -66,7 +66,7 @@ async function uploadFile(file, bucket) {
   return {url:`${SB}/storage/v1/object/public/${bucket}/${name}`, name:file.name, size:file.size, mime:file.type};
 }
 
-/* ── FILE PREVIEW ── */
+/* ── FILE PREVIEW (posts/docs) ── */
 function renderFilePreview(url, name, mime) {
   if (!url) return '';
   const isImg = mime && mime.startsWith('image/');
@@ -84,36 +84,53 @@ function renderFilePreview(url, name, mime) {
   </div></div>`;
 }
 
-/* ── AVATAR: creates DOM element with logo preloaded ONCE ──
-   The logo is preloaded into a global Image object so it never
-   reloads (no flicker). All admin avatars share the same cached image. */
-const _logoImgCache = (() => {
-  const img = new Image();
-  img.src = LOGO_URL;
-  return img;
-})();
+/* ── LINK DETECTION ──
+   Detects URLs in text and wraps them in <a> tags.
+   Returns a DocumentFragment so content is safe (no XSS). */
+function makeTextWithLinks(text) {
+  const URL_RE = /https?:\/\/[^\s<>"']+/g;
+  const fragment = document.createDocumentFragment();
+  let last = 0;
+  let match;
+  while ((match = URL_RE.exec(text)) !== null) {
+    if (match.index > last) {
+      fragment.appendChild(document.createTextNode(text.slice(last, match.index)));
+    }
+    const a = document.createElement('a');
+    a.href = match[0];
+    a.textContent = match[0];
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.className = 'chat-link';
+    fragment.appendChild(a);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) {
+    fragment.appendChild(document.createTextNode(text.slice(last)));
+  }
+  return fragment;
+}
 
+/* ── PRELOADED LOGO (no flicker) ── */
+const _logoImgCache = (() => { const img = new Image(); img.src = LOGO_URL; return img; })();
+
+/* ── AVATAR ── */
 function makeMsgAvatar(senderId) {
-  const profile  = getProfile(senderId);
-  const isAdmin  = profile?.role === 'admin';
-  const name     = profile?.display_name || profile?.email || '';
-
+  const profile = getProfile(senderId);
+  const isAdmin = profile?.role === 'admin';
+  const name    = profile?.display_name || profile?.email || '';
   const div = document.createElement('div');
   div.className = 'msg-av';
-
   if (isAdmin) {
-    // Use cloneNode so the preloaded image is reused — no network request
+    div.style.cssText = 'background:transparent;padding:0;overflow:hidden;flex-shrink:0;border-radius:50%';
     const img = _logoImgCache.cloneNode();
     img.style.cssText = 'width:30px;height:30px;border-radius:50%;object-fit:cover;display:block';
     img.alt = name || 'Admin';
-    // If image failed/unavailable, show initials
     img.addEventListener('error', () => {
       img.remove();
       div.style.cssText = 'background:linear-gradient(135deg,#9b27af,#e040fb)';
-      div.textContent   = initials(name) || 'D';
+      div.textContent = initials(name) || 'D';
     });
-    // No inline background needed when image loads correctly
-    div.style.cssText = 'background:transparent;padding:0;overflow:hidden;flex-shrink:0;border-radius:50%';
     div.appendChild(img);
   } else {
     div.style.background = 'linear-gradient(135deg,#5b21b6,#7c3aed)';
@@ -122,7 +139,7 @@ function makeMsgAvatar(senderId) {
   return div;
 }
 
-/* ── BUILD SINGLE MSG ELEMENT ── */
+/* ── BUILD MSG ELEMENT ── */
 function buildMsgEl(m, reads, currentUserId) {
   const isMe    = m.sender_id === currentUserId;
   const profile = getProfile(m.sender_id);
@@ -141,7 +158,7 @@ function buildMsgEl(m, reads, currentUserId) {
 
   const wrapper = document.createElement('div');
   wrapper.className = 'msg' + (isMe ? ' mine' : '');
-  wrapper.dataset.msgId = m.id; // for in-place receipt update
+  wrapper.dataset.msgId = m.id;
 
   const av = makeMsgAvatar(m.sender_id);
 
@@ -154,7 +171,43 @@ function buildMsgEl(m, reads, currentUserId) {
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
-  bubble.textContent = m.content;
+
+  // ── File attachment in message ──
+  if (m.file_url) {
+    const mime = m.mime_type || '';
+    const isImg = mime.startsWith('image/');
+    const isPdf = mime === 'application/pdf';
+
+    if (isImg) {
+      const img = document.createElement('img');
+      img.src = m.file_url;
+      img.className = 'chat-img-attachment';
+      img.alt = m.file_name || 'image';
+      img.addEventListener('click', () => openLightbox('img', m.file_url));
+      bubble.appendChild(img);
+    } else if (isPdf) {
+      const fileChip = _makeFileChip('📄', m.file_name||'Dokument', m.file_url, m.file_size);
+      const previewBtn = document.createElement('button');
+      previewBtn.className = 'btn btn-sm btn-outline';
+      previewBtn.style.marginLeft = '8px';
+      previewBtn.innerHTML = '<i class="ri-eye-line"></i>';
+      previewBtn.addEventListener('click', () => openLightbox('pdf', m.file_url));
+      fileChip.appendChild(previewBtn);
+      bubble.appendChild(fileChip);
+    } else {
+      bubble.appendChild(_makeFileChip('📎', m.file_name||'Plik', m.file_url, m.file_size));
+    }
+    // Optional text caption after file
+    if (m.content) {
+      const cap = document.createElement('div');
+      cap.style.marginTop = '6px';
+      cap.appendChild(makeTextWithLinks(m.content));
+      bubble.appendChild(cap);
+    }
+  } else if (m.content) {
+    // ── Text with link detection ──
+    bubble.appendChild(makeTextWithLinks(m.content));
+  }
 
   const timeRow = document.createElement('div');
   timeRow.className = 'msg-time';
@@ -162,11 +215,12 @@ function buildMsgEl(m, reads, currentUserId) {
   timeSpan.textContent = timeAgo(m.created_at);
   timeRow.appendChild(timeSpan);
 
+  // Read receipt
   if (isMe) {
     const isRead = reads && reads.some(r => r.message_id === m.id && r.user_id !== currentUserId);
     const rcpt = document.createElement('span');
     rcpt.className = 'msg-reads' + (isRead ? ' read' : '');
-    rcpt.dataset.receipt = 'true'; // marker for in-place update
+    rcpt.dataset.receipt = 'true';
     rcpt.textContent = isRead ? ' ✓✓' : ' ✓';
     rcpt.title = isRead ? 'Przeczytano' : 'Wysłano';
     timeRow.appendChild(rcpt);
@@ -180,18 +234,37 @@ function buildMsgEl(m, reads, currentUserId) {
   return wrapper;
 }
 
-/* ── RENDER CHAT — smart diff, no flicker ──
-   Strategy:
-   1. Fetch messages (no join) + reads
-   2. Preload all sender profiles
-   3a. If message count changed → full redraw (new messages arrived)
-   3b. If only reads changed   → update receipt spans IN PLACE (no DOM rebuild, no flicker)
-*/
+function _makeFileChip(icon, name, url, size) {
+  const chip = document.createElement('div');
+  chip.className = 'chat-file-chip';
+  chip.innerHTML = `<span style="font-size:20px">${icon}</span>`;
+  const info = document.createElement('div');
+  info.className = 'chat-file-info';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'chat-file-name';
+  nameEl.textContent = name;
+  const sizeEl = document.createElement('div');
+  sizeEl.className = 'chat-file-size';
+  sizeEl.textContent = fmtSize(size);
+  info.appendChild(nameEl);
+  info.appendChild(sizeEl);
+  const dlBtn = document.createElement('a');
+  dlBtn.href = url;
+  dlBtn.download = name;
+  dlBtn.target = '_blank';
+  dlBtn.className = 'btn btn-sm btn-primary';
+  dlBtn.innerHTML = '<i class="ri-download-line"></i>';
+  chip.appendChild(info);
+  chip.appendChild(dlBtn);
+  return chip;
+}
+
+/* ── SMART DIFF CHAT RENDER ── */
 let _chatState = { projectId: null, msgIds: [], readMap: {} };
 
 async function renderChat(projectId, currentUserId, boxId) {
   const [msgs, reads] = await Promise.all([
-    dbGet('messages', `?project_id=eq.${projectId}&select=id,content,type,sender_id,created_at&order=created_at.asc`),
+    dbGet('messages', `?project_id=eq.${projectId}&select=id,content,type,sender_id,created_at,file_url,file_name,file_size,mime_type&order=created_at.asc`),
     dbGet('message_reads', `?select=message_id,user_id`)
   ]);
 
@@ -201,29 +274,24 @@ async function renderChat(projectId, currentUserId, boxId) {
   const box = document.getElementById(boxId);
   if (!box) return msgs.length;
 
-  // Build a read-map: msgId → boolean (has anyone other than sender read it)
   const newReadMap = {};
   msgs.forEach(m => {
-    if (m.sender_id === currentUserId) {
+    if (m.sender_id === currentUserId)
       newReadMap[m.id] = reads.some(r => r.message_id === m.id && r.user_id !== currentUserId);
-    }
   });
 
   const newMsgIds = msgs.map(m => m.id).join(',');
-  const prevIds   = _chatState.msgIds.join ? _chatState.msgIds.join(',') : _chatState.msgIds;
+  const prevIds   = (_chatState.msgIds||[]).join(',');
   const sameProject = _chatState.projectId === projectId;
   const sameMsgs    = sameProject && newMsgIds === prevIds;
 
   if (sameMsgs) {
-    // ── ONLY UPDATE RECEIPTS IN PLACE — no DOM rebuild, no image flicker ──
-    let anyChanged = false;
+    // Only update receipts in place
     msgs.forEach(m => {
       if (m.sender_id !== currentUserId) return;
       const isRead  = newReadMap[m.id];
       const wasRead = _chatState.readMap[m.id];
       if (isRead !== wasRead) {
-        anyChanged = true;
-        // Find the receipt span for this message
         const msgEl = box.querySelector(`[data-msg-id="${m.id}"]`);
         if (msgEl) {
           const rcpt = msgEl.querySelector('[data-receipt]');
@@ -239,14 +307,112 @@ async function renderChat(projectId, currentUserId, boxId) {
     return msgs.length;
   }
 
-  // ── FULL REDRAW (new messages or project changed) ──
+  // Full redraw
+  const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  const prevCount   = _chatState.msgIds ? _chatState.msgIds.length : 0;
   _chatState = { projectId, msgIds: msgs.map(m => m.id), readMap: newReadMap };
-  const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+
   box.innerHTML = '';
-  msgs.forEach(m => box.appendChild(buildMsgEl(m, reads, currentUserId)));
+  msgs.forEach((m, i) => {
+    const el = buildMsgEl(m, reads, currentUserId);
+    // Animate only NEW messages (not full history reload)
+    if (sameProject && i >= prevCount) {
+      el.classList.add('msg-entering');
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('msg-entered')));
+    }
+    box.appendChild(el);
+  });
   if (wasAtBottom || !sameProject) box.scrollTop = box.scrollHeight;
 
   return msgs.length;
+}
+
+/* ── TYPING INDICATOR ──
+   Sends heartbeat to typing_indicators table while user types.
+   Polls for other users typing and shows animated dots. */
+let _typingTimer = null;
+let _isTyping    = false;
+
+async function setTyping(projectId, typing) {
+  if (typing === _isTyping) return;
+  _isTyping = typing;
+  try {
+    if (typing) {
+      await fetch(`${SB}/rest/v1/typing_indicators`, {
+        method: 'POST',
+        headers: hdr({Prefer:'resolution=merge-duplicates'}),
+        body: JSON.stringify({user_id:Auth.userId, project_id:projectId, updated_at:new Date().toISOString()})
+      });
+    } else {
+      await fetch(`${SB}/rest/v1/typing_indicators?user_id=eq.${Auth.userId}&project_id=eq.${projectId}`, {
+        method: 'DELETE', headers: hdr()
+      });
+    }
+  } catch(_) {}
+}
+
+function onChatInputKey(e, projectId) {
+  if (e.key === 'Enter' && !e.shiftKey) return; // sending, handled elsewhere
+  // Start typing
+  setTyping(projectId, true);
+  // Auto-stop after 3 seconds of no typing
+  clearTimeout(_typingTimer);
+  _typingTimer = setTimeout(() => setTyping(projectId, false), 3000);
+}
+
+async function pollTyping(projectId, currentUserId, indicatorId) {
+  const cutoff = new Date(Date.now() - 5000).toISOString(); // active in last 5s
+  const rows = await dbGet('typing_indicators',
+    `?project_id=eq.${projectId}&user_id=neq.${currentUserId}&updated_at=gte.${cutoff}&select=user_id`);
+
+  const el = document.getElementById(indicatorId);
+  if (!el) return;
+
+  if (rows.length > 0) {
+    await loadProfiles(rows.map(r => r.user_id));
+    const names = rows.map(r => {
+      const p = getProfile(r.user_id);
+      return p?.display_name || p?.email || 'Ktoś';
+    });
+    const label = names.join(', ') + (names.length===1 ? ' pisze...' : ' piszą...');
+    el.innerHTML = `<div class="typing-indicator"><span>${esc(label)}</span><span class="typing-dots"><span></span><span></span><span></span></span></div>`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+    el.innerHTML = '';
+  }
+}
+
+/* ── CHAT FILE INPUT SETUP ──
+   Creates hidden file input + attach button for chat input row.
+   Call after DOM is ready. Returns cleanup function. */
+function setupChatFileInput(inputRowId, onFilePicked) {
+  const row = document.getElementById(inputRowId);
+  if (!row) return ()=>{};
+
+  // Hidden file input
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,application/pdf,.doc,.docx,.ppt,.pptx,.zip,.txt,.xls,.xlsx';
+  fileInput.style.display = 'none';
+  fileInput.id = 'chat-file-input';
+  row.appendChild(fileInput);
+
+  // Attach button
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-ghost btn-sm chat-attach-btn';
+  btn.innerHTML = '<i class="ri-attachment-2"></i>';
+  btn.title = 'Wyślij plik';
+  btn.type = 'button';
+  btn.addEventListener('click', () => fileInput.click());
+  // Insert before the send button
+  row.insertBefore(btn, row.lastElementChild);
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) { onFilePicked(file); fileInput.value=''; }
+  });
+  return () => { fileInput.remove(); btn.remove(); };
 }
 
 /* ── LIGHTBOX ── */
@@ -260,99 +426,93 @@ function openLightbox(type, url) {
   lb.classList.add('open');
 }
 function closeLightbox() { document.getElementById('lightbox')?.classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeLightbox(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
 
 /* ── POPUP ── */
 function showPopup({title, text, icon, onAction, actionLabel}) {
   let container = document.getElementById('notif-popup');
   if (!container) {
     container = document.createElement('div');
-    container.className = 'notif-popup'; container.id = 'notif-popup';
+    container.className='notif-popup'; container.id='notif-popup';
     document.body.appendChild(container);
   }
   const item = document.createElement('div');
   item.className = 'notif-popup-item';
-
   const iconDiv = document.createElement('div');
   iconDiv.className = 'notif-popup-icon';
   if (icon) {
-    const img = document.createElement('img'); img.src = icon; img.alt = '';
-    img.addEventListener('error', () => { iconDiv.textContent='🔔'; });
+    const img=document.createElement('img'); img.src=icon; img.alt='';
+    img.addEventListener('error',()=>{ iconDiv.textContent='🔔'; });
     iconDiv.appendChild(img);
-  } else { iconDiv.textContent = '🔔'; }
-
-  const body = document.createElement('div'); body.className = 'notif-popup-body';
-  const s = document.createElement('div'); s.className = 'notif-popup-sender'; s.textContent = title;
-  const t = document.createElement('div'); t.className = 'notif-popup-text'; t.textContent = String(text||'').replace(/<[^>]+>/g,'');
+  } else { iconDiv.textContent='🔔'; }
+  const body=document.createElement('div'); body.className='notif-popup-body';
+  const s=document.createElement('div'); s.className='notif-popup-sender'; s.textContent=title;
+  const t=document.createElement('div'); t.className='notif-popup-text'; t.textContent=String(text||'').replace(/<[^>]+>/g,'');
   body.appendChild(s); body.appendChild(t);
-
   if (onAction) {
-    const btn = document.createElement('span'); btn.className = 'notif-popup-btn'; btn.textContent = actionLabel||'Przejdź →';
-    btn.addEventListener('click', () => { onAction(); item.classList.add('removing'); setTimeout(()=>item.remove(),300); });
+    const btn=document.createElement('span'); btn.className='notif-popup-btn'; btn.textContent=actionLabel||'Przejdź →';
+    btn.addEventListener('click',()=>{ onAction(); item.classList.add('removing'); setTimeout(()=>item.remove(),300); });
     body.appendChild(btn);
   }
-
-  const close = document.createElement('button'); close.className = 'notif-popup-close'; close.innerHTML = '<i class="ri-close-line"></i>';
-  close.addEventListener('click', () => { item.classList.add('removing'); setTimeout(()=>item.remove(),300); });
-
+  const close=document.createElement('button'); close.className='notif-popup-close'; close.innerHTML='<i class="ri-close-line"></i>';
+  close.addEventListener('click',()=>{ item.classList.add('removing'); setTimeout(()=>item.remove(),300); });
   item.appendChild(iconDiv); item.appendChild(body); item.appendChild(close);
   container.appendChild(item);
-  setTimeout(() => { if (item.parentElement) { item.classList.add('removing'); setTimeout(()=>item.remove(),300); } }, 6000);
+  setTimeout(()=>{ if(item.parentElement){ item.classList.add('removing'); setTimeout(()=>item.remove(),300); } },6000);
 }
 
 /* ── TOAST ── */
 function toast(msg, type='success') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<i class="ri-${type==='success'?'check-line':'error-warning-line'}"></i>${msg}`;
+  const el=document.createElement('div'); el.className=`toast ${type}`;
+  el.innerHTML=`<i class="ri-${type==='success'?'check-line':'error-warning-line'}"></i>${msg}`;
   document.body.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => { el.classList.remove('show'); setTimeout(()=>el.remove(),400); }, 3500);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),400); },3500);
 }
 
 /* ── MODAL ── */
 function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
 function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-document.addEventListener('click', e => { if (e.target.classList.contains('modal-backdrop')) e.target.classList.remove('open'); });
+document.addEventListener('click', e => { if(e.target.classList.contains('modal-backdrop')) e.target.classList.remove('open'); });
 
 /* ── UTILS ── */
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function timeAgo(d) {
   if (!d) return '';
-  const m = Math.floor((Date.now()-new Date(d))/60000);
+  const m=Math.floor((Date.now()-new Date(d))/60000);
   if (m<1) return 'przed chwilą'; if (m<60) return `${m} min temu`;
-  const h = Math.floor(m/60); if (h<24) return `${h} godz. temu`; if (h<48) return 'wczoraj';
+  const h=Math.floor(m/60); if (h<24) return `${h} godz. temu`; if (h<48) return 'wczoraj';
   return new Date(d).toLocaleDateString('pl-PL',{day:'numeric',month:'short'});
 }
-function initials(s) { const c = String(s||'').trim()[0]; return c ? c.toUpperCase() : ''; }
+function initials(s) { const c=String(s||'').trim()[0]; return c?c.toUpperCase():''; }
 function postIcon(t)  { return {text:'📝',link:'🔗',image:'🖼️',file:'📎',video:'🎬'}[t]||'📝'; }
 function statusLabel(s){ return {active:'Aktywny',completed:'Zakończony',paused:'Wstrzymany',archived:'Archiwum',open:'Otwarty'}[s]||s; }
 function statusClass(s){ return s||'active'; }
 function emptyHTML(icon,txt){ return `<div class="empty"><i class="${icon}"></i><p>${txt}</p></div>`; }
 function fmtSize(b){ if(!b)return''; if(b<1024)return b+'B'; if(b<1048576)return(b/1024).toFixed(0)+'KB'; return(b/1048576).toFixed(1)+'MB'; }
 
-/* ── FILE SELECTION ── */
+/* ── FILE SELECTION (posts/docs) ── */
 function onFileSelected(inputId, previewId, areaId, storeKey) {
-  const file = document.getElementById(inputId)?.files?.[0]; if (!file) return;
-  window[storeKey] = file;
-  const previewEl = document.getElementById(previewId); if (!previewEl) return;
+  const file=document.getElementById(inputId)?.files?.[0]; if(!file)return;
+  window[storeKey]=file;
+  const previewEl=document.getElementById(previewId); if(!previewEl)return;
   if (file.type.startsWith('image/')) {
-    const url = URL.createObjectURL(file);
-    previewEl.innerHTML = `<img src="${url}" style="max-height:120px;border-radius:8px;max-width:100%;object-fit:cover">`;
+    const url=URL.createObjectURL(file);
+    previewEl.innerHTML=`<img src="${url}" style="max-height:120px;border-radius:8px;max-width:100%;object-fit:cover">`;
   } else {
-    const icon = file.type==='application/pdf' ? '📄' : '📎';
-    previewEl.innerHTML = `<div class="file-chip">${icon} ${esc(file.name)} <span style="color:var(--t3);font-size:11px">(${fmtSize(file.size)})</span></div>`;
+    const icon=file.type==='application/pdf'?'📄':'📎';
+    previewEl.innerHTML=`<div class="file-chip">${icon} ${esc(file.name)} <span style="color:var(--t3);font-size:11px">(${fmtSize(file.size)})</span></div>`;
   }
-  const area = document.getElementById(areaId); if (area) area.style.borderColor='var(--a)';
+  const area=document.getElementById(areaId); if(area)area.style.borderColor='var(--a)';
 }
 
 /* ── PRELOADER ── */
 function runPreloader() {
-  const bar=document.getElementById('preBar'), pre=document.getElementById('preloader');
+  const bar=document.getElementById('preBar'),pre=document.getElementById('preloader');
   if (!bar||!pre) return;
   let w=0;
   const iv=setInterval(()=>{
-    w = Math.min(w+Math.random()*18+5, 100); bar.style.width=w+'%';
+    w=Math.min(w+Math.random()*18+5,100); bar.style.width=w+'%';
     if (w>=100) { clearInterval(iv); setTimeout(()=>pre.classList.add('hidden'),350); }
   },55);
 }
@@ -361,55 +521,34 @@ function runPreloader() {
 function openSidebar()  { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('sidebarOverlay')?.classList.add('show'); }
 function closeSidebar() { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('sidebarOverlay')?.classList.remove('show'); }
 
-/* ── PRESENCE HEARTBEAT ──
-   Sends a heartbeat every 30s while user is on the page.
-   send-notification edge function checks this — if last_seen < 90s ago,
-   email is skipped (user is online and sees popup instead).
-   On tab close / visibility hidden → one final "offline" ping is sent. */
+/* ── PRESENCE HEARTBEAT ── */
 function startPresenceHeartbeat() {
   if (!Auth.token || !Auth.userId) return;
-
-  async function beat(page) {
+  async function beat() {
     try {
       await fetch(`${SB}/rest/v1/user_presence`, {
-        method: 'POST',
-        headers: {
-          ...hdr({ Prefer: 'resolution=merge-duplicates' }),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ user_id: Auth.userId, last_seen: new Date().toISOString(), page: page || location.pathname })
+        method:'POST',
+        headers:{...hdr({Prefer:'resolution=merge-duplicates'}),'Content-Type':'application/json'},
+        body:JSON.stringify({user_id:Auth.userId, last_seen:new Date().toISOString(), page:location.pathname})
       });
-    } catch (_) {}
+    } catch(_){}
   }
-
-  // Initial beat immediately
   beat();
-
-  // Beat every 30s
-  const iv = setInterval(beat, 30000);
-
-  // On tab hidden / close → send a far-past timestamp so user appears offline
+  setInterval(beat, 30000);
   function goOffline() {
-    // Set last_seen to 10 minutes ago so threshold check fails → emails resume
-    const offlineTime = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const body = JSON.stringify({ user_id: Auth.userId, last_seen: offlineTime, page: 'offline' });
-    // Use sendBeacon for reliability on page unload
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'application/json' });
-      // sendBeacon doesn't support custom headers, use fetch with keepalive instead
-    }
+    const offlineTime = new Date(Date.now()-10*60*1000).toISOString();
     fetch(`${SB}/rest/v1/user_presence`, {
-      method: 'POST',
-      headers: { ...hdr({ Prefer: 'resolution=merge-duplicates' }), 'Content-Type': 'application/json' },
-      body,
-      keepalive: true  // works on page unload
-    }).catch(() => {});
+      method:'POST',
+      headers:{...hdr({Prefer:'resolution=merge-duplicates'}),'Content-Type':'application/json'},
+      body:JSON.stringify({user_id:Auth.userId, last_seen:offlineTime, page:'offline'}),
+      keepalive:true
+    }).catch(()=>{});
+    // Clear typing on leave
+    if (window._currentPID) {
+      fetch(`${SB}/rest/v1/typing_indicators?user_id=eq.${Auth.userId}&project_id=eq.${window._currentPID}`,
+        {method:'DELETE', headers:hdr(), keepalive:true}).catch(()=>{});
+    }
   }
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) goOffline();
-    else beat(); // tab became visible again → mark online
-  });
-
+  document.addEventListener('visibilitychange', () => { if(document.hidden) goOffline(); else beat(); });
   window.addEventListener('beforeunload', goOffline);
 }

@@ -277,6 +277,58 @@ select.form-control option{background:var(--bg3)}
 .page-header h2{font-size:17px;font-weight:700;flex:1}
 .page-header .sub{font-size:11px;color:var(--t3);margin-top:2px}
 
+/* ── MSG ANIMATION ─────────────────────── */
+@keyframes msgSlideIn{
+  from{opacity:0;transform:translateY(12px) scale(.97)}
+  to  {opacity:1;transform:translateY(0)    scale(1)}
+}
+@keyframes msgSlideInMine{
+  from{opacity:0;transform:translateX(16px) scale(.97)}
+  to  {opacity:1;transform:translateX(0)    scale(1)}
+}
+.msg-entering{opacity:0;transform:translateY(12px) scale(.97)}
+.msg-entered{animation:msgSlideIn .28s cubic-bezier(.34,1.2,.64,1) forwards}
+.msg.mine.msg-entered{animation:msgSlideInMine .28s cubic-bezier(.34,1.2,.64,1) forwards}
+
+/* ── CHAT LINK ──────────────────────────── */
+.chat-link{color:var(--a);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+.chat-link:hover{opacity:.8}
+
+/* ── CHAT FILE CHIP ─────────────────────── */
+.chat-file-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;margin-top:4px;min-width:180px;max-width:260px}
+.msg.mine .chat-file-chip{background:rgba(255,255,255,.08);border-color:rgba(224,64,251,.25)}
+.chat-file-info{flex:1;min-width:0}
+.chat-file-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-file-size{font-size:10px;color:var(--t3);margin-top:2px}
+
+/* ── CHAT IMAGE ATTACHMENT ──────────────── */
+.chat-img-attachment{max-width:240px;max-height:200px;border-radius:10px;object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
+.chat-img-attachment:hover{opacity:.9}
+
+/* ── CHAT ATTACH BUTTON ─────────────────── */
+.chat-attach-btn{color:var(--t3)!important;flex-shrink:0}
+.chat-attach-btn:hover{color:var(--a)!important;background:rgba(224,64,251,.08)!important}
+
+/* ── TYPING INDICATOR ───────────────────── */
+#chat-typing{padding:4px 16px 8px;min-height:28px}
+.typing-indicator{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--t3)}
+.typing-dots{display:inline-flex;gap:3px;align-items:center;margin-left:2px}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--t3);display:block;animation:typingBounce 1.2s ease-in-out infinite}
+.typing-dots span:nth-child(1){animation-delay:0s}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{
+  0%,60%,100%{transform:translateY(0);opacity:.5}
+  30%{transform:translateY(-5px);opacity:1}
+}
+
+/* ── FILE UPLOAD PREVIEW ────────────────── */
+.chat-file-preview{padding:8px 14px;background:var(--bg3);border-top:1px solid var(--border);display:none;align-items:center;gap:10px;font-size:12px}
+.chat-file-preview.show{display:flex}
+.chat-file-preview-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)}
+.chat-file-preview-cancel{background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;flex-shrink:0}
+.chat-file-preview-cancel:hover{color:var(--red)}
+
 /* MOBILE */
 @media(max-width:768px){
   .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}
