@@ -313,6 +313,7 @@ function updateNotifBadge(notifs) {
 
 // ── INIT ──
 loadProjects();
+startPresenceHeartbeat();
 (async () => {
   const n = await dbGet('notifications', `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
   updateNotifBadge(n);

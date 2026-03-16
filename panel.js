@@ -360,3 +360,56 @@ function runPreloader() {
 /* ── SIDEBAR ── */
 function openSidebar()  { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('sidebarOverlay')?.classList.add('show'); }
 function closeSidebar() { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('sidebarOverlay')?.classList.remove('show'); }
+
+/* ── PRESENCE HEARTBEAT ──
+   Sends a heartbeat every 30s while user is on the page.
+   send-notification edge function checks this — if last_seen < 90s ago,
+   email is skipped (user is online and sees popup instead).
+   On tab close / visibility hidden → one final "offline" ping is sent. */
+function startPresenceHeartbeat() {
+  if (!Auth.token || !Auth.userId) return;
+
+  async function beat(page) {
+    try {
+      await fetch(`${SB}/rest/v1/user_presence`, {
+        method: 'POST',
+        headers: {
+          ...hdr({ Prefer: 'resolution=merge-duplicates' }),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id: Auth.userId, last_seen: new Date().toISOString(), page: page || location.pathname })
+      });
+    } catch (_) {}
+  }
+
+  // Initial beat immediately
+  beat();
+
+  // Beat every 30s
+  const iv = setInterval(beat, 30000);
+
+  // On tab hidden / close → send a far-past timestamp so user appears offline
+  function goOffline() {
+    // Set last_seen to 10 minutes ago so threshold check fails → emails resume
+    const offlineTime = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const body = JSON.stringify({ user_id: Auth.userId, last_seen: offlineTime, page: 'offline' });
+    // Use sendBeacon for reliability on page unload
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: 'application/json' });
+      // sendBeacon doesn't support custom headers, use fetch with keepalive instead
+    }
+    fetch(`${SB}/rest/v1/user_presence`, {
+      method: 'POST',
+      headers: { ...hdr({ Prefer: 'resolution=merge-duplicates' }), 'Content-Type': 'application/json' },
+      body,
+      keepalive: true  // works on page unload
+    }).catch(() => {});
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) goOffline();
+    else beat(); // tab became visible again → mark online
+  });
+
+  window.addEventListener('beforeunload', goOffline);
+}
