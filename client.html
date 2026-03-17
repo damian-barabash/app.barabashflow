@@ -401,165 +401,232 @@ let _meetingWidget = null;
 let _meetingWidgetIv = null;
 
 async function checkScheduledNotifications() {
-  const now = new Date().toISOString();
   const snots = await dbGet('scheduled_notifications',
-    `?user_id=eq.${Auth.userId}&is_active=eq.true&select=*&order=created_at.desc`);
+    `?user_id=eq.${Auth.userId}&is_active=eq.true&select=*&order=created_at.asc`);
 
   for (const sn of snots) {
     if (sn.type === 'text' && !sn.dismissed_at) {
-      showTextNotifPopup(sn);
+      showTextNotifCard(sn);
     }
     if (sn.type === 'meeting' && sn.scheduled_at) {
       const meetTime = new Date(sn.scheduled_at);
-      const isPast = meetTime < new Date(Date.now() - 60*60*1000); // expired 1h ago
+      const isPast = meetTime < new Date(Date.now() - 60*60*1000);
       if (!isPast) {
-        showMeetingPopup(sn);
+        // Show as card if not already minimized to widget
+        if (!document.getElementById('sn-meet-widget-'+sn.id)) {
+          showMeetingCard(sn);
+        }
       } else {
-        // Auto-deactivate expired meetings
-        await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
+        await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
+          {method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
       }
     }
   }
 }
 
-function showTextNotifPopup(sn) {
-  // Don't show twice
-  if (document.getElementById('sn-text-'+sn.id)) return;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'sn-text-'+sn.id;
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:7000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
-
-  const card = document.createElement('div');
-  card.style.cssText = 'background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:28px;max-width:420px;width:100%;animation:slidein .25s ease;box-shadow:0 16px 48px rgba(0,0,0,.6)';
-  card.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>
-      <div><div style="font-size:15px;font-weight:700;color:#fff">${esc(sn.title)}</div><div style="font-size:11px;color:#777">od Dmytrii Barabash</div></div>
-    </div>
-    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:20px">${esc(sn.message)}</div>` : ''}
-    <button id="sn-close-${sn.id}" style="width:100%;padding:11px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border:none;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit">Rozumiem</button>
-  `;
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-
-  card.querySelector('#sn-close-'+sn.id).addEventListener('click', async () => {
-    overlay.remove();
-    // Mark dismissed
-    await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({dismissed_at:new Date().toISOString(),is_active:false})});
-  });
+// ── NOTIFICATION CONTAINER ──
+// All notification cards go into a single fixed column (top-right)
+// Widgets go into a separate column (bottom-right), stacked upward
+function getNotifContainer() {
+  let c = document.getElementById('sn-card-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'sn-card-container';
+    c.style.cssText = [
+      'position:fixed',
+      'top:16px',
+      'right:16px',
+      'z-index:7500',
+      'display:flex',
+      'flex-direction:column',
+      'gap:12px',
+      'max-width:400px',
+      'width:calc(100vw - 32px)',
+      'pointer-events:none'
+    ].join(';');
+    document.body.appendChild(c);
+  }
+  return c;
 }
 
-function showMeetingPopup(sn) {
-  const popupId = 'sn-meet-popup-'+sn.id;
-  const widgetId = 'sn-meet-widget-'+sn.id;
+function getWidgetContainer() {
+  let c = document.getElementById('sn-widget-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'sn-widget-container';
+    c.style.cssText = [
+      'position:fixed',
+      'bottom:20px',
+      'right:20px',
+      'z-index:6500',
+      'display:flex',
+      'flex-direction:column-reverse', // newest at bottom
+      'gap:8px',
+      'max-width:280px',
+      'width:calc(100vw - 40px)',
+      'pointer-events:none'
+    ].join(';');
+    document.body.appendChild(c);
+  }
+  return c;
+}
 
-  // If widget already shown don't re-show popup
-  if (document.getElementById(widgetId)) return;
-  if (document.getElementById(popupId)) return;
+// ── CARD BASE STYLES ──
+const CARD_BASE = [
+  'background:#1a1a1a',
+  'border-radius:16px',
+  'padding:20px',
+  'box-shadow:0 8px 32px rgba(0,0,0,.6)',
+  'pointer-events:all',
+  'animation:popIn .35s cubic-bezier(.34,1.2,.64,1)'
+].join(';');
+
+// ── TEXT NOTIFICATION CARD ──
+function showTextNotifCard(sn) {
+  if (document.getElementById('sn-text-'+sn.id)) return;
+
+  const card = document.createElement('div');
+  card.id = 'sn-text-'+sn.id;
+  card.style.cssText = CARD_BASE + ';border:1px solid #333';
+  card.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:${sn.message?'12px':'0'}">
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🔔</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px">${esc(sn.title)}</div>
+        <div style="font-size:11px;color:#555">od Dmytrii Barabash</div>
+      </div>
+      <button id="sn-text-close-${sn.id}" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;flex-shrink:0;padding:0;line-height:1;transition:color .2s">×</button>
+    </div>
+    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:14px;padding-left:44px">${esc(sn.message)}</div>` : ''}
+    <div style="padding-left:44px">
+      <button id="sn-text-ok-${sn.id}" style="padding:8px 20px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit">Rozumiem</button>
+    </div>
+  `;
+
+  getNotifContainer().appendChild(card);
+
+  async function dismiss() {
+    card.style.animation='popOut .25s ease forwards';
+    setTimeout(()=>card.remove(), 250);
+    await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
+      {method:'PATCH',headers:hdr(),body:JSON.stringify({dismissed_at:new Date().toISOString(),is_active:false})});
+  }
+  card.querySelector('#sn-text-ok-'+sn.id).addEventListener('click', dismiss);
+  card.querySelector('#sn-text-close-'+sn.id).addEventListener('click', dismiss);
+}
+
+// ── MEETING NOTIFICATION CARD ──
+function showMeetingCard(sn) {
+  const cardId = 'sn-meet-card-'+sn.id;
+  if (document.getElementById(cardId)) return;
+  if (document.getElementById('sn-meet-widget-'+sn.id)) return;
 
   const meetTime = new Date(sn.scheduled_at);
 
-  const overlay = document.createElement('div');
-  overlay.id = popupId;
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:7000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
-
   const card = document.createElement('div');
-  card.style.cssText = 'background:#1a1a1a;border:1px solid rgba(224,64,251,.3);border-radius:20px;padding:28px;max-width:440px;width:100%;animation:slidein .25s ease;box-shadow:0 16px 48px rgba(0,0,0,.7)';
+  card.id = cardId;
+  card.style.cssText = CARD_BASE + ';border:1px solid rgba(224,64,251,.35)';
   card.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📅</div>
-      <div>
-        <div style="font-size:15px;font-weight:700;color:#fff">${esc(sn.title)}</div>
-        <div style="font-size:12px;color:#e040fb;margin-top:3px">${meetTime.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})} · ${meetTime.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</div>
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
+      <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">${esc(sn.title)}</div>
+        <div style="font-size:11px;color:#e040fb">${meetTime.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})} · ${meetTime.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
+      <button id="sn-meet-min-${sn.id}" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;flex-shrink:0;padding:2px 4px;border-radius:6px;transition:all .2s;line-height:1" title="Minimalizuj">⌃</button>
     </div>
-    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:16px">${esc(sn.message)}</div>` : ''}
-    <div id="meet-countdown-${sn.id}" style="text-align:center;font-size:13px;color:#777;margin-bottom:18px"></div>
-    <div style="display:flex;gap:10px">
-      <a href="${esc(sn.meet_url||'#')}" target="_blank" rel="noopener" style="flex:1;padding:12px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px">
-        <span>🎥</span> Dołącz do spotkania
-      </a>
-      <button id="meet-minimize-${sn.id}" style="padding:12px 16px;background:rgba(255,255,255,.05);color:#aaa;border:1px solid #333;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap">Minimalizuj</button>
-    </div>
+    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:12px">${esc(sn.message)}</div>` : ''}
+    <div id="meet-countdown-${sn.id}" style="font-size:12px;color:#777;margin-bottom:14px;text-align:center;padding:6px;background:rgba(255,255,255,.04);border-radius:8px"></div>
+    <a href="${esc(sn.meet_url||'#')}" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
+      🎥 Dołącz do spotkania
+    </a>
   `;
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
 
-  // Countdown timer
+  getNotifContainer().appendChild(card);
+
+  // Countdown
   function updateCountdown() {
     const diff = meetTime - Date.now();
     const el = document.getElementById('meet-countdown-'+sn.id);
     if (!el) return;
-    if (diff <= 0) { el.textContent = '🟢 Spotkanie trwa!'; el.style.color='#4ade80'; return; }
+    if (diff <= 0) { el.textContent='🟢 Spotkanie trwa!'; el.style.color='#4ade80'; return; }
     const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
-    el.textContent = h>0 ? `Za ${h}h ${m}min` : m>0 ? `Za ${m} min ${s}s` : `Za ${s} sekund`;
+    el.textContent = h>0 ? `⏱ Za ${h}h ${m}min` : m>0 ? `⏱ Za ${m} min ${s}s` : `⏱ Za ${s} sekund`;
   }
   updateCountdown();
   const countdownIv = setInterval(updateCountdown, 1000);
 
-  // Minimize → show floating widget
-  card.querySelector('#meet-minimize-'+sn.id).addEventListener('click', () => {
+  // Minimize button
+  card.querySelector('#sn-meet-min-'+sn.id).addEventListener('click', () => {
     clearInterval(countdownIv);
-    overlay.remove();
-    showMeetingWidget(sn, meetTime);
-  });
-
-  // Click outside → minimize
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      clearInterval(countdownIv);
-      overlay.remove();
-      showMeetingWidget(sn, meetTime);
-    }
+    card.style.animation='popOut .25s ease forwards';
+    setTimeout(()=>{ card.remove(); showMeetingWidget(sn, meetTime); }, 220);
   });
 }
 
+// ── MEETING WIDGET (minimized, stacks bottom-right) ──
 function showMeetingWidget(sn, meetTime) {
   const widgetId = 'sn-meet-widget-'+sn.id;
   if (document.getElementById(widgetId)) return;
 
   const widget = document.createElement('div');
   widget.id = widgetId;
-  widget.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:6000;background:#1a1a1a;border:1px solid rgba(224,64,251,.4);border-radius:14px;padding:12px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;min-width:200px;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);transition:opacity .2s';
+  widget.style.cssText = [
+    'background:#1a1a1a',
+    'border:1px solid rgba(224,64,251,.4)',
+    'border-radius:12px',
+    'padding:10px 14px',
+    'cursor:pointer',
+    'box-shadow:0 4px 16px rgba(0,0,0,.5)',
+    'display:flex',
+    'align-items:center',
+    'gap:10px',
+    'pointer-events:all',
+    'animation:popIn .35s cubic-bezier(.34,1.56,.64,1)',
+    'transition:opacity .2s,transform .2s'
+  ].join(';');
   widget.innerHTML = `
-    <span style="font-size:20px">📅</span>
+    <span style="font-size:18px">📅</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
-      <div id="widget-time-${sn.id}" style="font-size:11px;color:#e040fb;margin-top:2px"></div>
+      <div id="widget-time-${sn.id}" style="font-size:11px;color:#e040fb;margin-top:1px"></div>
     </div>
-    <span style="font-size:11px;color:#555;flex-shrink:0">●</span>
   `;
-  document.body.appendChild(widget);
+
+  // Add to stacking widget container
+  getWidgetContainer().appendChild(widget);
 
   // Mini countdown
   function updateWidget() {
     const diff = meetTime - Date.now();
     const el = document.getElementById('widget-time-'+sn.id);
     if (!el) return;
-    if (diff <= -3600000) { // 1h past → remove
+    if (diff <= -3600000) {
       widget.remove();
-      fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
+      fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
+        {method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
       return;
     }
-    if (diff <= 0) { el.textContent='🟢 Trwa teraz!'; el.style.color='#4ade80'; return; }
-    const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
-    el.textContent = h>0 ? `Za ${h}h ${m}min` : `Za ${m} min`;
+    if (diff<=0){el.textContent='🟢 Trwa teraz!';el.style.color='#4ade80';return;}
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+    el.textContent=h>0?`Za ${h}h ${m}min`:`Za ${m} min`;
   }
   updateWidget();
   const iv = setInterval(updateWidget, 30000);
 
-  // Click widget → reopen popup
+  // Click → restore card
   widget.addEventListener('click', () => {
     clearInterval(iv);
-    widget.remove();
-    showMeetingPopup(sn);
+    widget.style.animation='popOut .2s ease forwards';
+    setTimeout(()=>{ widget.remove(); showMeetingCard(sn); }, 180);
   });
 }
 
 // Check on load and every 5 min
 checkScheduledNotifications();
 setInterval(checkScheduledNotifications, 5*60*1000);
+
 
 (async () => {
   const n = await dbGet('notifications', `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);

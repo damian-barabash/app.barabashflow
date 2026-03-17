@@ -351,3 +351,11 @@ select.form-control option{background:var(--bg3)}
 #cal-grid{border:1px solid var(--border);border-radius:0 0 12px 12px;overflow:hidden}
 #cal-grid>div:hover:not([style*="opacity"]){background:var(--bg3)!important}
 .cal-dot{animation:fadein .3s ease}
+
+/* ── SCHEDULED NOTIFICATION CONTAINERS ── */
+#sn-card-container{max-height:calc(100vh - 32px);overflow-y:auto;overflow-x:hidden}
+#sn-card-container::-webkit-scrollbar{display:none}
+@media(max-width:480px){
+  #sn-card-container{top:8px;right:8px;width:calc(100vw - 16px)}
+  #sn-widget-container{bottom:12px;right:12px;width:calc(100vw - 24px)}
+}
