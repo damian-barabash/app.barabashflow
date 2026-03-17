@@ -960,7 +960,8 @@ async function sendScheduledNotif() {
       const clientName = client[0]?.display_name||client[0]?.email||'Klient';
 
       const calR = await edgeFn('apple-calendar',{
-        action:'create', uid, title:`${title} — ${clientName}`,
+        action:'create', uid, ...ICLOUD_CFG,
+        title:`${title} — ${clientName}`,
         description:msg||`Spotkanie z ${clientName}`,
         meetUrl:meetUrl, startsAt, endsAt
       });
@@ -1089,7 +1090,7 @@ function renderCalGrid(year, month) {
 
 async function deleteCalEvent(id, uid) {
   showConfirm('Usuń wydarzenie','To wydarzenie zostanie usunięte z kalendarza i Apple Calendar.', async()=>{
-    await edgeFn('apple-calendar',{action:'delete',uid});
+    await edgeFn('apple-calendar',{action:'delete', uid, ...ICLOUD_CFG});
     await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{method:'DELETE',headers:hdr()});
     toast('Wydarzenie usunięte ✅'); loadCalendar();
   });
@@ -1110,7 +1111,7 @@ async function createCalendarEvent() {
   try {
     const uid = crypto.randomUUID();
     const startsAt=new Date(start).toISOString(), endsAt=new Date(end).toISOString();
-    const calR = await edgeFn('apple-calendar',{action:'create',uid,title,description:desc,meetUrl:url,startsAt,endsAt});
+    const calR = await edgeFn('apple-calendar',{action:'create', uid, ...ICLOUD_CFG, title, description:desc, meetUrl:url, startsAt, endsAt});
     if (!calR.ok) throw new Error('Apple Calendar error: '+JSON.stringify(calR));
     toast('Wydarzenie dodane do kalendarza ✅');
     closeModal('m-new-event');
@@ -1126,6 +1127,13 @@ async function loadEvClientSelect() {
   const sel=document.getElementById('ev-client');
   sel.innerHTML='<option value="">— brak —</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.display_name||c.email)}</option>`).join('');
 }
+
+// ── iCLOUD CONFIG ──
+// Events go to "Робочий" calendar (one-way: platform → Apple Calendar only)
+const ICLOUD_CFG = {
+  icloudUser:   'Dmytrii.spectrum@gmail.com',
+  calendarHref: 'https://caldav.icloud.com/18126911317/calendars/ADA1F3E4-520E-4119-8DD7-93541895A368/'
+};
 
 // INIT
 loadDash();
