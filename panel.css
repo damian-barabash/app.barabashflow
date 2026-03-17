@@ -346,3 +346,8 @@ select.form-control option{background:var(--bg3)}
   .stats-grid{grid-template-columns:1fr}
   .modal{padding:18px}
 }
+
+/* ── CALENDAR ─────────────────────────── */
+#cal-grid{border:1px solid var(--border);border-radius:0 0 12px 12px;overflow:hidden}
+#cal-grid>div:hover:not([style*="opacity"]){background:var(--bg3)!important}
+.cal-dot{animation:fadein .3s ease}

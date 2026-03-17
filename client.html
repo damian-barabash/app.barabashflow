@@ -394,9 +394,173 @@ function updateNotifBadge(notifs) {
   if (unread>0) { nb.textContent=unread; nb.classList.add('show'); } else nb.classList.remove('show');
 }
 
-// ── INIT ──
-loadProjects();
-startPresenceHeartbeat();
+// ── SCHEDULED NOTIFICATIONS ──
+// Meeting popup stays as widget, text popup disappears on close
+
+let _meetingWidget = null;
+let _meetingWidgetIv = null;
+
+async function checkScheduledNotifications() {
+  const now = new Date().toISOString();
+  const snots = await dbGet('scheduled_notifications',
+    `?user_id=eq.${Auth.userId}&is_active=eq.true&select=*&order=created_at.desc`);
+
+  for (const sn of snots) {
+    if (sn.type === 'text' && !sn.dismissed_at) {
+      showTextNotifPopup(sn);
+    }
+    if (sn.type === 'meeting' && sn.scheduled_at) {
+      const meetTime = new Date(sn.scheduled_at);
+      const isPast = meetTime < new Date(Date.now() - 60*60*1000); // expired 1h ago
+      if (!isPast) {
+        showMeetingPopup(sn);
+      } else {
+        // Auto-deactivate expired meetings
+        await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
+      }
+    }
+  }
+}
+
+function showTextNotifPopup(sn) {
+  // Don't show twice
+  if (document.getElementById('sn-text-'+sn.id)) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'sn-text-'+sn.id;
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:7000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:28px;max-width:420px;width:100%;animation:slidein .25s ease;box-shadow:0 16px 48px rgba(0,0,0,.6)';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>
+      <div><div style="font-size:15px;font-weight:700;color:#fff">${esc(sn.title)}</div><div style="font-size:11px;color:#777">od Dmytrii Barabash</div></div>
+    </div>
+    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:20px">${esc(sn.message)}</div>` : ''}
+    <button id="sn-close-${sn.id}" style="width:100%;padding:11px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border:none;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit">Rozumiem</button>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  card.querySelector('#sn-close-'+sn.id).addEventListener('click', async () => {
+    overlay.remove();
+    // Mark dismissed
+    await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({dismissed_at:new Date().toISOString(),is_active:false})});
+  });
+}
+
+function showMeetingPopup(sn) {
+  const popupId = 'sn-meet-popup-'+sn.id;
+  const widgetId = 'sn-meet-widget-'+sn.id;
+
+  // If widget already shown don't re-show popup
+  if (document.getElementById(widgetId)) return;
+  if (document.getElementById(popupId)) return;
+
+  const meetTime = new Date(sn.scheduled_at);
+
+  const overlay = document.createElement('div');
+  overlay.id = popupId;
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:7000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#1a1a1a;border:1px solid rgba(224,64,251,.3);border-radius:20px;padding:28px;max-width:440px;width:100%;animation:slidein .25s ease;box-shadow:0 16px 48px rgba(0,0,0,.7)';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📅</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff">${esc(sn.title)}</div>
+        <div style="font-size:12px;color:#e040fb;margin-top:3px">${meetTime.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})} · ${meetTime.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    </div>
+    ${sn.message ? `<div style="font-size:13px;color:#bbb;line-height:1.65;margin-bottom:16px">${esc(sn.message)}</div>` : ''}
+    <div id="meet-countdown-${sn.id}" style="text-align:center;font-size:13px;color:#777;margin-bottom:18px"></div>
+    <div style="display:flex;gap:10px">
+      <a href="${esc(sn.meet_url||'#')}" target="_blank" rel="noopener" style="flex:1;padding:12px;background:linear-gradient(135deg,#e040fb,#c0392b);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px">
+        <span>🎥</span> Dołącz do spotkania
+      </a>
+      <button id="meet-minimize-${sn.id}" style="padding:12px 16px;background:rgba(255,255,255,.05);color:#aaa;border:1px solid #333;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap">Minimalizuj</button>
+    </div>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  // Countdown timer
+  function updateCountdown() {
+    const diff = meetTime - Date.now();
+    const el = document.getElementById('meet-countdown-'+sn.id);
+    if (!el) return;
+    if (diff <= 0) { el.textContent = '🟢 Spotkanie trwa!'; el.style.color='#4ade80'; return; }
+    const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    el.textContent = h>0 ? `Za ${h}h ${m}min` : m>0 ? `Za ${m} min ${s}s` : `Za ${s} sekund`;
+  }
+  updateCountdown();
+  const countdownIv = setInterval(updateCountdown, 1000);
+
+  // Minimize → show floating widget
+  card.querySelector('#meet-minimize-'+sn.id).addEventListener('click', () => {
+    clearInterval(countdownIv);
+    overlay.remove();
+    showMeetingWidget(sn, meetTime);
+  });
+
+  // Click outside → minimize
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      clearInterval(countdownIv);
+      overlay.remove();
+      showMeetingWidget(sn, meetTime);
+    }
+  });
+}
+
+function showMeetingWidget(sn, meetTime) {
+  const widgetId = 'sn-meet-widget-'+sn.id;
+  if (document.getElementById(widgetId)) return;
+
+  const widget = document.createElement('div');
+  widget.id = widgetId;
+  widget.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:6000;background:#1a1a1a;border:1px solid rgba(224,64,251,.4);border-radius:14px;padding:12px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;min-width:200px;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);transition:opacity .2s';
+  widget.innerHTML = `
+    <span style="font-size:20px">📅</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
+      <div id="widget-time-${sn.id}" style="font-size:11px;color:#e040fb;margin-top:2px"></div>
+    </div>
+    <span style="font-size:11px;color:#555;flex-shrink:0">●</span>
+  `;
+  document.body.appendChild(widget);
+
+  // Mini countdown
+  function updateWidget() {
+    const diff = meetTime - Date.now();
+    const el = document.getElementById('widget-time-'+sn.id);
+    if (!el) return;
+    if (diff <= -3600000) { // 1h past → remove
+      widget.remove();
+      fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,{method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
+      return;
+    }
+    if (diff <= 0) { el.textContent='🟢 Trwa teraz!'; el.style.color='#4ade80'; return; }
+    const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
+    el.textContent = h>0 ? `Za ${h}h ${m}min` : `Za ${m} min`;
+  }
+  updateWidget();
+  const iv = setInterval(updateWidget, 30000);
+
+  // Click widget → reopen popup
+  widget.addEventListener('click', () => {
+    clearInterval(iv);
+    widget.remove();
+    showMeetingPopup(sn);
+  });
+}
+
+// Check on load and every 5 min
+checkScheduledNotifications();
+setInterval(checkScheduledNotifications, 5*60*1000);
+
 (async () => {
   const n = await dbGet('notifications', `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
   updateNotifBadge(n);

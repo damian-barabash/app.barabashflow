@@ -41,6 +41,8 @@
     <div class="nav-link" data-view="clients"><i class="ri-team-line"></i>Klienci<span class="nav-badge" id="nb-clients"></span></div>
     <div class="nav-link" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="nav-badge" id="nb-orders"></span></div>
     <div class="nav-link" data-view="archive"><i class="ri-archive-line"></i>Archiwum</div>
+    <div class="nav-link" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
+    <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
   </nav>
   <div class="sidebar-bottom">
     <div class="user-card">
@@ -101,7 +103,92 @@
       <div id="arc-projects" style="display:none"><div id="arc-projects-list"></div></div>
     </div>
 
-    <!-- CLIENT DETAIL -->
+    <!-- CALENDAR -->
+    <div id="v-calendar" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="card-title">Kalendarz</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:3px">Synchronizacja z Apple Calendar · <span id="cal-sync-status" style="color:var(--green)">●</span></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('m-new-event')"><i class="ri-add-line"></i>Nowe wydarzenie</button>
+      </div>
+      <!-- Month/Week nav -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="calPrev()"><i class="ri-arrow-left-s-line"></i></button>
+        <div id="cal-title" style="font-size:15px;font-weight:700;flex:1;text-align:center"></div>
+        <button class="btn btn-outline btn-sm" onclick="calNext()"><i class="ri-arrow-right-s-line"></i></button>
+        <button class="btn btn-ghost btn-sm" onclick="calToday()">Dziś</button>
+      </div>
+      <!-- Calendar grid -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+      </div>
+      <!-- Upcoming events list -->
+      <div style="margin-top:18px">
+        <div class="card-title" style="margin-bottom:12px">Nadchodzące wydarzenia</div>
+        <div id="cal-events-list"></div>
+      </div>
+    </div>
+
+    <!-- SEND NOTIFICATION -->
+    <div id="v-send-notif" style="display:none">
+      <div class="card-title" style="margin-bottom:6px">Wyślij powiadomienie</div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:18px">Spotkanie: pojawi się jako popup z minutnikiem i zostaje jako widget. Tekstowe: popup, po zamknięciu znika.</div>
+      <div class="card" style="max-width:560px">
+        <div class="form-group">
+          <label class="form-label">Typ powiadomienia</label>
+          <div style="display:flex;gap:10px">
+            <label style="flex:1;cursor:pointer">
+              <input type="radio" name="sn-type" value="meeting" checked onchange="snTypeChange()" style="display:none">
+              <div class="sn-type-btn active" id="sn-type-meeting" style="padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s">
+                📅 Spotkanie
+              </div>
+            </label>
+            <label style="flex:1;cursor:pointer">
+              <input type="radio" name="sn-type" value="text" onchange="snTypeChange()" style="display:none">
+              <div class="sn-type-btn" id="sn-type-text" style="padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s">
+                🔔 Tekstowe
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Klient *</label>
+          <select class="form-control" id="sn-client"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tytuł *</label>
+          <input class="form-control" id="sn-title" placeholder="np. Omówienie projektu">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Wiadomość</label>
+          <textarea class="form-control" id="sn-message" rows="3" placeholder="Opcjonalny opis..."></textarea>
+        </div>
+        <div id="sn-meeting-fields">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Data i godzina *</label>
+              <input class="form-control" id="sn-datetime" type="datetime-local">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Czas trwania</label>
+              <select class="form-control" id="sn-duration">
+                <option value="30">30 minut</option>
+                <option value="60" selected>1 godzina</option>
+                <option value="90">1.5 godziny</option>
+                <option value="120">2 godziny</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link do spotkania *</label>
+            <input class="form-control" id="sn-meet-url" type="url" placeholder="https://meet.google.com/...">
+          </div>
+        </div>
+        <div class="form-err" id="sn-err"></div>
+        <button class="btn btn-primary" onclick="sendScheduledNotif()" id="sn-btn"><i class="ri-send-plane-line"></i>Wyślij powiadomienie</button>
+      </div>
+    </div>
     <div id="v-cdetail" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
@@ -254,6 +341,26 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="m-new-event">
+  <div class="modal">
+    <div class="modal-title">Nowe wydarzenie</div>
+    <div class="modal-sub">Zostanie dodane do Apple Calendar</div>
+    <div class="form-group"><label class="form-label">Tytuł *</label><input class="form-control" id="ev-title" placeholder="np. Spotkanie z klientem"></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Początek *</label><input class="form-control" id="ev-start" type="datetime-local"></div>
+      <div class="form-group"><label class="form-label">Koniec *</label><input class="form-control" id="ev-end" type="datetime-local"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Klient (opcjonalnie)</label><select class="form-control" id="ev-client"><option value="">— brak —</option></select></div>
+    <div class="form-group"><label class="form-label">Link do spotkania</label><input class="form-control" id="ev-url" type="url" placeholder="https://meet.google.com/..."></div>
+    <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="ev-desc" rows="2" placeholder="Opcjonalny opis..."></textarea></div>
+    <div class="form-err" id="ev-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-new-event')">Anuluj</button>
+      <button class="btn btn-primary" id="ev-btn" onclick="createCalendarEvent()"><i class="ri-calendar-check-line"></i>Dodaj do kalendarza</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE -->
 <div class="modal-backdrop confirm-modal" id="m-confirm">
   <div class="modal">
@@ -287,16 +394,18 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard') loadDash();
   if (v==='clients')   loadClients();
   if (v==='orders')    loadOrders();
   if (v==='archive')   loadArchive();
+  if (v==='calendar')  { loadCalendar(); loadEvClientSelect(); }
+  if (v==='send-notif'){ loadNotifClientSelect(); }
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -783,6 +892,239 @@ async function convertOrder(){
   btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Utwórz i wyślij e-mail';
   if(r.error){errEl.textContent=r.error;return;}
   closeModal('m-convert');toast('Klient utworzony, e-mail wysłany ✅');loadOrders();loadDash();
+}
+
+// ── NAV extension for new views ──
+// (nav() already handles all IDs dynamically including calendar, send-notif)
+
+// ── SCHEDULED NOTIFICATIONS ──
+function snTypeChange() {
+  const t = document.querySelector('input[name="sn-type"]:checked')?.value;
+  document.getElementById('sn-meeting-fields').style.display = t==='meeting' ? 'block' : 'none';
+  document.getElementById('sn-type-meeting').style.cssText = t==='meeting'
+    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
+    : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
+  document.getElementById('sn-type-text').style.cssText = t==='text'
+    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
+    : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
+}
+
+async function loadNotifClientSelect() {
+  const clients = await dbGet('profiles','?role=eq.client&archived_at=is.null&select=id,display_name,email&order=display_name');
+  const sel = document.getElementById('sn-client');
+  sel.innerHTML = '<option value="">— wybierz klienta —</option>' +
+    clients.map(c=>`<option value="${c.id}">${esc(c.display_name||c.email)}</option>`).join('');
+}
+
+async function sendScheduledNotif() {
+  const type = document.querySelector('input[name="sn-type"]:checked')?.value || 'meeting';
+  const userId = document.getElementById('sn-client').value;
+  const title  = document.getElementById('sn-title').value.trim();
+  const msg    = document.getElementById('sn-message').value.trim();
+  const errEl  = document.getElementById('sn-err');
+  errEl.textContent='';
+
+  if (!userId) { errEl.textContent='Wybierz klienta'; return; }
+  if (!title)  { errEl.textContent='Wpisz tytuł'; return; }
+
+  let scheduledAt=null, meetUrl=null, durationMin=60, calEventId=null;
+
+  if (type==='meeting') {
+    const dt = document.getElementById('sn-datetime').value;
+    meetUrl   = document.getElementById('sn-meet-url').value.trim();
+    durationMin = Number(document.getElementById('sn-duration').value);
+    if (!dt)      { errEl.textContent='Wybierz datę i godzinę'; return; }
+    if (!meetUrl) { errEl.textContent='Wpisz link do spotkania'; return; }
+    scheduledAt = new Date(dt).toISOString();
+  }
+
+  const btn = document.getElementById('sn-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Wysyłanie...';
+
+  try {
+    // 1. Save scheduled notification
+    const sn = await dbPost('scheduled_notifications',{
+      user_id:userId, type, title,
+      message:msg||null,
+      meet_url:meetUrl||null,
+      scheduled_at:scheduledAt,
+      is_active:true
+    });
+
+    // 2. If meeting → add to Apple Calendar + our calendar
+    if (type==='meeting' && scheduledAt) {
+      const uid = sn?.id || crypto.randomUUID();
+      const startsAt = scheduledAt;
+      const endsAt   = new Date(new Date(scheduledAt).getTime()+durationMin*60*1000).toISOString();
+      const client   = await dbGet('profiles',`?id=eq.${userId}&select=display_name,email`);
+      const clientName = client[0]?.display_name||client[0]?.email||'Klient';
+
+      const calR = await edgeFn('apple-calendar',{
+        action:'create', uid, title:`${title} — ${clientName}`,
+        description:msg||`Spotkanie z ${clientName}`,
+        meetUrl:meetUrl, startsAt, endsAt
+      });
+
+      const statusEl = document.getElementById('cal-sync-status');
+      if (calR.ok) {
+        if(statusEl){statusEl.textContent='●';statusEl.style.color='var(--green)';}
+      } else {
+        console.warn('[calendar]', calR);
+        if(statusEl){statusEl.textContent='⚠';statusEl.style.color='var(--yellow)';}
+      }
+    }
+
+    // 3. Send regular notification to client too
+    await edgeFn('send-notification',{
+      userId, content:type==='meeting'
+        ? `📅 Zaproszenie na spotkanie: <strong>${title}</strong> · ${new Date(scheduledAt).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`
+        : `🔔 <strong>${title}</strong>${msg?': '+msg:''}`,
+      type:'scheduled'
+    });
+
+    toast(type==='meeting'?'Spotkanie dodane do kalendarza ✅':'Powiadomienie wysłane ✅');
+    // Reset form
+    ['sn-title','sn-message','sn-meet-url','sn-datetime'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('sn-client').value='';
+    if(document.getElementById('v-calendar').style.display!=='none') loadCalendar();
+
+  } catch(e) {
+    errEl.textContent='Błąd: '+e.message;
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<i class="ri-send-plane-line"></i>Wyślij powiadomienie';
+  }
+}
+
+// ── CALENDAR ──
+let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
+
+async function loadCalendar() {
+  renderCalGrid(_calYear, _calMonth);
+  await loadCalEvents();
+}
+
+function calPrev() { _calMonth--; if(_calMonth<0){_calMonth=11;_calYear--;} loadCalendar(); }
+function calNext() { _calMonth++; if(_calMonth>11){_calMonth=0;_calYear++;} loadCalendar(); }
+function calToday() { _calYear=new Date().getFullYear(); _calMonth=new Date().getMonth(); loadCalendar(); }
+
+const MONTHS_PL = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const DAYS_PL   = ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+
+async function loadCalEvents() {
+  // Load from our DB + scheduled_notifications
+  const monthStart = new Date(_calYear, _calMonth, 1).toISOString();
+  const monthEnd   = new Date(_calYear, _calMonth+1, 0, 23, 59).toISOString();
+
+  const [calEvs, meetings] = await Promise.all([
+    dbGet('calendar_events', `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`),
+    dbGet('scheduled_notifications', `?type=eq.meeting&is_active=eq.true&scheduled_at=gte.${monthStart}&scheduled_at=lte.${monthEnd}&select=*,client:profiles!scheduled_notifications_user_id_fkey(display_name,email)&order=scheduled_at.asc`)
+  ]);
+
+  // Combine into one list
+  const events = [
+    ...calEvs.map(e=>({...e,_src:'calendar'})),
+    ...meetings.map(m=>({
+      id:m.id, title:m.title, starts_at:m.scheduled_at,
+      ends_at: new Date(new Date(m.scheduled_at).getTime()+60*60*1000).toISOString(),
+      meet_url:m.meet_url, client:m.client, color:'#60a5fa', _src:'meeting'
+    }))
+  ].sort((a,b)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime());
+
+  // Mark days with events in grid
+  events.forEach(e=>{
+    const d = new Date(e.starts_at).getDate();
+    const cell = document.getElementById(`cal-day-${d}`);
+    if (cell) {
+      let dot = cell.querySelector('.cal-dot');
+      if (!dot) {
+        dot=document.createElement('div');
+        dot.className='cal-dot';
+        dot.style.cssText='width:5px;height:5px;border-radius:50%;background:var(--a);margin:2px auto 0';
+        cell.appendChild(dot);
+      }
+    }
+  });
+
+  // Upcoming events list
+  const upcoming = events.filter(e=>new Date(e.starts_at)>Date.now());
+  document.getElementById('cal-events-list').innerHTML = upcoming.slice(0,8).map(e=>{
+    const start=new Date(e.starts_at);
+    const clientName=e.client?.display_name||e.client?.email||'';
+    return`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;border-left:3px solid ${e.color||'#e040fb'}">
+      <div style="text-align:center;min-width:44px">
+        <div style="font-size:20px;font-weight:800;color:${e.color||'#e040fb'};line-height:1">${start.getDate()}</div>
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase">${MONTHS_PL[start.getMonth()].slice(0,3)}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${esc(e.title)}</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">${start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}${clientName?' · '+esc(clientName):''}</div>
+      </div>
+      ${e.meet_url?`<a href="${esc(e.meet_url)}" target="_blank" class="btn btn-sm btn-outline" style="flex-shrink:0"><i class="ri-video-line"></i></a>`:''}
+      <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
+    </div>`;
+  }).join('') || emptyHTML('ri-calendar-line','Brak nadchodzących wydarzeń');
+}
+
+function renderCalGrid(year, month) {
+  document.getElementById('cal-title').textContent = `${MONTHS_PL[month]} ${year}`;
+  const grid = document.getElementById('cal-grid');
+  const first = new Date(year, month, 1);
+  const last  = new Date(year, month+1, 0);
+  // Day-of-week: Mon=0 ... Sun=6
+  let startDow = first.getDay()-1; if(startDow<0)startDow=6;
+  const today  = new Date();
+
+  let html = DAYS_PL.map(d=>`<div style="text-align:center;padding:8px 4px;font-size:11px;font-weight:600;color:var(--t3);background:var(--bg2);border-bottom:1px solid var(--border)">${d}</div>`).join('');
+  // Empty cells before first day
+  for (let i=0;i<startDow;i++) html+=`<div style="min-height:52px;background:var(--bg2);border:1px solid var(--border);opacity:.3"></div>`;
+  for (let d=1;d<=last.getDate();d++) {
+    const isToday = d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
+    html+=`<div id="cal-day-${d}" style="min-height:52px;background:var(--bg2);border:1px solid var(--border);padding:6px;position:relative;cursor:default">
+      <div style="font-size:12px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--a)':'var(--t2)'};${isToday?'background:rgba(224,64,251,.15);border-radius:6px;display:inline-block;padding:0 4px':''};">${d}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+async function deleteCalEvent(id, uid) {
+  showConfirm('Usuń wydarzenie','To wydarzenie zostanie usunięte z kalendarza i Apple Calendar.', async()=>{
+    await edgeFn('apple-calendar',{action:'delete',uid});
+    await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{method:'DELETE',headers:hdr()});
+    toast('Wydarzenie usunięte ✅'); loadCalendar();
+  });
+}
+
+async function createCalendarEvent() {
+  const title  = document.getElementById('ev-title').value.trim();
+  const start  = document.getElementById('ev-start').value;
+  const end    = document.getElementById('ev-end').value;
+  const url    = document.getElementById('ev-url').value.trim();
+  const desc   = document.getElementById('ev-desc').value.trim();
+  const client = document.getElementById('ev-client').value;
+  const errEl  = document.getElementById('ev-err');
+  errEl.textContent='';
+  if (!title||!start||!end) { errEl.textContent='Tytuł, początek i koniec są wymagane'; return; }
+  const btn = document.getElementById('ev-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Dodawanie...';
+  try {
+    const uid = crypto.randomUUID();
+    const startsAt=new Date(start).toISOString(), endsAt=new Date(end).toISOString();
+    const calR = await edgeFn('apple-calendar',{action:'create',uid,title,description:desc,meetUrl:url,startsAt,endsAt});
+    if (!calR.ok) throw new Error('Apple Calendar error: '+JSON.stringify(calR));
+    toast('Wydarzenie dodane do kalendarza ✅');
+    closeModal('m-new-event');
+    ['ev-title','ev-start','ev-end','ev-url','ev-desc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ev-client').value='';
+    loadCalendar();
+  } catch(e){ errEl.textContent='Błąd: '+e.message; }
+  finally{ btn.disabled=false; btn.innerHTML='<i class="ri-calendar-check-line"></i>Dodaj do kalendarza'; }
+}
+
+async function loadEvClientSelect() {
+  const clients=await dbGet('profiles','?role=eq.client&archived_at=is.null&select=id,display_name,email&order=display_name');
+  const sel=document.getElementById('ev-client');
+  sel.innerHTML='<option value="">— brak —</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.display_name||c.email)}</option>`).join('');
 }
 
 // INIT
