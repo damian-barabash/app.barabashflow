@@ -8,7 +8,7 @@
 <link rel="shortcut icon" href="assets/images/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#09090c;--bg2:#111116;--bg3:#18181f;--bg4:#1f1f28;
@@ -36,8 +36,9 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:22px 0;transition:all .35s}
 nav.scrolled{background:rgba(9,9,12,.88);backdrop-filter:blur(24px) saturate(1.4);border-bottom:1px solid var(--border);padding:14px 0}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}
-.nav-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:9px;letter-spacing:-.02em}
-.nav-logo img{height:26px;border-radius:6px;filter:drop-shadow(0 0 8px rgba(224,64,251,.4))}
+.nav-logo{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:10px;letter-spacing:-.02em}
+.nav-logo img{height:30px;border-radius:8px;filter:drop-shadow(0 0 8px rgba(224,64,251,.35))}
+.nav-logo-name{display:flex;align-items:baseline;gap:5px}
 .nav-logo span{color:var(--a)}
 .nav-links{display:flex;align-items:center;gap:28px}
 .nav-links a{color:var(--t2);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:-.01em;transition:color .2s}
@@ -96,12 +97,12 @@ h1{font-family:'Syne',sans-serif;font-size:clamp(38px,5vw,66px);font-weight:800;
 .m-typing-row span:nth-child(3){animation-delay:.4s}
 @keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-3px)}}
 
-/* FLOATING BADGES */
-.float-badge{position:absolute;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:9px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:nowrap;animation:fbob 4s ease-in-out infinite alternate}
-.fb1{top:-16px;left:-30px;animation-delay:0s}
-.fb2{bottom:40px;right:-20px;animation-delay:-2s}
+/* FLOATING BADGES — row under mockup */
+.float-badges-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.float-badge{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:9px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(0,0,0,.35);white-space:nowrap;animation:fbob 4s ease-in-out infinite alternate}
+.float-badge:last-child{animation-delay:-2s}
 .fb-dot{width:7px;height:7px;border-radius:50%}
-@keyframes fbob{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes fbob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 
 /* ──── STATS ──── */
 .stats-row{padding:52px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;z-index:1}
@@ -260,8 +261,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
   <div class="container">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">
-        <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
-        Barabash <span>Flow</span>
+        <img src="assets/images/logo.png" alt="Barabash Flow" onerror="this.style.display='none'">
+        <div class="nav-logo-name">Barabash <span>Flow</span></div>
       </a>
       <div class="nav-links">
         <a href="#funkcje">Funkcje</a>
@@ -289,14 +290,6 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div class="hero-right">
         <div class="mockup-wrapper">
           <div class="mockup-glow"></div>
-          <div class="float-badge fb1">
-            <span style="font-size:14px">✨</span>
-            <div><div style="font-size:11px;font-weight:700">Nowy projekt dodany</div><div style="font-size:10px;color:var(--t3)">przez Dmytrii Barabash</div></div>
-          </div>
-          <div class="float-badge fb2">
-            <div class="fb-dot" style="background:var(--green)"></div>
-            <span style="font-size:11px;font-weight:600;color:var(--green)">Klient aktywny teraz</span>
-          </div>
           <div class="mockup-frame">
             <div class="m-bar">
               <div class="m-dot" style="background:#ff5f57"></div>
@@ -335,6 +328,17 @@ footer{border-top:1px solid var(--border);padding:36px 0}
                   <div class="m-typing-row"><span></span><span></span><span></span></div>
                 </div>
               </div>
+            </div>
+          </div>
+          <!-- Badges row — below mockup, no overlap -->
+          <div class="float-badges-row">
+            <div class="float-badge">
+              <span style="font-size:14px">✨</span>
+              <div><div style="font-size:11px;font-weight:700">Nowy projekt dodany</div><div style="font-size:10px;color:var(--t3)">przez Dmytrii Barabash</div></div>
+            </div>
+            <div class="float-badge">
+              <div class="fb-dot" style="background:var(--green)"></div>
+              <span style="font-size:11px;font-weight:600;color:var(--green)">Klient aktywny teraz</span>
             </div>
           </div>
         </div>
@@ -407,21 +411,18 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <div class="fc-title">Archiwum projektów</div>
         <div class="fc-desc">Zakończony projekt? Jednym klikiem archiwizujesz. Historia pozostaje, klient może przeglądać co robiłeś. Nic nie ginie, nic nie zajmuje miejsca w aktywnych projektach.</div>
       </div>
-      <!-- Coming soon -->
-      <div class="fc rv d1" style="opacity:.65">
-        <div class="fc-tag soon">Wkrótce</div>
+      <!-- New features -->
+      <div class="fc rv d1">
         <div class="fc-ico">📊</div>
         <div class="fc-title">Etapy projektu</div>
         <div class="fc-desc">Wizualny pasek postępu z etapami. Klient widzi w którym miejscu jest projekt i co na niego czeka. Zero pytań o status.</div>
       </div>
-      <div class="fc rv d2" style="opacity:.65">
-        <div class="fc-tag soon">Wkrótce</div>
+      <div class="fc rv d2">
         <div class="fc-ico">✅</div>
         <div class="fc-title">Zadania i checklisty</div>
         <div class="fc-desc">Lista zadań w projekcie z przypisaniem odpowiedzialności i terminów. Klient widzi co trwa, co jest zrobione — bez pytania.</div>
       </div>
-      <div class="fc rv d3" style="opacity:.65">
-        <div class="fc-tag soon">Wkrótce</div>
+      <div class="fc rv d3">
         <div class="fc-ico">⭐</div>
         <div class="fc-title">Oceny i feedback</div>
         <div class="fc-desc">Po projekcie klient ocenia współpracę gwiazdkami i zostawia komentarz. Budujesz portfolio referencji bez wysiłku.</div>
