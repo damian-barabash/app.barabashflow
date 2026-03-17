@@ -570,7 +570,7 @@ async function createProject(){
   closeModal('m-proj');toast('Projekt utworzony ✅');openClient(CID,CNAME,CEMAIL);
 }
 async function openProject(id,name){
-  PID=id;chatLen=0;_projectArchived=false;
+  PID=id;chatLen=0;_projectArchived=false;_chatUIInited=false;
   window._currentPID=id;
   document.getElementById('pj-name').textContent=name;
   document.getElementById('pj-client').textContent=CNAME;
@@ -645,23 +645,26 @@ async function addPost(){
 }
 
 // ── CHAT ──
-let _typingIv=null, _chatFileToSend=null;
+let _typingIv=null, _chatFileToSend=null, _sending=false, _chatUIInited=false;
 
 function initChatUI(){
-  // Setup file attach button
+  if(_chatUIInited) return; // never run twice for same project
+  _chatUIInited=true;
+
+  // Setup file attach button (guarded inside too)
   setupChatFileInput('chat-input-row', (file)=>{
     _chatFileToSend=file;
     document.getElementById('chat-file-preview-name').textContent=file.name+' ('+fmtSize(file.size)+')';
     document.getElementById('chat-file-preview').classList.add('show');
   });
-  // Typing listener
-  document.getElementById('chat-inp').addEventListener('keydown', e=>{
+
+  // Typing + send via Enter — assigned once via onkeydown (not addEventListener)
+  const inp=document.getElementById('chat-inp');
+  inp.onkeydown=e=>{
     if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();return;}
     onChatInputKey(e, PID);
-  });
-  document.getElementById('chat-inp').removeEventListener('keydown', _oldKeydown);
+  };
 }
-function _oldKeydown(){}
 
 function cancelChatFile(){_chatFileToSend=null;document.getElementById('chat-file-preview').classList.remove('show');}
 
@@ -671,7 +674,6 @@ async function loadChat(){
   const unread=allMsgs.filter(m=>m.sender_id!==Auth.userId&&!allReads.some(r=>r.message_id===m.id&&r.user_id===Auth.userId));
   if(unread.length>0) await edgeFn('mark-messages-read',{messageIds:unread.map(m=>m.id),projectId:PID,userId:Auth.userId});
   const newLen=await renderChat(PID,Auth.userId,'chat-msgs');
-  // Poll typing
   pollTyping(PID,Auth.userId,'chat-typing');
   if(newLen===chatLen&&chatIv)return;chatLen=newLen;
   if(chatIv)clearInterval(chatIv);
@@ -679,29 +681,43 @@ async function loadChat(){
 }
 
 async function sendMsg(){
+  if(_sending)return; // lock — prevent double-send
   const inp=document.getElementById('chat-inp'),txt=inp.value.trim();
   if(!txt&&!_chatFileToSend)return;
+
+  _sending=true;
   inp.value='';
+  inp.disabled=true;
   setTyping(PID,false); clearTimeout(_typingTimer);
 
-  let msgData={project_id:PID,sender_id:Auth.userId,type:'text'};
+  // Capture and clear immediately so re-entry can't reuse
+  const fileToSend=_chatFileToSend;
+  _chatFileToSend=null;
+  document.getElementById('chat-file-preview').classList.remove('show');
 
-  if(_chatFileToSend){
-    try{
+  let msgData={project_id:PID,sender_id:Auth.userId,type:'text'};
+  try{
+    if(fileToSend){
       toast('Wysyłanie pliku...','success');
-      const up=await uploadFile(_chatFileToSend,'post-files');
+      const up=await uploadFile(fileToSend,'post-files');
       msgData.file_url=up.url;msgData.file_name=up.name;msgData.file_size=up.size;msgData.mime_type=up.mime;
       msgData.content=txt||'';
-    }catch(e){toast('Błąd przesyłania: '+e.message,'error');return;}
-    finally{_chatFileToSend=null;document.getElementById('chat-file-preview').classList.remove('show');}
-  } else {
-    msgData.content=txt;
+    }else{
+      msgData.content=txt;
+    }
+    await dbPost('messages',msgData);
+    const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message',isMessage:true});
+    loadChat();
+  }catch(e){
+    toast('Błąd wysyłania: '+e.message,'error');
+    inp.value=txt;
+    if(fileToSend){_chatFileToSend=fileToSend;document.getElementById('chat-file-preview').classList.add('show');}
+  }finally{
+    _sending=false;
+    inp.disabled=false;
+    inp.focus();
   }
-
-  await dbPost('messages',msgData);
-  const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-  if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message',isMessage:true});
-  loadChat();
 }
 
 // ── DOCS ──

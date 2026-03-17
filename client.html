@@ -175,7 +175,7 @@ async function loadProjects() {
 }
 
 async function openProject(id, name, status) {
-  PID=id; chatLen=0; _lastMsgIdForPopup=null;
+  PID=id; chatLen=0; _lastMsgIdForPopup=null; _chatUIInited=false;
   window._currentPID = id;
   document.getElementById('pj-name').textContent = name;
   document.getElementById('pj-status').textContent = 'Status: '+statusLabel(status);
@@ -208,9 +208,11 @@ async function openProject(id, name, status) {
 }
 
 // ── CHAT ──
-let _chatFileToSend=null;
+let _chatFileToSend=null, _sending=false, _chatUIInited=false;
 
 function initChatUI(){
+  if(_chatUIInited) return;
+  _chatUIInited=true;
   setupChatFileInput('chat-input-row',(file)=>{
     _chatFileToSend=file;
     document.getElementById('chat-file-preview-name').textContent=file.name+' ('+fmtSize(file.size)+')';
@@ -243,25 +245,41 @@ async function loadChat() {
 }
 
 async function sendMsg() {
+  if(_sending) return;
   const inp=document.getElementById('chat-inp'),txt=inp.value.trim();
   if(!txt&&!_chatFileToSend)return;
+
+  _sending=true;
   inp.value='';
+  inp.disabled=true;
   setTyping(PID,false); clearTimeout(_typingTimer);
 
+  // Capture and clear immediately
+  const fileToSend=_chatFileToSend;
+  _chatFileToSend=null;
+  document.getElementById('chat-file-preview').classList.remove('show');
+
   let msgData={project_id:PID,sender_id:Auth.userId,type:'text'};
-  if(_chatFileToSend){
-    try{
+  try{
+    if(fileToSend){
       toast('Wysyłanie pliku...','success');
-      const up=await uploadFile(_chatFileToSend,'post-files');
+      const up=await uploadFile(fileToSend,'post-files');
       msgData.file_url=up.url;msgData.file_name=up.name;msgData.file_size=up.size;msgData.mime_type=up.mime;
       msgData.content=txt||'';
-    }catch(e){toast('Błąd przesyłania: '+e.message,'error');return;}
-    finally{_chatFileToSend=null;document.getElementById('chat-file-preview').classList.remove('show');}
-  } else {
-    msgData.content=txt;
+    }else{
+      msgData.content=txt;
+    }
+    await dbPost('messages',msgData);
+    loadChat();
+  }catch(e){
+    toast('Błąd wysyłania: '+e.message,'error');
+    inp.value=txt;
+    if(fileToSend){_chatFileToSend=fileToSend;document.getElementById('chat-file-preview').classList.add('show');}
+  }finally{
+    _sending=false;
+    inp.disabled=false;
+    inp.focus();
   }
-  await dbPost('messages',msgData);
-  loadChat();
 }
 
 // ── POSTS ──
