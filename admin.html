@@ -467,7 +467,7 @@ async function loadOrders() {
 async function loadArchive() {
   const [archivedClients,archivedProjects]=await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=not.is.null&select=*&order=archived_at.desc'),
-    dbGet('projects','?archived_at=not.is.null&select=*,client:profiles(display_name,email)&order=archived_at.desc'),
+    dbGet('projects','?archived_at=not.is.null&select=*,client:profiles!projects_client_id_fkey(display_name,email)&order=archived_at.desc'),
   ]);
 
   document.getElementById('arc-clients-list').innerHTML=archivedClients.map(c=>`
