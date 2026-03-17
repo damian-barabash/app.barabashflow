@@ -345,13 +345,13 @@
   <div class="modal">
     <div class="modal-title">Nowe wydarzenie</div>
     <div class="modal-sub">Zostanie dodane do Apple Calendar</div>
-    <div class="form-group"><label class="form-label">Tytuł *</label><input class="form-control" id="ev-title" placeholder="np. Spotkanie z klientem"></div>
+    <div class="form-group"><label class="form-label">Tytuł *</label><input class="form-control" id="ev-title" placeholder="np. Spotkanie z klientem" onkeydown="if(event.key==='Enter')event.preventDefault()"></div>
     <div class="grid-2">
       <div class="form-group"><label class="form-label">Początek *</label><input class="form-control" id="ev-start" type="datetime-local"></div>
       <div class="form-group"><label class="form-label">Koniec *</label><input class="form-control" id="ev-end" type="datetime-local"></div>
     </div>
     <div class="form-group"><label class="form-label">Klient (opcjonalnie)</label><select class="form-control" id="ev-client"><option value="">— brak —</option></select></div>
-    <div class="form-group"><label class="form-label">Link do spotkania</label><input class="form-control" id="ev-url" type="url" placeholder="https://meet.google.com/..."></div>
+    <div class="form-group"><label class="form-label">Link do spotkania</label><input class="form-control" id="ev-url" type="url" placeholder="https://meet.google.com/..." onkeydown="if(event.key==='Enter')event.preventDefault()"></div>
     <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="ev-desc" rows="2" placeholder="Opcjonalny opis..."></textarea></div>
     <div class="form-err" id="ev-err"></div>
     <div class="modal-actions">
@@ -1087,21 +1087,30 @@ async function deleteCalEvent(id, uid) {
   });
 }
 
+let _creatingEvent = false;
 async function createCalendarEvent() {
+  if (_creatingEvent) return;
   const title  = document.getElementById('ev-title').value.trim();
   const start  = document.getElementById('ev-start').value;
   const end    = document.getElementById('ev-end').value;
   const url    = document.getElementById('ev-url').value.trim();
   const desc   = document.getElementById('ev-desc').value.trim();
-  const client = document.getElementById('ev-client').value;
   const errEl  = document.getElementById('ev-err');
   errEl.textContent='';
-  if (!title||!start||!end) { errEl.textContent='Tytuł, początek i koniec są wymagane'; return; }
+  if (!title)  { errEl.textContent='Wpisz tytuł'; return; }
+  if (!start)  { errEl.textContent='Wybierz datę i godzinę początku'; return; }
+  if (!end)    { errEl.textContent='Wybierz datę i godzinę końca'; return; }
+  const startDate = new Date(start), endDate = new Date(end);
+  if (isNaN(startDate.getTime())) { errEl.textContent='Nieprawidłowa data początku'; return; }
+  if (isNaN(endDate.getTime()))   { errEl.textContent='Nieprawidłowa data końca'; return; }
+  if (endDate <= startDate)       { errEl.textContent='Koniec musi być po początku'; return; }
+
+  _creatingEvent = true;
   const btn = document.getElementById('ev-btn');
   btn.disabled=true; btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Dodawanie...';
   try {
     const uid = crypto.randomUUID();
-    const startsAt=new Date(start).toISOString(), endsAt=new Date(end).toISOString();
+    const startsAt=startDate.toISOString(), endsAt=endDate.toISOString();
     const calR = await edgeFn('apple-calendar',{action:'create', uid, ...ICLOUD_CFG, title, description:desc, meetUrl:url, startsAt, endsAt});
     if (!calR.ok) throw new Error('Apple Calendar error: '+JSON.stringify(calR));
     toast('Wydarzenie dodane do kalendarza ✅');
@@ -1110,7 +1119,11 @@ async function createCalendarEvent() {
     document.getElementById('ev-client').value='';
     loadCalendar();
   } catch(e){ errEl.textContent='Błąd: '+e.message; }
-  finally{ btn.disabled=false; btn.innerHTML='<i class="ri-calendar-check-line"></i>Dodaj do kalendarza'; }
+  finally {
+    _creatingEvent = false;
+    btn.disabled=false;
+    btn.innerHTML='<i class="ri-calendar-check-line"></i>Dodaj do kalendarza';
+  }
 }
 
 async function loadEvClientSelect() {
