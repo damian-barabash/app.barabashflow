@@ -395,6 +395,7 @@ let CID='', CNAME='', CEMAIL='', PID='', OID='', chatLen=0, chatIv=null;
 let _globalPollIv=null, _globalLastMsgId={};
 let _deleteAction=null; // stores pending delete function
 let _clientArchived=false, _projectArchived=false;
+let _clientsRefreshIv=null;
 
 // ── NAV ──
 document.querySelectorAll('.nav-link[data-view]').forEach(a => a.addEventListener('click', () => { nav(a.dataset.view); closeSidebar(); }));
@@ -409,7 +410,7 @@ function nav(v) {
   document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard') loadDash();
-  if (v==='clients')   loadClients();
+  if (v==='clients')   { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
   if (v==='orders')    loadOrders();
   if (v==='archive')   loadArchive();
   if (v==='calendar')  { loadCalendar(); loadEvClientSelect(); }
@@ -469,22 +470,31 @@ async function startGlobalPoll() {
 
 // ── DASHBOARD ──
 async function loadDash() {
-  const [clients,projects,orders]=await Promise.all([
+  const [clients,projects,orders,presenceRows]=await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
     dbGet('projects','?archived_at=is.null&select=id'),
     dbGet('orders','?status=eq.open&select=*&order=created_at.desc'),
+    dbGet('user_presence','?select=user_id,last_seen'),
   ]);
+  const presenceMap={};
+  presenceRows.forEach(p=>{presenceMap[p.user_id]=p.last_seen;});
   document.getElementById('sc-c').textContent=clients.length;
   document.getElementById('sc-p').textContent=projects.length;
   document.getElementById('sc-o').textContent=orders.length;
   const nb=document.getElementById('nb-orders');
   if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
-  document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>`
+  document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>{
+    const online=isOnline(presenceMap[c.id]);
+    return `
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
+      <div style="position:relative;flex-shrink:0">
+        <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
+        <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
+      </div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
       <div class="item-time">${timeAgo(c.created_at)}</div>
-    </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
+    </div>`;
+  }).join('')||emptyHTML('ri-team-line','Brak klientów');
   document.getElementById('d-orders').innerHTML=orders.slice(0,4).map(o=>`
     <div class="order-card open" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
@@ -497,17 +507,47 @@ async function loadDash() {
 }
 
 // ── CLIENTS ──
+// Online = last_seen within 90 seconds
+function isOnline(presence) {
+  if (!presence) return false;
+  return (Date.now() - new Date(presence).getTime()) < 90000;
+}
+function onlineDot(online) {
+  return online
+    ? `<span title="Online" style="width:9px;height:9px;border-radius:50%;background:#4ade80;display:inline-block;flex-shrink:0;box-shadow:0 0 6px rgba(74,222,128,.7)"></span>`
+    : `<span title="Offline" style="width:9px;height:9px;border-radius:50%;background:var(--t3);display:inline-block;flex-shrink:0"></span>`;
+}
+
 async function loadClients() {
-  const clients=await dbGet('profiles','?role=eq.client&archived_at=is.null&select=*&order=created_at.desc');
+  const [clients, presenceRows] = await Promise.all([
+    dbGet('profiles', '?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
+    dbGet('user_presence', '?select=user_id,last_seen')
+  ]);
+  // Build presence map
+  const presenceMap = {};
+  presenceRows.forEach(p => { presenceMap[p.user_id] = p.last_seen; });
+
   const nb=document.getElementById('nb-clients');
   if(clients.length){nb.textContent=clients.length;nb.classList.add('show');}else nb.classList.remove('show');
-  document.getElementById('cl-list').innerHTML=clients.map(c=>`
+  document.getElementById('cl-list').innerHTML=clients.map(c=>{
+    const online = isOnline(presenceMap[c.id]);
+    return `
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
-      <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
-      <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
+      <div style="position:relative;flex-shrink:0">
+        <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
+        <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
+      </div>
+      <div class="item-info">
+        <div class="item-name" style="display:flex;align-items:center;gap:7px">
+          ${esc(c.display_name||c.email)}
+          ${online?`<span style="font-size:10px;font-weight:600;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);padding:1px 7px;border-radius:100px;letter-spacing:.3px">Online</span>`:''}
+        </div>
+        <div class="item-sub">${esc(c.email)}</div>
+      </div>
       <div class="item-time">${timeAgo(c.updated_at||c.created_at)}</div>
       <i class="ri-arrow-right-s-line item-arrow"></i>
-    </div>`).join('')||emptyHTML('ri-team-line','Brak klientów');
+    </div>`;
+  }).join('')||emptyHTML('ri-team-line','Brak klientów');
 }
 
 async function openClient(id,name,email,isArchived=false) {
