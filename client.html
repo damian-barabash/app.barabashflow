@@ -25,6 +25,8 @@
     <div class="nav-link active" data-view="projects"><i class="ri-folder-line"></i>Projekty</div>
     <div class="nav-link" data-view="notifications"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notif"></span></div>
   </nav>
+  <!-- Minimized meeting widgets live here, stacked in sidebar -->
+  <div id="sidebar-meetings" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"></div>
   <div class="sidebar-bottom">
     <div class="user-card">
       <div class="user-av" id="clientAv">K</div>
@@ -395,10 +397,17 @@ function updateNotifBadge(notifs) {
 }
 
 // ── SCHEDULED NOTIFICATIONS ──
-// Meeting popup stays as widget, text popup disappears on close
-
-let _meetingWidget = null;
-let _meetingWidgetIv = null;
+// localStorage remembers which meetings were minimized
+function isMinimized(snId) {
+  try { return JSON.parse(localStorage.getItem('bf_sn_minimized')||'[]').includes(snId); } catch { return false; }
+}
+function setMinimized(snId, val) {
+  try {
+    const list = JSON.parse(localStorage.getItem('bf_sn_minimized')||'[]');
+    const next = val ? [...new Set([...list,snId])] : list.filter(id=>id!==snId);
+    localStorage.setItem('bf_sn_minimized', JSON.stringify(next));
+  } catch {}
+}
 
 async function checkScheduledNotifications() {
   const snots = await dbGet('scheduled_notifications',
@@ -412,11 +421,14 @@ async function checkScheduledNotifications() {
       const meetTime = new Date(sn.scheduled_at);
       const isPast = meetTime < new Date(Date.now() - 60*60*1000);
       if (!isPast) {
-        // Show as card if not already minimized to widget
-        if (!document.getElementById('sn-meet-widget-'+sn.id)) {
+        if (isMinimized(sn.id)) {
+          // Was minimized before → show directly as widget in sidebar
+          showMeetingWidget(sn, meetTime);
+        } else if (!document.getElementById('sn-meet-card-'+sn.id) && !document.getElementById('sn-meet-widget-'+sn.id)) {
           showMeetingCard(sn);
         }
       } else {
+        setMinimized(sn.id, false);
         await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
           {method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
       }
@@ -442,28 +454,6 @@ function getNotifContainer() {
       'gap:12px',
       'max-width:400px',
       'width:calc(100vw - 32px)',
-      'pointer-events:none'
-    ].join(';');
-    document.body.appendChild(c);
-  }
-  return c;
-}
-
-function getWidgetContainer() {
-  let c = document.getElementById('sn-widget-container');
-  if (!c) {
-    c = document.createElement('div');
-    c.id = 'sn-widget-container';
-    c.style.cssText = [
-      'position:fixed',
-      'bottom:20px',
-      'right:20px',
-      'z-index:6500',
-      'display:flex',
-      'flex-direction:column-reverse', // newest at bottom
-      'gap:8px',
-      'max-width:280px',
-      'width:calc(100vw - 40px)',
       'pointer-events:none'
     ].join(';');
     document.body.appendChild(c);
@@ -557,53 +547,56 @@ function showMeetingCard(sn) {
   updateCountdown();
   const countdownIv = setInterval(updateCountdown, 1000);
 
-  // Minimize button
+  // Minimize button → save to localStorage + show in sidebar
   card.querySelector('#sn-meet-min-'+sn.id).addEventListener('click', () => {
+    setMinimized(sn.id, true);
     clearInterval(countdownIv);
     card.style.animation='popOut .25s ease forwards';
     setTimeout(()=>{ card.remove(); showMeetingWidget(sn, meetTime); }, 220);
   });
 }
 
-// ── MEETING WIDGET (minimized, stacks bottom-right) ──
+// ── MEETING WIDGET — lives in sidebar, stacks there ──
 function showMeetingWidget(sn, meetTime) {
   const widgetId = 'sn-meet-widget-'+sn.id;
   if (document.getElementById(widgetId)) return;
 
+  const container = document.getElementById('sidebar-meetings');
+  if (!container) return;
+
   const widget = document.createElement('div');
   widget.id = widgetId;
   widget.style.cssText = [
-    'background:#1a1a1a',
-    'border:1px solid rgba(224,64,251,.4)',
-    'border-radius:12px',
-    'padding:10px 14px',
+    'background:rgba(224,64,251,.08)',
+    'border:1px solid rgba(224,64,251,.3)',
+    'border-radius:10px',
+    'padding:9px 12px',
     'cursor:pointer',
-    'box-shadow:0 4px 16px rgba(0,0,0,.5)',
     'display:flex',
     'align-items:center',
-    'gap:10px',
-    'pointer-events:all',
-    'animation:popIn .35s cubic-bezier(.34,1.56,.64,1)',
-    'transition:opacity .2s,transform .2s'
+    'gap:8px',
+    'transition:background .2s',
+    'animation:popIn .35s cubic-bezier(.34,1.56,.64,1)'
   ].join(';');
   widget.innerHTML = `
-    <span style="font-size:18px">📅</span>
+    <span style="font-size:16px;flex-shrink:0">📅</span>
     <div style="flex:1;min-width:0">
-      <div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
-      <div id="widget-time-${sn.id}" style="font-size:11px;color:#e040fb;margin-top:1px"></div>
+      <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
+      <div id="widget-time-${sn.id}" style="font-size:10px;color:#e040fb;margin-top:1px"></div>
     </div>
   `;
+  widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(224,64,251,.15)');
+  widget.addEventListener('mouseleave', ()=>widget.style.background='rgba(224,64,251,.08)');
 
-  // Add to stacking widget container
-  getWidgetContainer().appendChild(widget);
+  container.appendChild(widget);
 
-  // Mini countdown
   function updateWidget() {
     const diff = meetTime - Date.now();
     const el = document.getElementById('widget-time-'+sn.id);
     if (!el) return;
     if (diff <= -3600000) {
       widget.remove();
+      setMinimized(sn.id, false);
       fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
         {method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
       return;
@@ -615,17 +608,22 @@ function showMeetingWidget(sn, meetTime) {
   updateWidget();
   const iv = setInterval(updateWidget, 30000);
 
-  // Click → restore card
+  // Click → restore full card, clear minimized state
   widget.addEventListener('click', () => {
+    setMinimized(sn.id, false);
     clearInterval(iv);
-    widget.style.animation='popOut .2s ease forwards';
-    setTimeout(()=>{ widget.remove(); showMeetingCard(sn); }, 180);
+    widget.remove();
+    showMeetingCard(sn);
   });
 }
 
 // Check on load and every 5 min
 checkScheduledNotifications();
 setInterval(checkScheduledNotifications, 5*60*1000);
+
+// ── INIT ──
+loadProjects();
+startPresenceHeartbeat();
 
 
 (async () => {

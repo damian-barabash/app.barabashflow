@@ -1013,24 +1013,15 @@ const MONTHS_PL = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipi
 const DAYS_PL   = ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
 
 async function loadCalEvents() {
-  // Load from our DB + scheduled_notifications
   const monthStart = new Date(_calYear, _calMonth, 1).toISOString();
   const monthEnd   = new Date(_calYear, _calMonth+1, 0, 23, 59).toISOString();
 
-  const [calEvs, meetings] = await Promise.all([
-    dbGet('calendar_events', `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`),
-    dbGet('scheduled_notifications', `?type=eq.meeting&is_active=eq.true&scheduled_at=gte.${monthStart}&scheduled_at=lte.${monthEnd}&select=*,client:profiles!scheduled_notifications_user_id_fkey(display_name,email)&order=scheduled_at.asc`)
-  ]);
+  // Only calendar_events — meetings already saved there via apple-calendar edge fn
+  const calEvs = await dbGet('calendar_events',
+    `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`);
 
-  // Combine into one list
-  const events = [
-    ...calEvs.map(e=>({...e,_src:'calendar'})),
-    ...meetings.map(m=>({
-      id:m.id, title:m.title, starts_at:m.scheduled_at,
-      ends_at: new Date(new Date(m.scheduled_at).getTime()+60*60*1000).toISOString(),
-      meet_url:m.meet_url, client:m.client, color:'#60a5fa', _src:'meeting'
-    }))
-  ].sort((a,b)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime());
+  const events = calEvs.map(e=>({...e,_src:'calendar'}))
+    .sort((a,b)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime());
 
   // Mark days with events in grid
   events.forEach(e=>{
