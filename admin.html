@@ -43,6 +43,7 @@
     <div class="nav-link" data-view="archive"><i class="ri-archive-line"></i>Archiwum</div>
     <div class="nav-link" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
+    <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
   </nav>
   <div class="sidebar-bottom">
     <div class="user-card">
@@ -189,6 +190,13 @@
         <button class="btn btn-primary" onclick="sendScheduledNotif()" id="sn-btn"><i class="ri-send-plane-line"></i>Wyślij powiadomienie</button>
       </div>
     </div>
+    <!-- LEADS -->
+    <div id="v-leads" style="display:none">
+      <div class="card-title" style="margin-bottom:6px">Zgłoszenia z landing page</div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:18px">Firmy i freelancerzy którzy chcą wypróbować Barabash Flow.</div>
+      <div id="leads-list"></div>
+    </div>
+
     <div id="v-cdetail" style="display:none">
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
@@ -394,11 +402,11 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard') loadDash();
   if (v==='clients')   loadClients();
@@ -406,6 +414,7 @@ function nav(v) {
   if (v==='archive')   loadArchive();
   if (v==='calendar')  { loadCalendar(); loadEvClientSelect(); }
   if (v==='send-notif'){ loadNotifClientSelect(); }
+  if (v==='leads')     loadLeads();
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -1130,6 +1139,28 @@ async function loadEvClientSelect() {
   const clients=await dbGet('profiles','?role=eq.client&archived_at=is.null&select=id,display_name,email&order=display_name');
   const sel=document.getElementById('ev-client');
   sel.innerHTML='<option value="">— brak —</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.display_name||c.email)}</option>`).join('');
+}
+
+// ── LEADS ──
+async function loadLeads() {
+  const leads = await dbGet('leads', '?select=*&order=created_at.desc');
+  const nb = document.getElementById('nb-leads');
+  if (leads.length) { nb.textContent=leads.length; nb.classList.add('show'); } else nb.classList.remove('show');
+  document.getElementById('leads-list').innerHTML = leads.map(l => `
+    <div class="card" style="margin-bottom:10px;padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:${l.message?'12px':'0'}">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#c0392b);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${l.type==='agency'?'🏢':'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700">${esc(l.name)} ${l.company?`<span style="font-weight:400;color:var(--t3)">· ${esc(l.company)}</span>`:''}</div>
+          <div style="font-size:12px;color:var(--a);margin-top:1px"><a href="mailto:${esc(l.email)}" style="color:inherit">${esc(l.email)}</a></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge badge-${l.type==='agency'?'active':'open'}" style="font-size:10px">${l.type==='agency'?'Agencja':'Freelancer'}</span>
+          <span style="font-size:11px;color:var(--t3)">${timeAgo(l.created_at)}</span>
+        </div>
+      </div>
+      ${l.message?`<div style="font-size:12px;color:var(--t2);background:var(--bg3);padding:10px;border-radius:8px;line-height:1.55">${esc(l.message)}</div>`:''}
+    </div>`).join('') || emptyHTML('ri-fire-line','Brak zgłoszeń');
 }
 
 // ── iCLOUD CONFIG ──
