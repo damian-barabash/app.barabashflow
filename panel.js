@@ -47,9 +47,9 @@ const _profileCache = {};
 async function loadProfiles(userIds) {
   const missing = [...new Set(userIds)].filter(id => id && !_profileCache[id]);
   if (!missing.length) return;
-  const profiles = await dbGet('profiles', `?id=in.(${missing.join(',')})&select=id,display_name,email,role`);
+  const profiles = await dbGet('profiles', `?id=in.(${missing.join(',')})&select=id,display_name,email,role,avatar_url`);
   profiles.forEach(p => { _profileCache[p.id] = p; });
-  missing.forEach(id => { if (!_profileCache[id]) _profileCache[id] = {id, display_name:null, email:null, role:'client'}; });
+  missing.forEach(id => { if (!_profileCache[id]) _profileCache[id] = {id, display_name:null, email:null, role:'client', avatar_url:null}; });
 }
 function getProfile(userId) { return _profileCache[userId] || null; }
 
@@ -285,6 +285,10 @@ async function renderChat(projectId, currentUserId, boxId) {
   ]);
 
   const senderIds = [...new Set(msgs.map(m => m.sender_id).filter(Boolean))];
+  // Always re-fetch profiles when project changes to get latest avatar_url
+  if (_chatState.projectId !== projectId) {
+    senderIds.forEach(id => { delete _profileCache[id]; });
+  }
   await loadProfiles(senderIds);
 
   const box = document.getElementById(boxId);
