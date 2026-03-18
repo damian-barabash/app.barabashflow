@@ -238,6 +238,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 @media(max-width:960px){
   .hero-grid{grid-template-columns:1fr}
   .hero-right{display:none}
+  .hero-mobile-visual{display:block}
   .feat-grid{grid-template-columns:1fr 1fr}
   .price-grid{grid-template-columns:1fr;max-width:400px;margin-inline:auto}
   .pc.pop{transform:none}.pc.pop:hover{transform:translateY(-3px)}
@@ -248,8 +249,46 @@ footer{border-top:1px solid var(--border);padding:36px 0}
   .feat-grid,.stats-inner{grid-template-columns:1fr}
   .stat-item{border-right:none;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}
   .nav-links{display:none}
-  h1{font-size:36px}
+  /* NAV — кнопка не выходит за экран */
+  .nav-inner{gap:8px}
+  .nav-cta{padding:9px 14px;font-size:13px;flex-shrink:0}
+  .nav-logo-name{font-size:15px}
+  /* NAV scrolled — не обрезается */
+  nav.scrolled{padding:12px 0}
+  /* h1 */
+  h1{font-size:clamp(32px,9vw,42px)}
+  /* CTA — текст не выходит за экран */
+  .cta-h{font-size:clamp(28px,8vw,42px);word-break:break-word;overflow-wrap:break-word}
+  /* hero buttons — стак вертикально */
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .btn-fill,.btn-ghost{text-align:center;justify-content:center}
+  /* section padding */
+  .section{padding:64px 0}
+  .cta-sec{padding:72px 0}
 }
+
+/* ── MOBILE HERO VISUAL ── */
+.hero-mobile-visual{display:none;margin-top:40px;animation:fup .7s .4s ease both}
+.hmv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.hmv-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.hmv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--a),var(--b))}
+.hmv-ico{font-size:22px;margin-bottom:8px}
+.hmv-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.hmv-desc{font-size:11px;color:var(--t3);line-height:1.4}
+.hmv-chat{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+.hmv-chat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--a),var(--b))}
+.hmv-chat-title{font-size:11px;font-weight:600;color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.hmv-chat-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(74,222,128,.6)}
+.hmv-msg-row{display:flex;gap:6px;align-items:flex-end;margin-bottom:7px}
+.hmv-msg-row.r{flex-direction:row-reverse}
+.hmv-av{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.hmv-bub{padding:7px 11px;border-radius:12px;font-size:11px;line-height:1.4;max-width:72%}
+.hmv-msg-row:not(.r) .hmv-bub{background:var(--bg3);border-radius:12px 12px 12px 2px}
+.hmv-msg-row.r .hmv-bub{background:linear-gradient(135deg,var(--a),var(--b));color:#fff;border-radius:12px 12px 2px 12px}
+.hmv-typing{display:flex;gap:3px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:12px 12px 12px 2px;width:fit-content}
+.hmv-typing span{width:4px;height:4px;border-radius:50%;background:var(--t3);animation:tb 1.2s infinite}
+.hmv-typing span:nth-child(2){animation-delay:.2s}
+.hmv-typing span:nth-child(3){animation-delay:.4s}
 </style>
 </head>
 <body>
@@ -285,6 +324,48 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <div class="hero-btns">
           <button class="btn-fill" onclick="openModal()">Chcę wypróbować za darmo →</button>
           <a href="#jak-dziala" class="btn-ghost">▶ Jak to działa</a>
+        </div>
+
+        <!-- Mobile-only visual — shown instead of desktop mockup -->
+        <div class="hero-mobile-visual">
+          <div class="hmv-grid">
+            <div class="hmv-card">
+              <div class="hmv-ico">💬</div>
+              <div class="hmv-title">Czat na żywo</div>
+              <div class="hmv-desc">Pliki, linki i wskaźnik pisania</div>
+            </div>
+            <div class="hmv-card">
+              <div class="hmv-ico">📅</div>
+              <div class="hmv-title">Kalendarz</div>
+              <div class="hmv-desc">Sync z Apple Calendar</div>
+            </div>
+            <div class="hmv-card">
+              <div class="hmv-ico">📁</div>
+              <div class="hmv-title">Projekty</div>
+              <div class="hmv-desc">Posty, pliki, dokumenty</div>
+            </div>
+            <div class="hmv-card">
+              <div class="hmv-ico">🔔</div>
+              <div class="hmv-title">Powiadomienia</div>
+              <div class="hmv-desc">Email + push + popup</div>
+            </div>
+          </div>
+          <div class="hmv-chat">
+            <div class="hmv-chat-title">Klient aktywny teraz</div>
+            <div class="hmv-msg-row">
+              <div class="hmv-av" style="background:linear-gradient(135deg,var(--a),var(--b))">D</div>
+              <div class="hmv-bub">Cześć! Projekt idzie świetnie 🚀</div>
+            </div>
+            <div class="hmv-msg-row r">
+              <div class="hmv-av" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)">A</div>
+              <div class="hmv-bub">Super, kiedy pierwsza wersja?</div>
+            </div>
+            <div class="hmv-msg-row">
+              <div class="hmv-av" style="background:linear-gradient(135deg,var(--a),var(--b))">D</div>
+              <div class="hmv-bub">W piątek! Wrzucam plik PDF 📄</div>
+            </div>
+            <div class="hmv-typing"><span></span><span></span><span></span></div>
+          </div>
         </div>
       </div>
       <div class="hero-right">
