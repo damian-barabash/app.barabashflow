@@ -37,6 +37,7 @@
       </div>
       <div class="user-info"><div class="user-name" id="clientName">Klient</div><div class="user-role">Klient</div></div>
     </div>
+    <button class="btn-logout" style="margin-bottom:4px" onclick="openModal('m-change-pass')"><i class="ri-lock-password-line"></i>Zmień hasło</button>
     <button class="btn-logout" onclick="Auth.logout()"><i class="ri-logout-box-line"></i>Wyloguj się</button>
   </div>
 </aside>
@@ -117,6 +118,21 @@
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" onclick="closeLightbox()"><i class="ri-close-line"></i></button>
   <div id="lb-content"></div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="modal-backdrop" id="m-change-pass">
+  <div class="modal">
+    <div class="modal-title">Zmień hasło</div>
+    <div class="modal-sub">Ustaw nowe hasło do swojego konta.</div>
+    <div class="form-group"><label class="form-label">Nowe hasło *</label><input class="form-control" id="cp-pass" type="password" placeholder="min. 6 znaków"></div>
+    <div class="form-group"><label class="form-label">Powtórz hasło *</label><input class="form-control" id="cp-pass2" type="password" placeholder="powtórz hasło"></div>
+    <div class="form-err" id="cp-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-change-pass')">Anuluj</button>
+      <button class="btn btn-primary" id="cp-btn" onclick="changeOwnPassword()"><i class="ri-lock-password-line"></i>Zmień hasło</button>
+    </div>
+  </div>
 </div>
 
 <script src="panel.js"></script>
@@ -638,6 +654,23 @@ function updateClientAvatar(url){
 async function loadClientAvatar(){
   const [profile]=await dbGet('profiles',`?id=eq.${Auth.userId}&select=avatar_url`);
   if(profile?.avatar_url) updateClientAvatar(profile.avatar_url);
+}
+
+// ── CHANGE OWN PASSWORD ──
+async function changeOwnPassword(){
+  const pass  = document.getElementById('cp-pass').value.trim();
+  const pass2 = document.getElementById('cp-pass2').value.trim();
+  const errEl = document.getElementById('cp-err');errEl.textContent='';
+  if(!pass||pass.length<6){errEl.textContent='Hasło min. 6 znaków';return;}
+  if(pass!==pass2){errEl.textContent='Hasła nie są identyczne';return;}
+  const btn=document.getElementById('cp-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Zmiana...';
+  const r=await edgeFn('admin-manage',{action:'change-password',newPassword:pass});
+  btn.disabled=false;btn.innerHTML='<i class="ri-lock-password-line"></i>Zmień hasło';
+  if(r.error){errEl.textContent=r.error;return;}
+  closeModal('m-change-pass');
+  document.getElementById('cp-pass').value='';document.getElementById('cp-pass2').value='';
+  toast('Hasło zmienione ✅');
 }
 
 // ── INIT ──
