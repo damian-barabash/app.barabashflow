@@ -473,6 +473,7 @@ let _globalPollIv=null, _globalLastMsgId={};
 let _deleteAction=null; // stores pending delete function
 let _clientArchived=false, _projectArchived=false;
 let _clientsRefreshIv=null;
+let _editingAdminId='';
 
 // ── NAV ──
 document.querySelectorAll('.nav-link[data-view]').forEach(a => a.addEventListener('click', () => { nav(a.dataset.view); closeSidebar(); }));
@@ -1310,11 +1311,17 @@ async function changeOwnPassword(){
   toast('Hasło zmienione ✅');
 }
 
-// ── ADMINS MANAGEMENT (main admin only) ──
-const MAIN_ADMIN_ID = '48c7cf7d-9eb2-4768-9285-512e7127a947';
-let _editingAdminId = '';
+// ── ADMINS MANAGEMENT ──
+// isMainAdmin is loaded dynamically on init — no hardcoded IDs
+let _isMainAdmin = false;
 
-function isMainAdmin(){ return Auth.userId === MAIN_ADMIN_ID; }
+async function checkMainAdminStatus(){
+  const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=is_main_admin`);
+  _isMainAdmin = profile?.is_main_admin === true;
+  if(_isMainAdmin) document.getElementById('nav-admins').style.display = 'flex';
+}
+
+function isMainAdmin(){ return _isMainAdmin; }
 
 async function loadAdmins(){
   const r = await edgeFn('admin-manage',{action:'list'});
@@ -1453,8 +1460,7 @@ loadDash();
 startGlobalPoll();
 startPresenceHeartbeat();
 loadAdminAvatar();
-// Show admins section only for main admin
-if(isMainAdmin()) document.getElementById('nav-admins').style.display='flex';
+checkMainAdminStatus();
 </script>
 </body>
 </html>
