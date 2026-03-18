@@ -526,7 +526,7 @@ async function loadDash() {
     return `
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
       <div style="position:relative;flex-shrink:0">
-        <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
+        ${avatarHTML(c)}
         <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
       </div>
       <div class="item-info"><div class="item-name">${esc(c.display_name||c.email)}</div><div class="item-sub">${esc(c.email)}</div></div>
@@ -550,10 +550,16 @@ function isOnline(presence) {
   if (!presence) return false;
   return (Date.now() - new Date(presence).getTime()) < 90000;
 }
-function onlineDot(online) {
-  return online
-    ? `<span title="Online" style="width:9px;height:9px;border-radius:50%;background:#4ade80;display:inline-block;flex-shrink:0;box-shadow:0 0 6px rgba(74,222,128,.7)"></span>`
-    : `<span title="Offline" style="width:9px;height:9px;border-radius:50%;background:var(--t3);display:inline-block;flex-shrink:0"></span>`;
+
+// Returns HTML for an avatar — photo if available, else gradient + initials
+function avatarHTML(profile, size=36) {
+  const name = profile?.display_name || profile?.email || '';
+  const url  = profile?.avatar_url;
+  const onl  = ''; // online dot added separately
+  if (url) {
+    return `<img src="${esc(url)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0" alt="${esc(name)}" onerror="this.outerHTML='<div class=item-av>${initials(name)||'?'}</div>'">`;
+  }
+  return `<div class="item-av" style="width:${size}px;height:${size}px">${initials(name)||'?'}</div>`;
 }
 
 async function loadClients() {
@@ -561,7 +567,6 @@ async function loadClients() {
     dbGet('profiles', '?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
     dbGet('user_presence', '?select=user_id,last_seen')
   ]);
-  // Build presence map
   const presenceMap = {};
   presenceRows.forEach(p => { presenceMap[p.user_id] = p.last_seen; });
 
@@ -572,7 +577,7 @@ async function loadClients() {
     return `
     <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
       <div style="position:relative;flex-shrink:0">
-        <div class="item-av">${initials(c.display_name||c.email)||'?'}</div>
+        ${avatarHTML(c)}
         <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
       </div>
       <div class="item-info">
@@ -669,7 +674,7 @@ async function loadArchive() {
   document.getElementById('arc-clients-list').innerHTML=archivedClients.map(c=>`
     <div class="archive-section">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <div class="item-av" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#5b21b6,#e040fb);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">${initials(c.display_name||c.email)||'?'}</div>
+        ${avatarHTML(c)}
         <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${esc(c.display_name||c.email)} <span class="archived-tag">Archiwum</span></div><div style="font-size:11px;color:var(--t3)">${esc(c.email)} · zarchiwizowano ${timeAgo(c.archived_at)}</div></div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm btn-icon-restore" style="padding:6px 10px;border-radius:8px;font-size:12px;display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.08);color:var(--green);cursor:pointer" onclick="restoreClient('${c.id}')"><i class="ri-restart-line"></i>Przywróć</button>
