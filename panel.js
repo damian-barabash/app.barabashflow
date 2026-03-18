@@ -116,27 +116,43 @@ const _logoImgCache = (() => { const img = new Image(); img.src = LOGO_URL; retu
 
 /* ── AVATAR ── */
 function makeMsgAvatar(senderId) {
-  const profile = getProfile(senderId);
-  const isAdmin = profile?.role === 'admin';
-  const name    = profile?.display_name || profile?.email || '';
+  const profile   = getProfile(senderId);
+  const isAdmin   = profile?.role === 'admin';
+  const name      = profile?.display_name || profile?.email || '';
+  const avatarUrl = profile?.avatar_url;
+
   const div = document.createElement('div');
   div.className = 'msg-av';
-  if (isAdmin) {
+
+  if (avatarUrl) {
+    // Custom photo — admin or client
+    div.style.cssText = 'background:transparent;padding:0;overflow:hidden;flex-shrink:0;border-radius:50%';
+    const img = document.createElement('img');
+    img.src = avatarUrl;
+    img.style.cssText = 'width:30px;height:30px;border-radius:50%;object-fit:cover;display:block';
+    img.alt = name;
+    img.addEventListener('error', () => { img.remove(); _fallbackAvatar(div, isAdmin, name); });
+    div.appendChild(img);
+  } else if (isAdmin) {
+    // Admin without photo → logo
     div.style.cssText = 'background:transparent;padding:0;overflow:hidden;flex-shrink:0;border-radius:50%';
     const img = _logoImgCache.cloneNode();
     img.style.cssText = 'width:30px;height:30px;border-radius:50%;object-fit:cover;display:block';
     img.alt = name || 'Admin';
-    img.addEventListener('error', () => {
-      img.remove();
-      div.style.cssText = 'background:linear-gradient(135deg,#9b27af,#e040fb)';
-      div.textContent = initials(name) || 'D';
-    });
+    img.addEventListener('error', () => { img.remove(); _fallbackAvatar(div, true, name); });
     div.appendChild(img);
   } else {
-    div.style.background = 'linear-gradient(135deg,#5b21b6,#7c3aed)';
-    div.textContent = initials(name) || '?';
+    _fallbackAvatar(div, false, name);
   }
   return div;
+}
+
+function _fallbackAvatar(div, isAdmin, name) {
+  div.style.cssText = '';
+  div.style.background = isAdmin
+    ? 'linear-gradient(135deg,#9b27af,#e040fb)'
+    : 'linear-gradient(135deg,#5b21b6,#7c3aed)';
+  div.textContent = initials(name) || (isAdmin ? 'D' : '?');
 }
 
 /* ── BUILD MSG ELEMENT ── */
@@ -523,6 +539,190 @@ function runPreloader() {
 /* ── SIDEBAR ── */
 function openSidebar()  { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('sidebarOverlay')?.classList.add('show'); }
 function closeSidebar() { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('sidebarOverlay')?.classList.remove('show'); }
+
+/* ── AVATAR CROPPER ─────────────────────────────────────
+   Usage: AvatarCropper.open(file, onCroppedBlob)
+   Shows a circular crop UI. User can drag + zoom.
+   Calls onCroppedBlob(blob) with the final PNG blob.
+────────────────────────────────────────────────────── */
+const AvatarCropper = (() => {
+  let _canvas, _ctx, _img, _scale=1, _minScale=1, _maxScale=4;
+  let _ox=0, _oy=0, _dragging=false, _lastX=0, _lastY=0;
+  let _size=0, _resolve=null;
+
+  function clamp(val, min, max){ return Math.min(max, Math.max(min, val)); }
+
+  function draw(){
+    if(!_ctx||!_img) return;
+    _ctx.clearRect(0,0,_size,_size);
+    const iw=_img.naturalWidth*_scale, ih=_img.naturalHeight*_scale;
+    _ctx.drawImage(_img, _ox, _oy, iw, ih);
+    // Dim outside circle
+    _ctx.save();
+    _ctx.fillStyle='rgba(0,0,0,.55)';
+    _ctx.fillRect(0,0,_size,_size);
+    _ctx.globalCompositeOperation='destination-out';
+    _ctx.beginPath();
+    _ctx.arc(_size/2,_size/2,_size/2-2,0,Math.PI*2);
+    _ctx.fill();
+    _ctx.restore();
+    // Circle border
+    _ctx.strokeStyle='rgba(224,64,251,.7)';
+    _ctx.lineWidth=2;
+    _ctx.beginPath();
+    _ctx.arc(_size/2,_size/2,_size/2-2,0,Math.PI*2);
+    _ctx.stroke();
+  }
+
+  function constrainPos(){
+    const iw=_img.naturalWidth*_scale, ih=_img.naturalHeight*_scale;
+    // Image must cover the circle area
+    _ox=clamp(_ox, _size-iw, 0);
+    _oy=clamp(_oy, _size-ih, 0);
+  }
+
+  function open(file, onBlob){
+    _resolve=onBlob;
+    // Build modal if needed
+    let modal=document.getElementById('_crop-modal');
+    if(!modal){
+      modal=document.createElement('div');
+      modal.id='_crop-modal';
+      modal.className='crop-modal-backdrop';
+      modal.innerHTML=`
+        <div class="crop-modal">
+          <div class="crop-modal-title">Kadruj zdjęcie profilowe</div>
+          <div class="crop-canvas-wrap" id="_crop-wrap">
+            <canvas id="_crop-canvas"></canvas>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <i class="ri-zoom-out-line" style="color:var(--t3)"></i>
+            <input type="range" id="_crop-zoom" class="crop-zoom" min="1" max="4" step="0.01" value="1" style="flex:1">
+            <i class="ri-zoom-in-line" style="color:var(--t3)"></i>
+          </div>
+          <div class="crop-actions">
+            <button class="crop-btn-cancel" id="_crop-cancel">Anuluj</button>
+            <button class="crop-btn-save" id="_crop-save" style="margin-left:auto"><i class="ri-check-line"></i> Zapisz</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+
+      document.getElementById('_crop-cancel').addEventListener('click', ()=>{ modal.classList.remove('open'); });
+      document.getElementById('_crop-save').addEventListener('click', ()=>{ exportCrop(); });
+      document.getElementById('_crop-zoom').addEventListener('input', e=>{
+        const prev=_scale;
+        _scale=Number(e.target.value);
+        // Adjust offset to zoom towards center
+        const cx=_size/2, cy=_size/2;
+        _ox=cx-(_scale/prev)*(cx-_ox);
+        _oy=cy-(_scale/prev)*(cy-_oy);
+        constrainPos(); draw();
+      });
+
+      const wrap=document.getElementById('_crop-wrap');
+      wrap.addEventListener('mousedown', e=>{ _dragging=true; _lastX=e.clientX; _lastY=e.clientY; });
+      wrap.addEventListener('touchstart', e=>{ _dragging=true; _lastX=e.touches[0].clientX; _lastY=e.touches[0].clientY; },{passive:true});
+      window.addEventListener('mousemove', e=>{ if(!_dragging)return; _ox+=e.clientX-_lastX; _oy+=e.clientY-_lastY; _lastX=e.clientX; _lastY=e.clientY; constrainPos(); draw(); });
+      window.addEventListener('touchmove', e=>{ if(!_dragging)return; _ox+=e.touches[0].clientX-_lastX; _oy+=e.touches[0].clientY-_lastY; _lastX=e.touches[0].clientX; _lastY=e.touches[0].clientY; constrainPos(); draw(); },{passive:true});
+      window.addEventListener('mouseup', ()=>_dragging=false);
+      window.addEventListener('touchend', ()=>_dragging=false);
+    }
+
+    const c=document.getElementById('_crop-canvas');
+    _size=Math.min(window.innerWidth-80, 340);
+    c.width=_size; c.height=_size;
+    c.style.width=_size+'px'; c.style.height=_size+'px';
+    _ctx=c.getContext('2d');
+
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      _img=new Image();
+      _img.onload=()=>{
+        // Fit image to fill circle
+        _minScale=Math.max(_size/_img.naturalWidth, _size/_img.naturalHeight);
+        _scale=_minScale;
+        document.getElementById('_crop-zoom').min=_minScale;
+        document.getElementById('_crop-zoom').value=_scale;
+        _ox=(_size-_img.naturalWidth*_scale)/2;
+        _oy=(_size-_img.naturalHeight*_scale)/2;
+        draw();
+        modal.classList.add('open');
+      };
+      _img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function exportCrop(){
+    const out=document.createElement('canvas');
+    out.width=256; out.height=256;
+    const ctx2=out.getContext('2d');
+    // Clip circle
+    ctx2.beginPath(); ctx2.arc(128,128,128,0,Math.PI*2); ctx2.clip();
+    // Draw scaled/positioned image
+    const ratio=256/_size;
+    ctx2.drawImage(_img, _ox*ratio, _oy*ratio, _img.naturalWidth*_scale*ratio, _img.naturalHeight*_scale*ratio);
+    out.toBlob(blob=>{
+      document.getElementById('_crop-modal').classList.remove('open');
+      if(_resolve) _resolve(blob);
+    },'image/png',0.92);
+  }
+
+  return {open};
+})();
+
+/* ── UPLOAD AVATAR ──
+   Uploads cropped blob to Supabase Storage 'avatars' bucket
+   and updates profiles.avatar_url.
+   Returns the public URL. */
+async function uploadAvatar(blob, userId) {
+  const path = `${userId}/avatar.png`;
+  // Use PUT to overwrite
+  const r = await fetch(`${SB}/storage/v1/object/avatars/${path}`, {
+    method: 'PUT',
+    headers: {
+      apikey: ANON,
+      Authorization: 'Bearer ' + Auth.token,
+      'Content-Type': 'image/png',
+      'Cache-Control': '3600',
+      'x-upsert': 'true'
+    },
+    body: blob
+  });
+  if (!r.ok) { const e=await r.json(); throw new Error(e.message||'Upload failed'); }
+  const url = `${SB}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
+  // Save to profile
+  await fetch(`${SB}/rest/v1/profiles?id=eq.${userId}`, {
+    method: 'PATCH',
+    headers: hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({avatar_url: url})
+  });
+  // Update cache
+  if (_profileCache[userId]) _profileCache[userId].avatar_url = url;
+  return url;
+}
+
+/* ── OPEN AVATAR PICKER (file input → crop → upload) ── */
+function openAvatarPicker(userId, onDone) {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
+  inp.addEventListener('change', () => {
+    const file = inp.files?.[0];
+    inp.remove();
+    if (!file) return;
+    AvatarCropper.open(file, async (blob) => {
+      try {
+        const url = await uploadAvatar(blob, userId);
+        toast('Zdjęcie profilowe zaktualizowane ✅');
+        if (onDone) onDone(url);
+      } catch(e) { toast('Błąd: '+e.message, 'error'); }
+    });
+  });
+  inp.click();
+}
 
 /* ── PRESENCE HEARTBEAT ── */
 function startPresenceHeartbeat() {

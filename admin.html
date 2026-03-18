@@ -47,7 +47,12 @@
   </nav>
   <div class="sidebar-bottom">
     <div class="user-card">
-      <div class="user-av" id="adminAv">D</div>
+      <div class="avatar-upload-wrap" onclick="openAvatarPicker(Auth.userId, url=>updateAdminAvatar(url))" title="Zmień zdjęcie">
+        <div id="adminAvWrap" style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0">
+          <span id="adminAv">D</span>
+        </div>
+        <div class="avatar-overlay"><i class="ri-camera-line" style="font-size:14px"></i></div>
+      </div>
       <div class="user-info"><div class="user-name" id="adminName">Admin</div><div class="user-role">Administrator</div></div>
     </div>
     <button class="btn-logout" onclick="Auth.logout()"><i class="ri-logout-box-line"></i>Wyloguj się</button>
@@ -59,6 +64,7 @@
     <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub" id="pageSub"></div></div>
     <div class="topbar-actions">
+      <button class="btn btn-outline btn-sm" onclick="openModal('m-admin')" style="margin-right:6px"><i class="ri-shield-user-line"></i>Dodaj admina</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i>Dodaj klienta</button>
     </div>
   </div>
@@ -365,6 +371,38 @@
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-new-event')">Anuluj</button>
       <button class="btn btn-primary" id="ev-btn" onclick="createCalendarEvent()"><i class="ri-calendar-check-line"></i>Dodaj do kalendarza</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE ADMIN MODAL -->
+<div class="modal-backdrop" id="m-admin">
+  <div class="modal">
+    <div class="modal-title">Dodaj administratora</div>
+    <div class="modal-sub">Administrator ma pełny dostęp do wszystkich projektów i czatów.</div>
+    <div class="form-group">
+      <label class="form-label">Imię i nazwisko</label>
+      <input class="form-control" id="aa-name" placeholder="np. Dmytrii Barabash">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Login (unikalny) *</label>
+      <input class="form-control" id="aa-username" placeholder="np. Admin_marketing" oninput="checkUsernameAvail()">
+      <div id="aa-username-status" style="font-size:11px;margin-top:4px;min-height:16px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">E-mail *</label>
+      <input class="form-control" id="aa-email" type="email" placeholder="admin@firma.pl">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hasło *</label>
+      <input class="form-control" id="aa-pass" type="password" placeholder="min. 6 znaków">
+    </div>
+    <div class="form-err" id="aa-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-admin')">Anuluj</button>
+      <button class="btn btn-primary" id="aa-btn" onclick="createAdmin()">
+        <i class="ri-shield-user-line"></i>Utwórz administratora
+      </button>
     </div>
   </div>
 </div>
@@ -1210,10 +1248,78 @@ const ICLOUD_CFG = {
   calendarHref: 'https://caldav.icloud.com/18126911317/calendars/ADA1F3E4-520E-4119-8DD7-93541895A368/'
 };
 
+// ── CREATE ADMIN ──
+let _usernameCheckTimer=null;
+
+async function checkUsernameAvail(){
+  clearTimeout(_usernameCheckTimer);
+  const val=document.getElementById('aa-username').value.trim();
+  const status=document.getElementById('aa-username-status');
+  if(!val){status.textContent='';return;}
+  if(!/^[a-zA-Z0-9_-]{3,30}$/.test(val)){
+    status.textContent='⚠ Tylko litery, cyfry, _ i -. Min 3 znaki.';
+    status.style.color='var(--yellow)';return;
+  }
+  status.textContent='Sprawdzam…';status.style.color='var(--t3)';
+  _usernameCheckTimer=setTimeout(async()=>{
+    const rows=await dbGet('profiles',`?username=eq.${encodeURIComponent(val)}&select=id`);
+    if(rows.length){
+      status.textContent=`✗ Login "${val}" jest już zajęty`;
+      status.style.color='var(--red)';
+    }else{
+      status.textContent=`✓ Login "${val}" jest dostępny`;
+      status.style.color='var(--green)';
+    }
+  },500);
+}
+
+async function createAdmin(){
+  const name    =document.getElementById('aa-name').value.trim();
+  const username=document.getElementById('aa-username').value.trim();
+  const email   =document.getElementById('aa-email').value.trim();
+  const pass    =document.getElementById('aa-pass').value.trim();
+  const errEl   =document.getElementById('aa-err');errEl.textContent='';
+  if(!username||!email||!pass){errEl.textContent='Login, e-mail i hasło są wymagane';return;}
+  if(pass.length<6){errEl.textContent='Hasło min. 6 znaków';return;}
+  const btn=document.getElementById('aa-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Tworzenie...';
+  const r=await edgeFn('create-admin',{email,password:pass,displayName:name||username,username});
+  btn.disabled=false;btn.innerHTML='<i class="ri-shield-user-line"></i>Utwórz administratora';
+  if(r.error){errEl.textContent=r.error;return;}
+  closeModal('m-admin');
+  ['aa-name','aa-username','aa-email','aa-pass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('aa-username-status').textContent='';
+  toast('Administrator utworzony ✅');
+}
+
+// ── UPDATE ADMIN AVATAR in sidebar ──
+function updateAdminAvatar(url){
+  const wrap=document.getElementById('adminAvWrap');
+  if(!wrap)return;
+  wrap.innerHTML=`<img src="${url}" class="user-av-img" alt="">`;
+  // Update profile cache so chat shows new avatar
+  if(_profileCache[Auth.userId]) _profileCache[Auth.userId].avatar_url=url;
+  // Force chat redraw
+  _chatState={projectId:null,msgIds:[],readMap:{}};
+}
+
+// ── LOAD ADMIN AVATAR on init ──
+async function loadAdminAvatar(){
+  const [profile]=await dbGet('profiles',`?id=eq.${Auth.userId}&select=avatar_url,display_name`);
+  if(profile?.avatar_url){
+    updateAdminAvatar(profile.avatar_url);
+  }
+  if(profile?.display_name){
+    document.getElementById('adminName').textContent=profile.display_name;
+    _profileCache[Auth.userId]={...(_profileCache[Auth.userId]||{}),display_name:profile.display_name,avatar_url:profile.avatar_url};
+  }
+}
+
 // INIT
 loadDash();
 startGlobalPoll();
 startPresenceHeartbeat();
+loadAdminAvatar();
 </script>
 </body>
 </html>
