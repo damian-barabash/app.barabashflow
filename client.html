@@ -120,6 +120,38 @@
   <div id="lb-content"></div>
 </div>
 
+<!-- ONBOARDING CHECKLIST -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:6000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
+  <div id="onboarding-card" style="background:#1a1a1f;border:1px solid #2a2a35;border-radius:22px;padding:28px;max-width:420px;width:100%;position:relative;animation:popIn .35s cubic-bezier(.34,1.2,.64,1)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🚀</div>
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:700">Pierwsze kroki</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">Wykonaj te kroki żeby zacząć</div>
+      </div>
+      <button onclick="dismissOnboarding()" style="margin-left:auto;background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s" title="Zamknij">×</button>
+    </div>
+    <!-- Progress bar -->
+    <div style="background:var(--bg3);border-radius:100px;height:6px;margin-bottom:18px;overflow:hidden">
+      <div id="ob-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;transition:width .4s ease;width:0%"></div>
+    </div>
+    <div id="ob-steps" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="ob-done" style="display:none;text-align:center;padding:12px 0">
+      <div style="font-size:36px;margin-bottom:10px">🎉</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">Wszystko gotowe!</div>
+      <div style="font-size:13px;color:var(--t3)">Jesteś w pełni skonfigurowany. Miłej współpracy!</div>
+    </div>
+    <button onclick="dismissOnboarding()" style="width:100%;margin-top:16px;padding:11px;background:transparent;border:1.5px solid var(--border2);border-radius:100px;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s">Przypomnij później</button>
+  </div>
+</div>
+
+<!-- floating checklist button (shown when onboarding dismissed but not complete) -->
+<div id="ob-float-btn" style="display:none;position:fixed;bottom:20px;left:20px;z-index:5500;background:linear-gradient(135deg,var(--a),var(--b));border-radius:50px;padding:10px 16px;cursor:pointer;box-shadow:0 4px 20px rgba(224,64,251,.4);display:none;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#fff;animation:popIn .3s ease" onclick="showOnboarding()">
+  <span id="ob-float-icon">🚀</span>
+  <span id="ob-float-text">Pierwsze kroki</span>
+  <span id="ob-float-badge" style="background:rgba(255,255,255,.25);border-radius:100px;padding:1px 7px;font-size:11px;font-weight:700"></span>
+</div>
+
 <!-- CHANGE PASSWORD -->
 <div class="modal-backdrop" id="m-change-pass">
   <div class="modal">
@@ -200,6 +232,8 @@ async function loadProjects() {
 async function openProject(id, name, status) {
   PID=id; chatLen=0; _lastMsgIdForPopup=null; _chatUIInited=false;
   window._currentPID = id;
+  // Complete onboarding step
+  completeOnboardingStep('Przejrzyj swój projekt');
   document.getElementById('pj-name').textContent = name;
   document.getElementById('pj-status').textContent = 'Status: '+statusLabel(status);
   const b = document.getElementById('pj-badge');
@@ -293,6 +327,7 @@ async function sendMsg() {
       msgData.content=txt;
     }
     await dbPost('messages',msgData);
+    completeOnboardingStep('Napisz pierwszą wiadomość w czacie');
     loadChat();
   }catch(e){
     toast('Błąd wysyłania: '+e.message,'error');
@@ -366,6 +401,7 @@ async function clientAddDoc() {
       project_id:PID, uploaded_by:Auth.userId,
       name, url:up.url, file_url:up.url, mime_type:up.mime, file_size:up.size
     });
+    completeOnboardingStep('Dodaj lub pobierz dokument');
     document.getElementById('cl-dc-name').value='';
     document.getElementById('cl-dc-preview').innerHTML='';
     document.getElementById('cl-dc-upload-area').style.borderColor='';
@@ -649,11 +685,134 @@ function updateClientAvatar(url){
   wrap.innerHTML=`<img src="${url}" class="user-av-img" alt="">`;
   if(_profileCache[Auth.userId]) _profileCache[Auth.userId].avatar_url=url;
   _chatState={projectId:null,msgIds:[],readMap:{}};
+  completeOnboardingStep('Dodaj zdjęcie profilowe');
 }
 
 async function loadClientAvatar(){
   const [profile]=await dbGet('profiles',`?id=eq.${Auth.userId}&select=avatar_url`);
   if(profile?.avatar_url) updateClientAvatar(profile.avatar_url);
+}
+
+// ── ONBOARDING CHECKLIST ──
+const OB_ICONS = {
+  'Zaloguj się do panelu':         '🔑',
+  'Przejrzyj swój projekt':        '📁',
+  'Napisz pierwszą wiadomość w czacie': '💬',
+  'Dodaj lub pobierz dokument':    '📄',
+  'Dodaj zdjęcie profilowe':       '📸',
+};
+
+let _obSteps = [];
+
+async function loadOnboarding() {
+  // Don't show if dismissed permanently
+  const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=onboarding_dismissed`);
+  if (profile?.onboarding_dismissed) return;
+
+  const steps = await dbGet('onboarding_steps', `?user_id=eq.${Auth.userId}&select=*&order=created_at.asc`);
+  if (!steps.length) return; // No onboarding for this user (old accounts)
+
+  _obSteps = steps;
+  renderOnboarding();
+
+  const allDone = steps.every(s => s.completed_at);
+  if (allDone) {
+    // All done — show briefly then hide float button
+    showOnboarding();
+    setTimeout(() => dismissOnboarding(), 4000);
+    return;
+  }
+
+  // Show popup on first load
+  showOnboarding();
+}
+
+function renderOnboarding() {
+  const done  = _obSteps.filter(s => s.completed_at).length;
+  const total = _obSteps.length;
+  const pct   = Math.round((done / total) * 100);
+  const allDone = done === total;
+
+  // Progress bar
+  const bar = document.getElementById('ob-progress-bar');
+  if (bar) bar.style.width = pct + '%';
+
+  // Steps list
+  const list = document.getElementById('ob-steps');
+  const doneEl = document.getElementById('ob-done');
+  if (!list || !doneEl) return;
+
+  if (allDone) {
+    list.style.display = 'none';
+    doneEl.style.display = 'block';
+  } else {
+    list.style.display = 'flex';
+    doneEl.style.display = 'none';
+    list.innerHTML = _obSteps.map(s => {
+      const icon = OB_ICONS[s.step] || '✦';
+      const isDone = !!s.completed_at;
+      return `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:${isDone?'rgba(74,222,128,.06)':'var(--bg3)'};border:1px solid ${isDone?'rgba(74,222,128,.15)':'var(--border)'}">
+        <div style="width:28px;height:28px;border-radius:50%;background:${isDone?'rgba(74,222,128,.15)':'var(--bg4)'};border:1.5px solid ${isDone?'rgba(74,222,128,.4)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+          ${isDone ? '<span style="color:#4ade80;font-size:13px;font-weight:700">✓</span>' : `<span>${icon}</span>`}
+        </div>
+        <div style="flex:1;font-size:13px;font-weight:${isDone?'400':'500'};color:${isDone?'var(--t3)':'var(--text)'};text-decoration:${isDone?'line-through':'none'}">${esc(s.step)}</div>
+        ${isDone?'<span style="font-size:10px;color:var(--green)">✓</span>':''}
+      </div>`;
+    }).join('');
+  }
+
+  // Float button
+  const floatBtn = document.getElementById('ob-float-btn');
+  if (floatBtn) {
+    const remaining = total - done;
+    if (remaining > 0) {
+      floatBtn.style.display = 'flex';
+      document.getElementById('ob-float-badge').textContent = remaining + ' pozostało';
+      document.getElementById('ob-float-icon').textContent = pct >= 60 ? '⚡' : '🚀';
+    } else {
+      floatBtn.style.display = 'none';
+    }
+  }
+}
+
+function showOnboarding() {
+  const ov = document.getElementById('onboarding-overlay');
+  if (ov) { ov.style.display = 'flex'; renderOnboarding(); }
+  const fb = document.getElementById('ob-float-btn');
+  if (fb) fb.style.display = 'none';
+}
+
+async function dismissOnboarding() {
+  const ov = document.getElementById('onboarding-overlay');
+  if (ov) ov.style.display = 'none';
+  const allDone = _obSteps.every(s => s.completed_at);
+  if (allDone) {
+    // Mark permanently dismissed
+    await fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
+      method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
+    });
+    document.getElementById('ob-float-btn').style.display = 'none';
+  } else {
+    // Show float button
+    document.getElementById('ob-float-btn').style.display = 'flex';
+    renderOnboarding();
+  }
+}
+
+// Complete a step by name
+async function completeOnboardingStep(stepName) {
+  const step = _obSteps.find(s => s.step === stepName && !s.completed_at);
+  if (!step) return;
+  await fetch(`${SB}/rest/v1/onboarding_steps?id=eq.${step.id}`, {
+    method: 'PATCH', headers: hdr(), body: JSON.stringify({completed_at: new Date().toISOString()})
+  });
+  step.completed_at = new Date().toISOString();
+  renderOnboarding();
+  // Check if all done
+  if (_obSteps.every(s => s.completed_at)) {
+    showOnboarding(); // show completion screen
+  }
 }
 
 // ── CHANGE OWN PASSWORD ──
@@ -677,6 +836,7 @@ async function changeOwnPassword(){
 loadProjects();
 startPresenceHeartbeat();
 loadClientAvatar();
+loadOnboarding();
 
 
 (async () => {
