@@ -236,6 +236,7 @@
         <div><h2 id="pj-name">—</h2><div class="sub" id="pj-client">—</div></div>
         <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <span class="badge" id="pj-badge"></span>
+          <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i>Udostępnij</button>
           <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl">Archiwizuj</span></button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i>Usuń projekt</button>
         </div>
@@ -442,6 +443,31 @@
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-admin-pass')">Anuluj</button>
       <button class="btn btn-primary" id="ap-btn" onclick="changeAdminPassword()"><i class="ri-lock-password-line"></i>Zmień hasło</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE LINK MODAL -->
+<div class="modal-backdrop" id="m-share-link">
+  <div class="modal">
+    <div class="modal-title">🔗 Publiczny link do projektu</div>
+    <div class="modal-sub">Każdy z tym linkiem może zobaczyć posty i materiały projektu. Czat i dokumenty pozostają prywatne.</div>
+    <div class="form-group">
+      <label class="form-label">Link</label>
+      <div style="display:flex;gap:8px">
+        <input class="form-control" id="share-link-input" readonly style="font-size:12px;color:var(--t2);cursor:pointer" onclick="this.select()">
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="copyShareLink()"><i class="ri-clipboard-line"></i></button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--t3);margin-top:-8px;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+      <i class="ri-eye-line" style="color:var(--a)"></i>
+      Widoczne: posty i materiały · Ukryte: czat, dokumenty, dane klienta
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-share-link')">Zamknij</button>
+      <a id="share-link-open" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none" onclick="document.getElementById('share-link-open').href=document.getElementById('share-link-input').value">
+        <i class="ri-external-link-line"></i>Otwórz podgląd
+      </a>
     </div>
   </div>
 </div>
@@ -672,6 +698,60 @@ async function archiveClient() {
   if(_clientArchived){lbl.textContent='Przywróć';btn.style.background='rgba(74,222,128,.08)';btn.style.color='var(--green)';btn.style.borderColor='rgba(74,222,128,.3)';}
   else{lbl.textContent='Archiwizuj';btn.style.background='rgba(251,191,36,.08)';btn.style.color='#fbbf24';btn.style.borderColor='rgba(251,191,36,.3)';}
   toast(_clientArchived?'Klient zarchiwizowany 📦':'Klient przywrócony ✅');
+}
+
+function copyShareLink(){
+  const inp=document.getElementById('share-link-input');
+  inp.select();
+  navigator.clipboard.writeText(inp.value).catch(()=>{document.execCommand('copy');});
+  toast('Link skopiowany ✅');
+}
+
+// ── PUBLIC LINK ──
+let _currentPublicToken = '';
+
+async function copyPublicLink() {
+  // Get or generate public_token for this project
+  const [proj] = await dbGet('projects', `?id=eq.${PID}&select=public_token`);
+  let token = proj?.public_token;
+
+  if (!token) {
+    // Generate token via SQL function (random hex)
+    const r = await fetch(`${SB}/rest/v1/projects?id=eq.${PID}`, {
+      method: 'PATCH',
+      headers: hdr({Prefer:'return=representation'}),
+      body: JSON.stringify({public_token: generateToken()})
+    });
+    const d = await r.json();
+    token = Array.isArray(d) ? d[0]?.public_token : d?.public_token;
+  }
+
+  if (!token) { toast('Błąd generowania linku','error'); return; }
+  _currentPublicToken = token;
+
+  const url = `${location.origin}/status.html?t=${token}`;
+
+  // Copy to clipboard
+  try {
+    await navigator.clipboard.writeText(url);
+    toast('Link skopiowany do schowka 🔗');
+  } catch {
+    // Fallback
+    const inp = document.createElement('input');
+    inp.value = url; document.body.appendChild(inp);
+    inp.select(); document.execCommand('copy'); inp.remove();
+    toast('Link skopiowany do schowka 🔗');
+  }
+
+  // Show share modal with link
+  document.getElementById('share-link-input').value = url;
+  openModal('m-share-link');
+}
+
+function generateToken() {
+  // 32-char hex token
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 // ── ARCHIVE PROJECT ──

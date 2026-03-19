@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Status projektu — Barabash Flow</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0c;--bg2:#111116;--bg3:#18181f;--border:#25252f;--a:#e040fb;--b:#7c3aed;--text:#eeeef5;--t2:#9898ac;--t3:#50505f;--green:#4ade80}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;opacity:.25}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(224,64,251,.3),transparent 70%);top:-150px;right:-100px;animation:fo 10s ease-in-out infinite alternate}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(124,58,237,.2),transparent 70%);bottom:-100px;left:-50px;animation:fo 14s ease-in-out infinite alternate-reverse}
+@keyframes fo{from{transform:scale(1)}to{transform:scale(1.2) translate(20px,20px)}}
+.wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;position:relative;z-index:1}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:48px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.nav-brand{font-size:18px;font-weight:800;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-brand img{height:28px;border-radius:6px}
+.nav-brand span{color:var(--a)}
+.nav-badge{font-size:11px;background:rgba(224,64,251,.1);border:1px solid rgba(224,64,251,.2);color:var(--a);padding:3px 10px;border-radius:100px;font-weight:600}
+
+/* PROJECT HEADER */
+.proj-header{margin-bottom:36px}
+.proj-status-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.proj-name{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.proj-desc{font-size:14px;color:var(--t2);line-height:1.65}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-active{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-active::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.badge-completed{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.badge-archived{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+
+/* UPDATES */
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.post-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;transition:border-color .2s}
+.post-card:hover{border-color:rgba(224,64,251,.2)}
+.post-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}
+.post-ico{width:38px;height:38px;border-radius:10px;background:rgba(224,64,251,.1);border:1px solid rgba(224,64,251,.15);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.post-meta{flex:1;min-width:0}
+.post-title{font-size:15px;font-weight:700;margin-bottom:3px;letter-spacing:-.01em}
+.post-date{font-size:11px;color:var(--t3)}
+.post-body{font-size:14px;color:var(--t2);line-height:1.7;margin-top:6px}
+.post-img{max-width:100%;border-radius:10px;display:block;margin-top:12px;cursor:pointer;transition:opacity .15s}
+.post-img:hover{opacity:.9}
+.post-link{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:8px 14px;background:rgba(224,64,251,.08);border:1px solid rgba(224,64,251,.2);border-radius:8px;color:var(--a);font-size:13px;text-decoration:none;font-weight:500;transition:all .2s}
+.post-link:hover{background:rgba(224,64,251,.15)}
+.post-file{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);text-decoration:none;transition:border-color .2s}
+.post-file:hover{border-color:rgba(224,64,251,.3)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.empty-ico{font-size:40px;display:block;margin-bottom:14px}
+.empty-title{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--t2)}
+.empty-sub{font-size:13px}
+
+/* FOOTER */
+.footer{text-align:center;margin-top:56px;padding-top:24px;border-top:1px solid var(--border);font-size:12px;color:var(--t3)}
+.footer a{color:var(--a);text-decoration:none}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px}
+.lb.open{display:flex}
+.lb img{max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain}
+.lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:22px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.lb-close:hover{background:rgba(255,255,255,.2)}
+
+/* LOADING / ERROR */
+.state{text-align:center;padding:80px 20px}
+.state-ico{font-size:48px;display:block;margin-bottom:16px}
+.state-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.state-sub{font-size:14px;color:var(--t2)}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="wrap">
+  <!-- NAV -->
+  <div class="nav">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/images/logo.png" alt="" onerror="this.style.display='none'">
+      Barabash <span>Flow</span>
+    </a>
+    <div class="nav-badge">Publiczny podgląd projektu</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div class="state">
+      <div class="spinner"></div>
+      <div class="state-title">Ładowanie...</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="index.html">Barabash Flow</a> · Panel zarządzania projektami
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLb()">
+  <button class="lb-close" onclick="closeLb()">×</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<script>
+const SB   = 'https://ztcyhlitwwganjhgbbtm.supabase.co';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function timeAgo(d){
+  if(!d)return'';
+  const m=Math.floor((Date.now()-new Date(d))/60000);
+  if(m<1)return'przed chwilą';if(m<60)return`${m} min temu`;
+  const h=Math.floor(m/60);if(h<24)return`${h} godz. temu`;if(h<48)return'wczoraj';
+  return new Date(d).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+}
+function postIcon(t){return{text:'📝',link:'🔗',image:'🖼️',file:'📎',video:'🎬'}[t]||'📝';}
+function statusLabel(s){return{active:'Aktywny',completed:'Zakończony',paused:'Wstrzymany',archived:'Archiwum'}[s]||s;}
+function statusClass(s){return{active:'badge-active',completed:'badge-completed',archived:'badge-archived',paused:'badge-archived'}[s]||'badge-active';}
+
+async function get(table,qs=''){
+  const r=await fetch(`${SB}/rest/v1/${table}${qs}`,{headers:{apikey:ANON,Accept:'application/json'}});
+  const d=await r.json();return Array.isArray(d)?d:[];
+}
+
+function openLb(src){const lb=document.getElementById('lb');lb.classList.add('open');document.getElementById('lb-img').src=src;}
+function closeLb(){document.getElementById('lb').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
+
+async function load(){
+  // Get token from URL: /status.html?t=TOKEN or /status/TOKEN
+  const params=new URLSearchParams(location.search);
+  const token=params.get('t')||params.get('token')||location.pathname.split('/status/')[1]?.split('/')[0];
+
+  if(!token){
+    showError('Brak tokenu','Nieprawidłowy link do statusu projektu.');
+    return;
+  }
+
+  // Load project by public_token (anon access)
+  const projects=await get('projects',`?public_token=eq.${token}&select=*,client:profiles!projects_client_id_fkey(display_name)`);
+  if(!projects.length){
+    showError('Projekt nie znaleziony','Link wygasł lub projekt nie istnieje.');
+    return;
+  }
+  const proj=projects[0];
+
+  // Load posts for this project
+  const posts=await get('posts',`?project_id=eq.${proj.id}&select=*&order=created_at.desc`);
+
+  document.getElementById('content').innerHTML=renderProject(proj,posts);
+  document.title=`${proj.name} — Status projektu — Barabash Flow`;
+}
+
+function renderProject(proj,posts){
+  const statusCls=statusClass(proj.status);
+  const statusLbl=statusLabel(proj.status);
+
+  const postsHTML=posts.length ? posts.map(p=>{
+    const isImg=p.mime_type?.startsWith('image/');
+    const isPdf=p.mime_type==='application/pdf';
+    const url=p.file_url||p.url;
+    let media='';
+    if(url&&isImg) media=`<img src="${esc(url)}" class="post-img" alt="${esc(p.file_name||'')}" onclick="openLb('${esc(url)}')">`;
+    else if(url&&isPdf) media=`<a href="${esc(url)}" target="_blank" class="post-file">📄 ${esc(p.file_name||'Dokument PDF')}</a>`;
+    else if(url&&p.type==='link') media=`<a href="${esc(url)}" target="_blank" rel="noopener" class="post-link">🔗 ${esc(url.length>60?url.slice(0,60)+'…':url)}</a>`;
+    else if(url) media=`<a href="${esc(url)}" target="_blank" class="post-file">📎 ${esc(p.file_name||'Plik')}</a>`;
+    return`<div class="post-card">
+      <div class="post-head">
+        <div class="post-ico">${postIcon(p.type)}</div>
+        <div class="post-meta">
+          <div class="post-title">${esc(p.title)}</div>
+          <div class="post-date">${timeAgo(p.created_at)}</div>
+        </div>
+      </div>
+      ${p.content?`<div class="post-body">${esc(p.content)}</div>`:''}
+      ${media}
+    </div>`;
+  }).join('')
+  : `<div class="empty">
+      <span class="empty-ico">📭</span>
+      <div class="empty-title">Brak aktualizacji</div>
+      <div class="empty-sub">Materiały pojawią się tutaj gdy zostaną opublikowane.</div>
+    </div>`;
+
+  return`
+  <div class="proj-header">
+    <div class="proj-status-row">
+      <span class="badge ${statusCls}">${statusLbl}</span>
+    </div>
+    <div class="proj-name">${esc(proj.name)}</div>
+    ${proj.description?`<div class="proj-desc">${esc(proj.description)}</div>`:''}
+  </div>
+  <div class="section-title">Aktualizacje projektu</div>
+  ${postsHTML}`;
+}
+
+function showError(title,sub){
+  document.getElementById('content').innerHTML=`
+  <div class="state">
+    <span class="state-ico">🔒</span>
+    <div class="state-title">${esc(title)}</div>
+    <div class="state-sub">${esc(sub)}</div>
+  </div>`;}
+
+load();
+</script>
+</body>
+</html>
