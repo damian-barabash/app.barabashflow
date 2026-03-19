@@ -933,7 +933,7 @@ async function loadStages() {
   document.getElementById('stages-pct').textContent = pct + '%';
   // Rebuild bar HTML — avoids transition issues with display:none parent
   const barWrap = document.getElementById('stages-bar').parentElement;
-  barWrap.innerHTML = `<div id="stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;width:${pct}%"></div>`;
+  barWrap.innerHTML = `<div id="stages-bar" style="height:100%;background:linear-gradient(90deg,#e040fb,#7c3aed);border-radius:100px;width:${pct}%"></div>`;
 
   const el = document.getElementById('stages-list');
   if (!stages.length) { el.innerHTML = emptyHTML('ri-flag-line','Brak etapów. Dodaj pierwszy etap projektu.'); return; }

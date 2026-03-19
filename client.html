@@ -947,7 +947,7 @@ async function loadClientStages() {
 
   document.getElementById('cl-stages-pct').textContent = pct+'%';
   const barWrap = document.getElementById('cl-stages-bar').parentElement;
-  barWrap.innerHTML = `<div id="cl-stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;width:${pct}%"></div>`;
+  barWrap.innerHTML = `<div id="cl-stages-bar" style="height:100%;background:linear-gradient(90deg,#e040fb,#7c3aed);border-radius:100px;width:${pct}%"></div>`;
 
   const el = document.getElementById('cl-stages-list');
   if (!stages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Brak etapów</div>'; return; }
