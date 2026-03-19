@@ -328,6 +328,37 @@ async function openProject(id, name, status) {
   }, 5000);
 }
 
+// ── NOTIFY ADMIN ──
+// Cache admin IDs to avoid repeated DB calls
+let _adminIds = [];
+async function getAdminIds() {
+  if (_adminIds.length) return _adminIds;
+  const admins = await dbGet('profiles', '?role=eq.admin&select=id');
+  _adminIds = admins.map(a => a.id);
+  return _adminIds;
+}
+
+async function notifyAdminAboutMessage(text) {
+  try {
+    const adminIds = await getAdminIds();
+    const clientName = localStorage.getItem('bf_name') || 'Klient';
+    const shortText = text.length > 60 ? text.slice(0,60)+'…' : text;
+    // Send notification to all admins in parallel
+    await Promise.all(adminIds.map(adminId =>
+      edgeFn('send-notification', {
+        userId:    adminId,
+        projectId: PID,
+        content:   `💬 <strong>${clientName}</strong>: ${shortText}`,
+        type:      'message',
+        isMessage: true
+      })
+    ));
+  } catch(e) {
+    // Silent fail — don't block chat UX
+    console.warn('notify admin failed:', e);
+  }
+}
+
 // ── CHAT ──
 let _chatFileToSend=null, _sending=false, _chatUIInited=false;
 
@@ -393,6 +424,8 @@ async function sendMsg() {
     await dbPost('messages',msgData);
     completeOnboardingStep('Napisz pierwszą wiadomość w czacie');
     loadChat();
+    // Notify admin about new message (fire and forget)
+    notifyAdminAboutMessage(txt || '📎 Plik');
   }catch(e){
     toast('Błąd wysyłania: '+e.message,'error');
     inp.value=txt;
@@ -913,13 +946,8 @@ async function loadClientStages() {
   const pct  = stages.length ? Math.round(done/stages.length*100) : 0;
 
   document.getElementById('cl-stages-pct').textContent = pct+'%';
-  const bar = document.getElementById('cl-stages-bar');
-  bar.style.transition = 'none';
-  bar.style.width = '0%';
-  setTimeout(() => {
-    bar.style.transition = 'width .6s cubic-bezier(.4,0,.2,1)';
-    bar.style.width = pct + '%';
-  }, 50);
+  const barWrap = document.getElementById('cl-stages-bar').parentElement;
+  barWrap.innerHTML = `<div id="cl-stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;width:${pct}%"></div>`;
 
   const el = document.getElementById('cl-stages-list');
   if (!stages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Brak etapów</div>'; return; }
