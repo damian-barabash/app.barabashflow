@@ -341,10 +341,43 @@ select.form-control option{background:var(--bg3)}
   .msg{max-width:90%}
   .content{padding:14px}
   .notif-popup{top:10px;right:10px;max-width:calc(100vw - 20px)}
+
+  /* ── TOPBAR ── */
+  .topbar{padding:0 12px;height:auto;min-height:52px;flex-wrap:nowrap;gap:8px}
+  .topbar-title{font-size:14px}
+  .topbar-sub{font-size:10px}
+  .topbar-actions{gap:6px;flex-shrink:0}
+  .topbar-actions .btn{padding:7px 10px;font-size:12px}
+  .topbar-actions .btn i{font-size:13px}
+
+  /* ── PAGE HEADER (project/client headers) ── */
+  .page-header{flex-wrap:wrap;gap:8px;padding:10px 0}
+  .page-header>div:last-child{width:100%;display:flex;gap:6px;flex-wrap:wrap}
+  .page-header .btn{padding:7px 10px;font-size:12px;flex-shrink:0}
+  .page-header h2{font-size:17px}
+
+  /* ── TABS ── */
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab-btn{white-space:nowrap;padding:8px 12px;font-size:12px;flex-shrink:0}
 }
-@media(max-width:480px){
-  .stats-grid{grid-template-columns:1fr}
-  .modal{padding:18px}
+/* ── PAGE HEADER MOBILE FIX ── */
+@media(max-width:640px){
+  .page-header{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:10px 0 6px}
+  .page-header>div:first-child+div{font-size:13px}
+  /* Button row — horizontal scroll */
+  .page-header-btns{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;width:100%;flex-wrap:nowrap;align-items:center}
+  .page-header-btns::-webkit-scrollbar{display:none}
+  .page-header-btns .btn{white-space:nowrap;flex-shrink:0;padding:7px 10px;font-size:12px}
+  .page-header-btns .badge{flex-shrink:0}
+  /* Content padding */
+  .content{padding:10px}
+  .tabs{gap:0}
+  .tab-btn{padding:8px 10px;font-size:11px}
+}
+/* Hide button text on very small screens — show only icons */
+@media(max-width:400px){
+  .btn-text{display:none}
 }
 
 /* ── CALENDAR ─────────────────────────── */

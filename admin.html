@@ -68,8 +68,8 @@
     <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub" id="pageSub"></div></div>
     <div class="topbar-actions">
-      <button class="btn btn-outline btn-sm" onclick="openModal('m-admin')" style="margin-right:6px"><i class="ri-shield-user-line"></i>Dodaj admina</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i>Dodaj klienta</button>
+      <button class="btn btn-outline btn-sm" onclick="openModal('m-admin')" style="margin-right:6px"><i class="ri-shield-user-line"></i><span class="btn-text">Dodaj admina</span></button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i><span class="btn-text">Dodaj klienta</span></button>
     </div>
   </div>
   <div class="content">
@@ -250,9 +250,9 @@
       <div class="page-header">
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
         <div><h2 id="cd-name">—</h2><div class="sub" id="cd-email">—</div></div>
-        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-sm btn-icon-arc" id="cd-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveClient()"><i class="ri-archive-line"></i><span id="cd-archive-lbl">Archiwizuj</span></button>
-          <button class="btn btn-primary btn-sm" onclick="openNewProj()"><i class="ri-add-line"></i>Nowy projekt</button>
+        <div class="page-header-btns" style="margin-left:auto">
+          <button class="btn btn-sm btn-icon-arc" id="cd-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveClient()"><i class="ri-archive-line"></i><span id="cd-archive-lbl" class="btn-text">Archiwizuj</span></button>
+          <button class="btn btn-primary btn-sm" onclick="openNewProj()"><i class="ri-add-line"></i><span class="btn-text">Nowy projekt</span></button>
         </div>
       </div>
       <div id="cd-projs"></div>
@@ -268,12 +268,12 @@
       <div class="page-header">
         <button class="btn btn-outline btn-sm" id="proj-back"><i class="ri-arrow-left-line"></i></button>
         <div><h2 id="pj-name">—</h2><div class="sub" id="pj-client">—</div></div>
-        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div class="page-header-btns" style="margin-left:auto">
           <span class="badge" id="pj-badge"></span>
-          <button class="btn btn-sm" id="pj-complete-btn" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.08);color:var(--green);cursor:pointer" onclick="completeProject()"><i class="ri-checkbox-circle-line"></i>Zakończ projekt</button>
-          <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i>Udostępnij</button>
-          <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl">Archiwizuj</span></button>
-          <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i>Usuń projekt</button>
+          <button class="btn btn-sm" id="pj-complete-btn" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.08);color:var(--green);cursor:pointer" onclick="completeProject()"><i class="ri-checkbox-circle-line"></i><span class="btn-text">Zakończ</span></button>
+          <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i><span class="btn-text">Udostępnij</span></button>
+          <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl" class="btn-text">Archiwizuj</span></button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i><span class="btn-text">Usuń</span></button>
         </div>
       </div>
       <div class="tabs">
