@@ -45,6 +45,7 @@
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
     <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
+    <div class="nav-link" data-view="templates"><i class="ri-layout-line"></i>Szablony</div>
     <div class="nav-link" data-view="admins" id="nav-admins" style="display:none"><i class="ri-shield-user-line"></i>Administratorzy</div>
   </nav>
   <div class="sidebar-bottom">
@@ -199,6 +200,18 @@
         <button class="btn btn-primary" onclick="sendScheduledNotif()" id="sn-btn"><i class="ri-send-plane-line"></i>Wyślij powiadomienie</button>
       </div>
     </div>
+    <!-- TEMPLATES -->
+    <div id="v-templates" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="card-title">Szablony projektów</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:3px">Gotowe zestawy etapów i zadań do szybkiego startu</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('m-template')"><i class="ri-add-line"></i>Nowy szablon</button>
+      </div>
+      <div id="templates-list"></div>
+    </div>
+
     <!-- ADMINS (main admin only) -->
     <div id="v-admins" style="display:none">
       <div class="card-title" style="margin-bottom:6px">Administratorzy</div>
@@ -265,6 +278,8 @@
       </div>
       <div class="tabs">
         <button class="tab-btn active" data-tab="posts">Projekt</button>
+        <button class="tab-btn" data-tab="stages">📊 Postęp</button>
+        <button class="tab-btn" data-tab="tasks">✅ Zadania</button>
         <button class="tab-btn" data-tab="chat">Czat</button>
         <button class="tab-btn" data-tab="docs">Dokumenty</button>
         <button class="tab-btn" id="tab-btn-feedback" style="display:none" data-tab="feedback">⭐ Opinie</button>
@@ -301,6 +316,38 @@
       </div>
 
       <!-- CHAT -->
+      <!-- STAGES TAB -->
+      <div class="tab-pane" id="tab-stages">
+        <div class="card" style="margin-bottom:16px;padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="margin:0">Etapy projektu</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddStage()"><i class="ri-add-line"></i>Dodaj etap</button>
+          </div>
+          <!-- Progress bar -->
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t3);margin-bottom:6px">
+              <span>Postęp projektu</span>
+              <span id="stages-pct">0%</span>
+            </div>
+            <div style="height:8px;background:var(--bg3);border-radius:100px;overflow:hidden">
+              <div id="stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;transition:width .4s ease;width:0%"></div>
+            </div>
+          </div>
+          <div id="stages-list"></div>
+        </div>
+      </div>
+
+      <!-- TASKS TAB -->
+      <div class="tab-pane" id="tab-tasks">
+        <div class="card" style="margin-bottom:16px;padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="margin:0">Zadania i checklista</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddTask()"><i class="ri-add-line"></i>Dodaj zadanie</button>
+          </div>
+          <div id="tasks-list"></div>
+        </div>
+      </div>
+
       <div class="tab-pane" id="tab-chat">
         <div class="card" style="padding:0;overflow:hidden">
           <div class="chat-wrap">
@@ -374,6 +421,13 @@
     <div class="modal-sub" id="np-sub">Dla klienta</div>
     <div class="form-group"><label class="form-label">Nazwa *</label><input class="form-control" id="np-name" placeholder="np. Strona WWW"></div>
     <div class="form-group"><label class="form-label">Opis</label><textarea class="form-control" id="np-desc" placeholder="Krótki opis..."></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Szablon (opcjonalnie)</label>
+      <select class="form-control" id="np-template">
+        <option value="">— Bez szablonu —</option>
+      </select>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px" id="np-template-preview"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('m-proj')">Anuluj</button>
       <button class="btn btn-primary" onclick="createProject()"><i class="ri-add-line"></i>Utwórz projekt</button>
@@ -500,6 +554,65 @@
   </div>
 </div>
 
+<!-- ADD STAGE -->
+<div class="modal-backdrop" id="m-stage">
+  <div class="modal">
+    <div class="modal-title" id="stage-modal-title">Dodaj etap</div>
+    <div class="form-group"><label class="form-label">Nazwa etapu *</label><input class="form-control" id="stage-name" placeholder="np. Projektowanie UI"></div>
+    <div class="form-err" id="stage-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-stage')">Anuluj</button>
+      <button class="btn btn-primary" id="stage-btn" onclick="saveStage()"><i class="ri-add-line"></i>Dodaj etap</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK -->
+<div class="modal-backdrop" id="m-task">
+  <div class="modal">
+    <div class="modal-title" id="task-modal-title">Dodaj zadanie</div>
+    <div class="form-group"><label class="form-label">Treść zadania *</label><input class="form-control" id="task-title" placeholder="np. Przygotuj materiały graficzne"></div>
+    <div class="form-group">
+      <label class="form-label">Przypisane do</label>
+      <select class="form-control" id="task-assigned">
+        <option value="admin">Tylko admin</option>
+        <option value="client">Tylko klient</option>
+        <option value="both">Obie strony</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Termin (opcjonalnie)</label><input class="form-control" id="task-due" type="date"></div>
+    <div class="form-err" id="task-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-task')">Anuluj</button>
+      <button class="btn btn-primary" id="task-btn" onclick="saveTask()"><i class="ri-add-line"></i>Dodaj zadanie</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-backdrop" id="m-template">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-title">Nowy szablon projektu</div>
+    <div class="modal-sub">Zdefiniuj etapy i zadania — możesz je zastosować przy tworzeniu nowego projektu.</div>
+    <div class="form-group"><label class="form-label">Nazwa szablonu *</label><input class="form-control" id="tpl-name" placeholder="np. Strona WWW — standard"></div>
+    <div class="form-group"><label class="form-label">Opis (opcjonalnie)</label><input class="form-control" id="tpl-desc" placeholder="np. Dla projektów stron korporacyjnych"></div>
+    <div class="form-group">
+      <label class="form-label">Etapy (każdy w nowej linii)</label>
+      <textarea class="form-control" id="tpl-stages" rows="5" placeholder="Brief i analiza&#10;Projektowanie UI&#10;Wdrożenie&#10;Testy i poprawki&#10;Publikacja"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Zadania (każde w nowej linii, opcjonalnie »klient lub »obie)</label>
+      <textarea class="form-control" id="tpl-tasks" rows="5" placeholder="Przygotuj materiały graficzne »klient&#10;Dostarczyć teksty na stronę »klient&#10;Konfiguracja hostingu&#10;Wdrożenie CMS&#10;Szkolenie z obsługi »obie"></textarea>
+    </div>
+    <div style="font-size:11px;color:var(--t3);margin:-8px 0 12px">Dodaj »klient lub »obie na końcu zadania żeby oznaczyć kto je wykonuje</div>
+    <div class="form-err" id="tpl-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-template')">Anuluj</button>
+      <button class="btn btn-primary" id="tpl-btn" onclick="saveTemplate()"><i class="ri-save-line"></i>Zapisz szablon</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE -->
 <div class="modal-backdrop confirm-modal" id="m-confirm">
   <div class="modal">
@@ -535,11 +648,11 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','admins'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','admins'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',admins:'Administratorzy'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',admins:'Administratorzy'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard')     loadDash();
   if (v==='clients')       { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
@@ -549,6 +662,7 @@ function nav(v) {
   if (v==='send-notif')    { loadNotifClientSelect(); }
   if (v==='leads')         loadLeads();
   if (v==='notifs-admin')  loadAdminNotifs();
+  if (v==='templates')     loadTemplates();
   if (v==='admins')        loadAdmins();
 }
 function switchTab(tab) {
@@ -558,6 +672,8 @@ function switchTab(tab) {
   if (tab==='posts')    loadPosts();
   if (tab==='docs')     loadDocs();
   if (tab==='feedback') loadFeedback();
+  if (tab==='stages')   loadStages();
+  if (tab==='tasks')    loadTasks();
 }
 function switchArchiveTab(tab) {
   document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.classList.toggle('active', b.dataset.atab===tab));
@@ -784,6 +900,234 @@ function generateToken() {
     .map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+// ── STAGES ──
+let _editingStageId = '';
+
+async function loadStages() {
+  const stages = await dbGet('project_stages', `?project_id=eq.${PID}&select=*&order=position.asc`);
+  const done = stages.filter(s => s.completed).length;
+  const pct  = stages.length ? Math.round(done/stages.length*100) : 0;
+
+  document.getElementById('stages-bar').style.width = pct + '%';
+  document.getElementById('stages-pct').textContent = pct + '%';
+
+  const el = document.getElementById('stages-list');
+  if (!stages.length) { el.innerHTML = emptyHTML('ri-flag-line','Brak etapów. Dodaj pierwszy etap projektu.'); return; }
+
+  el.innerHTML = stages.map((s,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <button onclick="toggleStage('${s.id}',${!s.completed})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${s.completed?'var(--green)':'var(--border2)'};background:${s.completed?'rgba(74,222,128,.15)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
+        ${s.completed?'<span style="color:var(--green);font-size:12px;font-weight:700">✓</span>':''}
+      </button>
+      <span style="width:20px;height:20px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t3);flex-shrink:0">${i+1}</span>
+      <span style="flex:1;font-size:13px;font-weight:500;color:${s.completed?'var(--t3)':'var(--text)'};text-decoration:${s.completed?'line-through':''}">${esc(s.name)}</span>
+      ${s.completed_at?`<span style="font-size:10px;color:var(--green)">${timeAgo(s.completed_at)}</span>`:''}
+      <button onclick="deleteStage('${s.id}')" style="background:none;border:none;color:var(--t3);cursor:pointer;padding:4px;border-radius:6px;transition:all .2s" title="Usuń etap"><i class="ri-delete-bin-line"></i></button>
+    </div>`).join('');
+}
+
+function openAddStage() {
+  _editingStageId = '';
+  document.getElementById('stage-name').value = '';
+  document.getElementById('stage-err').textContent = '';
+  openModal('m-stage');
+}
+
+async function saveStage() {
+  const name = document.getElementById('stage-name').value.trim();
+  if (!name) { document.getElementById('stage-err').textContent = 'Podaj nazwę etapu'; return; }
+  const btn = document.getElementById('stage-btn');
+  btn.disabled = true;
+  const stages = await dbGet('project_stages', `?project_id=eq.${PID}&select=position&order=position.desc&limit=1`);
+  const pos = stages.length ? (stages[0].position + 1) : 0;
+  await dbPost('project_stages', {project_id:PID, name, position:pos});
+  btn.disabled = false;
+  closeModal('m-stage');
+  loadStages();
+  toast('Etap dodany ✅');
+}
+
+async function toggleStage(id, completed) {
+  await fetch(`${SB}/rest/v1/project_stages?id=eq.${id}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body:JSON.stringify({completed, completed_at: completed ? new Date().toISOString() : null})
+  });
+  loadStages();
+}
+
+async function deleteStage(id) {
+  await fetch(`${SB}/rest/v1/project_stages?id=eq.${id}`, {method:'DELETE', headers:hdr()});
+  loadStages();
+}
+
+// ── TASKS ──
+let _editingTaskId = '';
+
+async function loadTasks() {
+  const tasks = await dbGet('project_tasks',
+    `?project_id=eq.${PID}&select=*,completed_by_profile:profiles!project_tasks_completed_by_fkey(display_name)&order=position.asc`);
+  const el = document.getElementById('tasks-list');
+  if (!tasks.length) { el.innerHTML = emptyHTML('ri-checkbox-line','Brak zadań. Dodaj pierwsze zadanie.'); return; }
+
+  const done = tasks.filter(t=>t.completed).length;
+  const assignedLabel = {admin:'👤 Admin', client:'🧑 Klient', both:'👥 Obie strony'};
+
+  el.innerHTML = `
+    <div style="font-size:12px;color:var(--t3);margin-bottom:12px">${done}/${tasks.length} wykonanych</div>
+    ${tasks.map(t => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <button onclick="toggleTask('${t.id}',${!t.completed})" style="width:22px;height:22px;border-radius:6px;border:2px solid ${t.completed?'var(--green)':'var(--border2)'};background:${t.completed?'rgba(74,222,128,.15)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s">
+        ${t.completed?'<span style="color:var(--green);font-size:11px;font-weight:700">✓</span>':''}
+      </button>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:${t.completed?'var(--t3)':'var(--text)'};text-decoration:${t.completed?'line-through':''}">${esc(t.title)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--t3)">${assignedLabel[t.assigned_to]||''}</span>
+          ${t.due_date?`<span style="font-size:10px;color:${new Date(t.due_date)<new Date()&&!t.completed?'var(--red)':'var(--t3)'}">📅 ${new Date(t.due_date).toLocaleDateString('pl-PL')}</span>`:''}
+          ${t.completed&&t.completed_by_profile?`<span style="font-size:10px;color:var(--green)">✓ ${esc(t.completed_by_profile.display_name||'')}</span>`:''}
+        </div>
+      </div>
+      <button onclick="deleteTask('${t.id}')" style="background:none;border:none;color:var(--t3);cursor:pointer;padding:4px;border-radius:6px;flex-shrink:0" title="Usuń"><i class="ri-delete-bin-line"></i></button>
+    </div>`).join('')}`;
+}
+
+function openAddTask() {
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-assigned').value = 'admin';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-err').textContent = '';
+  openModal('m-task');
+}
+
+async function saveTask() {
+  const title    = document.getElementById('task-title').value.trim();
+  const assigned = document.getElementById('task-assigned').value;
+  const due      = document.getElementById('task-due').value || null;
+  if (!title) { document.getElementById('task-err').textContent = 'Podaj treść zadania'; return; }
+  const btn = document.getElementById('task-btn');
+  btn.disabled = true;
+  const tasks = await dbGet('project_tasks', `?project_id=eq.${PID}&select=position&order=position.desc&limit=1`);
+  const pos = tasks.length ? (tasks[0].position + 1) : 0;
+  await dbPost('project_tasks', {project_id:PID, title, assigned_to:assigned, due_date:due, position:pos});
+  btn.disabled = false;
+  closeModal('m-task');
+  loadTasks();
+  toast('Zadanie dodane ✅');
+}
+
+async function toggleTask(id, completed) {
+  await fetch(`${SB}/rest/v1/project_tasks?id=eq.${id}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body:JSON.stringify({
+      completed,
+      completed_at: completed ? new Date().toISOString() : null,
+      completed_by: completed ? Auth.userId : null
+    })
+  });
+  loadTasks();
+}
+
+async function deleteTask(id) {
+  await fetch(`${SB}/rest/v1/project_tasks?id=eq.${id}`, {method:'DELETE', headers:hdr()});
+  loadTasks();
+}
+
+// ── TEMPLATES ──
+let _templates = [];
+
+async function loadTemplates() {
+  _templates = await dbGet('project_templates', '?select=*&order=created_at.desc');
+  const el = document.getElementById('templates-list');
+  if (!_templates.length) { el.innerHTML = emptyHTML('ri-layout-line','Brak szablonów. Utwórz pierwszy szablon.'); return; }
+  el.innerHTML = _templates.map(t => {
+    const stages = Array.isArray(t.stages) ? t.stages : [];
+    const tasks  = Array.isArray(t.tasks)  ? t.tasks  : [];
+    return `
+    <div class="card" style="margin-bottom:12px;padding:18px 20px">
+      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(t.name)}</div>
+          ${t.description?`<div style="font-size:12px;color:var(--t3);margin-bottom:8px">${esc(t.description)}</div>`:''}
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            ${stages.length?`<span style="font-size:11px;color:var(--a);background:rgba(224,64,251,.08);padding:2px 9px;border-radius:100px;border:1px solid rgba(224,64,251,.15)">📊 ${stages.length} etapów</span>`:''}
+            ${tasks.length?`<span style="font-size:11px;color:var(--t2);background:var(--bg3);padding:2px 9px;border-radius:100px;border:1px solid var(--border)">✅ ${tasks.length} zadań</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-danger btn-sm" onclick="deleteTemplate('${t.id}')"><i class="ri-delete-bin-line"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveTemplate() {
+  const name  = document.getElementById('tpl-name').value.trim();
+  const desc  = document.getElementById('tpl-desc').value.trim();
+  const stagesRaw = document.getElementById('tpl-stages').value.trim();
+  const tasksRaw  = document.getElementById('tpl-tasks').value.trim();
+  if (!name) { document.getElementById('tpl-err').textContent = 'Podaj nazwę szablonu'; return; }
+
+  const stages = stagesRaw ? stagesRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+  const tasks  = tasksRaw  ? tasksRaw.split('\n').map(t => {
+    const line = t.trim();
+    if (!line) return null;
+    let assigned = 'admin';
+    let title = line;
+    if (line.endsWith('»klient'))  { assigned='client'; title=line.replace('»klient','').trim(); }
+    if (line.endsWith('»obie'))    { assigned='both';   title=line.replace('»obie','').trim(); }
+    return { title, assigned_to: assigned };
+  }).filter(Boolean) : [];
+
+  const btn = document.getElementById('tpl-btn');
+  btn.disabled = true;
+  await dbPost('project_templates', {name, description:desc||null, stages, tasks});
+  btn.disabled = false;
+  closeModal('m-template');
+  ['tpl-name','tpl-desc','tpl-stages','tpl-tasks'].forEach(id=>document.getElementById(id).value='');
+  toast('Szablon zapisany ✅');
+  loadTemplates();
+}
+
+async function deleteTemplate(id) {
+  showConfirm('Usuń szablon','Szablon zostanie trwale usunięty.',async()=>{
+    await fetch(`${SB}/rest/v1/project_templates?id=eq.${id}`,{method:'DELETE',headers:hdr()});
+    toast('Szablon usunięty');
+    loadTemplates();
+  });
+}
+
+async function loadTemplateSelect() {
+  const templates = await dbGet('project_templates','?select=id,name,stages,tasks&order=created_at.desc');
+  _templates = templates;
+  const sel = document.getElementById('np-template');
+  sel.innerHTML = '<option value="">— Bez szablonu —</option>' +
+    templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  sel.onchange = () => {
+    const t = templates.find(x=>x.id===sel.value);
+    const prev = document.getElementById('np-template-preview');
+    if (t) {
+      const s = Array.isArray(t.stages)?t.stages.length:0;
+      const tk = Array.isArray(t.tasks)?t.tasks.length:0;
+      prev.textContent = `📊 ${s} etapów · ✅ ${tk} zadań`;
+    } else { prev.textContent=''; }
+  };
+}
+
+// Apply template to project after creation
+async function applyTemplate(projectId, templateId) {
+  const tpl = _templates.find(t=>t.id===templateId);
+  if (!tpl) return;
+  const stages = Array.isArray(tpl.stages)?tpl.stages:[];
+  const tasks  = Array.isArray(tpl.tasks)?tpl.tasks:[];
+  if (stages.length) {
+    await dbPost('project_stages', stages.map((name,i)=>({project_id:projectId,name,position:i})));
+  }
+  if (tasks.length) {
+    await dbPost('project_tasks', tasks.map((t,i)=>({project_id:projectId,title:t.title||t,assigned_to:t.assigned_to||'admin',position:i})));
+  }
+}
+
 // ── COMPLETE PROJECT ──
 async function completeProject(){
   showConfirm(
@@ -981,11 +1325,21 @@ function confirmDeleteProject() {
 }
 
 // ── PROJECT ──
-function openNewProj(){document.getElementById('np-sub').textContent='Dla: '+CNAME;document.getElementById('np-name').value='';document.getElementById('np-desc').value='';openModal('m-proj');}
+function openNewProj(){
+  document.getElementById('np-sub').textContent='Dla: '+CNAME;
+  document.getElementById('np-name').value='';
+  document.getElementById('np-desc').value='';
+  document.getElementById('np-template-preview').textContent='';
+  openModal('m-proj');
+  loadTemplateSelect();
+}
 async function createProject(){
-  const name=document.getElementById('np-name').value.trim(),desc=document.getElementById('np-desc').value.trim();
+  const name=document.getElementById('np-name').value.trim();
+  const desc=document.getElementById('np-desc').value.trim();
+  const tplId=document.getElementById('np-template').value;
   if(!name){toast('Wpisz nazwę','error');return;}
-  await dbPost('projects',{client_id:CID,name,description:desc,status:'active'});
+  const [newProj]=await dbPost('projects',{client_id:CID,name,description:desc,status:'active'},{returning:true});
+  if(tplId && newProj?.id) await applyTemplate(newProj.id, tplId);
   closeModal('m-proj');toast('Projekt utworzony ✅');openClient(CID,CNAME,CEMAIL);
 }
 async function openProject(id,name){

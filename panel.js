@@ -29,9 +29,11 @@ async function dbGet(table, qs='') {
   if (r.status===401) { Auth.clear(); location.href='login.html'; return []; }
   const d = await r.json(); return Array.isArray(d) ? d : [];
 }
-async function dbPost(table, body) {
+async function dbPost(table, body, opts={}) {
   const r = await fetch(`${SB}/rest/v1/${table}`, {method:'POST', headers:hdr({Prefer:'return=representation'}), body:JSON.stringify(body)});
-  const d = await r.json(); return Array.isArray(d) ? d[0] : d;
+  const d = await r.json();
+  if (opts.returning) return Array.isArray(d) ? d : [d];
+  return Array.isArray(d) ? d[0] : d;
 }
 async function dbPatch(table, filter, body) {
   const r = await fetch(`${SB}/rest/v1/${table}?${filter}`, {method:'PATCH', headers:hdr({Prefer:'return=representation'}), body:JSON.stringify(body)});
