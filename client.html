@@ -330,35 +330,7 @@ async function openProject(id, name, status) {
 
 // ── NOTIFY ADMIN ──
 // Cache admin IDs to avoid repeated DB calls
-let _adminIds = [];
-async function getAdminIds() {
-  if (_adminIds.length) return _adminIds;
-  const admins = await dbGet('profiles', '?role=eq.admin&select=id');
-  _adminIds = admins.map(a => a.id);
-  return _adminIds;
-}
-
-async function notifyAdminAboutMessage(text) {
-  try {
-    const adminIds = await getAdminIds();
-    const clientName = localStorage.getItem('bf_name') || 'Klient';
-    const shortText = text.length > 60 ? text.slice(0,60)+'…' : text;
-    // Send notification to all admins in parallel
-    await Promise.all(adminIds.map(adminId =>
-      edgeFn('send-notification', {
-        userId:    adminId,
-        projectId: PID,
-        content:   `💬 <strong>${clientName}</strong>: ${shortText}`,
-        type:      'message',
-        isMessage: true
-      })
-    ));
-  } catch(e) {
-    // Silent fail — don't block chat UX
-    console.warn('notify admin failed:', e);
-  }
-}
-
+// ── PRESENCE & TYPING ──
 // ── CHAT ──
 let _chatFileToSend=null, _sending=false, _chatUIInited=false;
 
@@ -424,8 +396,6 @@ async function sendMsg() {
     await dbPost('messages',msgData);
     completeOnboardingStep('Napisz pierwszą wiadomość w czacie');
     loadChat();
-    // Notify admin about new message (fire and forget)
-    notifyAdminAboutMessage(txt || '📎 Plik');
   }catch(e){
     toast('Błąd wysyłania: '+e.message,'error');
     inp.value=txt;
