@@ -46,6 +46,12 @@
   <div class="topbar">
     <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Moje projekty</div><div class="topbar-sub" id="pageSub"></div></div>
+    <!-- Onboarding button — shown in topbar instead of floating bottom-left -->
+    <div id="ob-float-btn" style="display:none;margin-left:auto;background:linear-gradient(135deg,var(--a),var(--b));border-radius:50px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 12px rgba(224,64,251,.35);align-items:center;gap:7px;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;white-space:nowrap" onclick="showOnboarding()">
+      <span id="ob-float-icon">🚀</span>
+      <span id="ob-float-text">Pierwsze kroki</span>
+      <span id="ob-float-badge" style="background:rgba(255,255,255,.25);border-radius:100px;padding:1px 7px;font-size:11px;font-weight:700"></span>
+    </div>
   </div>
   <div class="content">
 
@@ -201,13 +207,6 @@
   </div>
 </div>
 
-<!-- floating checklist button (shown when onboarding dismissed but not complete) -->
-<div id="ob-float-btn" style="display:none;position:fixed;bottom:20px;left:20px;z-index:5500;background:linear-gradient(135deg,var(--a),var(--b));border-radius:50px;padding:10px 16px;cursor:pointer;box-shadow:0 4px 20px rgba(224,64,251,.4);display:none;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#fff;animation:popIn .3s ease" onclick="showOnboarding()">
-  <span id="ob-float-icon">🚀</span>
-  <span id="ob-float-text">Pierwsze kroki</span>
-  <span id="ob-float-badge" style="background:rgba(255,255,255,.25);border-radius:100px;padding:1px 7px;font-size:11px;font-weight:700"></span>
-</div>
-
 <!-- CHANGE PASSWORD -->
 <div class="modal-backdrop" id="m-change-pass">
   <div class="modal">
@@ -258,8 +257,11 @@ function nav(v) {
     notifications:'Powiadomienia'
   }[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
-  if (v==='projects')     loadProjects();
+  if (v==='projects')      loadProjects();
   if (v==='notifications') { loadNotifs(); markAllRead(); }
+  // Show onboarding button only on projects page
+  const obBtn = document.getElementById('ob-float-btn');
+  if (obBtn) obBtn.style.display = (v==='projects' && obBtn._shouldShow) ? 'flex' : 'none';
 }
 
 function switchTab(tab) {
@@ -824,15 +826,19 @@ function renderOnboarding() {
     }).join('');
   }
 
-  // Float button
+  // Float button — only on projects page
   const floatBtn = document.getElementById('ob-float-btn');
   if (floatBtn) {
     const remaining = total - done;
     if (remaining > 0) {
-      floatBtn.style.display = 'flex';
+      floatBtn._shouldShow = true;
+      // Only show if currently on projects page
+      const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
+      floatBtn.style.display = onProjects ? 'flex' : 'none';
       document.getElementById('ob-float-badge').textContent = remaining + ' pozostało';
       document.getElementById('ob-float-icon').textContent = pct >= 60 ? '⚡' : '🚀';
     } else {
+      floatBtn._shouldShow = false;
       floatBtn.style.display = 'none';
     }
   }
@@ -854,10 +860,16 @@ async function dismissOnboarding() {
     await fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
       method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
     });
-    document.getElementById('ob-float-btn').style.display = 'none';
+    const fb = document.getElementById('ob-float-btn');
+    if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
   } else {
-    // Show float button
-    document.getElementById('ob-float-btn').style.display = 'flex';
+    // Show float button only on projects page
+    const fb = document.getElementById('ob-float-btn');
+    if (fb) {
+      fb._shouldShow = true;
+      const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
+      fb.style.display = onProjects ? 'flex' : 'none';
+    }
     renderOnboarding();
   }
 }
