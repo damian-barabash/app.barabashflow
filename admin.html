@@ -1874,10 +1874,10 @@ async function loadAdminNotifs() {
       </div>
     </div>`).join('');
 
-  // Load ALL notifications (all admins see all client activity)
-  // No user_id filter — RLS allows admins to read all
+  // Load notifications for current admin — triggers create one per admin
+  // Join project info for navigation
   const notifs = await dbGet('notifications',
-    `?select=*,sender:profiles!notifications_user_id_fkey(display_name,email,avatar_url),project:projects(name)&order=created_at.desc&limit=100`
+    `?user_id=eq.${Auth.userId}&select=*,project:projects(name,client_id)&order=created_at.desc&limit=100`
   );
   _adminNotifs = notifs;
 
@@ -1911,36 +1911,34 @@ function renderAdminNotifs() {
 
   const el = document.getElementById('admin-notifs-list');
   if (!filtered.length) {
-    el.innerHTML = emptyHTML('ri-notification-3-line', 'Brak powiadomień');
+    el.innerHTML = emptyHTML('ri-notification-3-line', 'Brak powiadomień od klientów');
     return;
   }
 
   el.innerHTML = filtered.map(n => {
-    const meta   = notifMeta(n.type);
-    const name   = n.sender?.display_name || n.sender?.email || 'Klient';
+    const meta     = notifMeta(n.type);
     const projName = n.project?.name || '—';
-    const unread = !n.is_read;
-    const avatarUrl = n.sender?.avatar_url;
+    const unread   = !n.is_read;
+    // Content already contains client name in bold from DB trigger
+    // Show type icon as avatar placeholder
+    const iconBg = {
+      message: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+      doc:     'linear-gradient(135deg,#0ea5e9,#0284c7)',
+      post:    'linear-gradient(135deg,var(--a),var(--b))',
+      meeting: 'linear-gradient(135deg,#10b981,#059669)',
+    }[n.type] || 'linear-gradient(135deg,var(--a),var(--b))';
 
     return `
-    <div class="card" style="margin-bottom:8px;padding:14px 16px;border-left:3px solid ${unread?'var(--a)':'var(--border)'};cursor:pointer;transition:all .2s;opacity:${unread?'1':'0.72'}"
+    <div class="card" style="margin-bottom:8px;padding:14px 16px;border-left:3px solid ${unread?'var(--a)':'var(--border)'};cursor:pointer;transition:all .2s;opacity:${unread?'1':'0.65'};animation:fadein .2s ease"
          onclick="openNotifProject('${n.project_id}','${esc(projName)}','${n.id}')">
       <div style="display:flex;align-items:flex-start;gap:12px">
-        <!-- Avatar -->
-        <div style="position:relative;flex-shrink:0">
-          ${avatarUrl
-            ? `<img src="${esc(avatarUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;display:block" alt="">`
-            : `<div class="item-av" style="width:36px;height:36px">${initials(name)||'?'}</div>`}
-          <span style="position:absolute;bottom:-2px;right:-2px;font-size:12px;line-height:1">${meta.icon}</span>
-        </div>
-        <!-- Content -->
+        <div style="width:36px;height:36px;border-radius:50%;background:${iconBg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${meta.icon}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
-            <span style="font-size:13px;font-weight:${unread?'700':'500'}">${esc(name)}</span>
-            <span style="font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 7px;border-radius:100px">${meta.label}</span>
-            ${unread ? `<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(224,64,251,.6)"></span>` : ''}
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap">
+            <span style="font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 8px;border-radius:100px">${meta.label}</span>
+            ${unread?`<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(224,64,251,.6)"></span>`:''}
           </div>
-          <div style="font-size:12px;color:var(--t2);margin-bottom:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.content||'—'}</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.content||'—'}</div>
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px"><i class="ri-folder-line"></i>${esc(projName)}</span>
             <span style="font-size:11px;color:var(--t3)">${timeAgo(n.created_at)}</span>
