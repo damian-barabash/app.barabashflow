@@ -1873,6 +1873,9 @@ async function loadAdminNotifs() {
         <div class="skeleton skeleton-line w45"></div>
       </div>
     </div>`).join('');
+
+  // Load ALL notifications (all admins see all client activity)
+  // No user_id filter — RLS allows admins to read all
   const notifs = await dbGet('notifications',
     `?select=*,sender:profiles!notifications_user_id_fkey(display_name,email,avatar_url),project:projects(name)&order=created_at.desc&limit=100`
   );
@@ -2200,9 +2203,9 @@ startGlobalPoll();
 startPresenceHeartbeat();
 loadAdminAvatar();
 checkMainAdminStatus();
-// Load notification badge on startup
+// Load notification badge on startup — all admins see all unread
 (async () => {
-  const unread = await dbGet('notifications','?is_read=eq.false&select=id');
+  const unread = await dbGet('notifications','?is_read=eq.false&select=id&limit=99');
   const nb = document.getElementById('nb-notifs-admin');
   if (unread.length) { nb.textContent = unread.length; nb.classList.add('show'); }
 })();
