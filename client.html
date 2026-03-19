@@ -769,26 +769,33 @@ const OB_ICONS = {
 let _obSteps = [];
 
 async function loadOnboarding() {
-  // Don't show if dismissed permanently
+  // Don't show if dismissed permanently (all done)
   const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=onboarding_dismissed`);
   if (profile?.onboarding_dismissed) return;
 
   const steps = await dbGet('onboarding_steps', `?user_id=eq.${Auth.userId}&select=*&order=created_at.asc`);
-  if (!steps.length) return; // No onboarding for this user (old accounts)
+  if (!steps.length) return;
 
   _obSteps = steps;
   renderOnboarding();
 
   const allDone = steps.every(s => s.completed_at);
   if (allDone) {
-    // All done — show briefly then hide float button
+    // All done — show completion screen once then dismiss permanently
     showOnboarding();
     setTimeout(() => dismissOnboarding(), 4000);
     return;
   }
 
-  // Show popup on first load
-  showOnboarding();
+  // Only show popup automatically on FIRST EVER load
+  // After that — user opens it manually via topbar button
+  const popupKey = `bf_ob_closed_${Auth.userId}`;
+  const wasClosed = localStorage.getItem(popupKey);
+  if (!wasClosed) {
+    showOnboarding();
+  }
+  // Always show the topbar button
+  renderOnboarding();
 }
 
 function renderOnboarding() {
@@ -854,9 +861,13 @@ function showOnboarding() {
 async function dismissOnboarding() {
   const ov = document.getElementById('onboarding-overlay');
   if (ov) ov.style.display = 'none';
+
+  // Remember popup was closed — don't auto-show on next reload
+  localStorage.setItem(`bf_ob_closed_${Auth.userId}`, '1');
+
   const allDone = _obSteps.every(s => s.completed_at);
   if (allDone) {
-    // Mark permanently dismissed
+    // Mark permanently dismissed in DB
     await fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
       method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
     });
