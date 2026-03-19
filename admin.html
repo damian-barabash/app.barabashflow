@@ -930,8 +930,13 @@ async function loadStages() {
   const done = stages.filter(s => s.completed).length;
   const pct  = stages.length ? Math.round(done/stages.length*100) : 0;
 
-  document.getElementById('stages-bar').style.width = pct + '%';
   document.getElementById('stages-pct').textContent = pct + '%';
+  // Force reflow then animate — fixes transition not playing on first render
+  const bar = document.getElementById('stages-bar');
+  bar.style.width = '0%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.width = pct + '%';
+  }));
 
   const el = document.getElementById('stages-list');
   if (!stages.length) { el.innerHTML = emptyHTML('ri-flag-line','Brak etapów. Dodaj pierwszy etap projektu.'); return; }
