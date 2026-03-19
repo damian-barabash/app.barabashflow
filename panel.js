@@ -281,6 +281,22 @@ function _makeFileChip(icon, name, url, size) {
 let _chatState = { projectId: null, msgIds: [], readMap: {} };
 
 async function renderChat(projectId, currentUserId, boxId) {
+  const box = document.getElementById(boxId);
+
+  // Show skeleton on first load of this project
+  if (_chatState.projectId !== projectId && box) {
+    box.innerHTML = [0,1,2,3].map(i => {
+      const mine = i % 2 === 1;
+      const w = [180, 120, 220, 90][i];
+      return `<div class="skeleton-msg${mine?' right':''}">
+        <div class="skeleton skeleton-msg-av"></div>
+        <div class="skeleton skeleton-bubble" style="width:${w}px;height:${36+i*6}px"></div>
+      </div>`;
+    }).join('');
+    // Scroll to bottom of skeleton
+    box.scrollTop = box.scrollHeight;
+  }
+
   const [msgs, reads] = await Promise.all([
     dbGet('messages', `?project_id=eq.${projectId}&select=id,content,type,sender_id,created_at,file_url,file_name,file_size,mime_type&order=created_at.asc`),
     dbGet('message_reads', `?select=message_id,user_id`)
@@ -293,7 +309,6 @@ async function renderChat(projectId, currentUserId, boxId) {
   }
   await loadProfiles(senderIds);
 
-  const box = document.getElementById(boxId);
   if (!box) return msgs.length;
 
   const newReadMap = {};

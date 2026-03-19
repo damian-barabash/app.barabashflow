@@ -721,6 +721,16 @@ async function startGlobalPoll() {
 
 // ── DASHBOARD ──
 async function loadDash() {
+  // Show skeleton in clients list immediately
+  document.getElementById('d-clients').innerHTML = [1,2,3].map(()=>`
+    <div class="skeleton-card" style="border-radius:12px">
+      <div class="skeleton skeleton-av"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton skeleton-line w70"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+    </div>`).join('');
+
   const [clients,projects,orders,presenceRows]=await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
     dbGet('projects','?archived_at=is.null&select=id'),
@@ -776,6 +786,18 @@ function avatarHTML(profile, size=36) {
 }
 
 async function loadClients() {
+  // Skeleton immediately
+  const clList = document.getElementById('cl-list');
+  clList.innerHTML = [1,2,3].map(()=>`
+    <div class="skeleton-card" style="border-radius:12px">
+      <div class="skeleton skeleton-av"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton skeleton-line w70"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+      <div class="skeleton" style="width:60px;height:16px;border-radius:6px;margin-left:auto"></div>
+    </div>`).join('');
+
   const [clients, presenceRows] = await Promise.all([
     dbGet('profiles', '?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
     dbGet('user_presence', '?select=user_id,last_seen')
@@ -788,7 +810,7 @@ async function loadClients() {
   document.getElementById('cl-list').innerHTML=clients.map(c=>{
     const online = isOnline(presenceMap[c.id]);
     return `
-    <div class="list-item" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
+    <div class="list-item" style="animation:fadein .2s ease" onclick="openClient('${c.id}','${esc(c.display_name||c.email)}','${esc(c.email)}')">
       <div style="position:relative;flex-shrink:0">
         ${avatarHTML(c)}
         <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
@@ -1835,7 +1857,16 @@ function notifFilterGroup(type) {
 }
 
 async function loadAdminNotifs() {
-  // Load all notifications with client and project info
+  // Show skeleton immediately
+  document.getElementById('admin-notifs-list').innerHTML = [1,2,3,4].map(()=>`
+    <div class="skeleton-card" style="margin-bottom:8px;border-radius:12px;align-items:flex-start">
+      <div class="skeleton skeleton-av" style="margin-top:2px"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton skeleton-line w70"></div>
+        <div class="skeleton skeleton-line w100"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+    </div>`).join('');
   const notifs = await dbGet('notifications',
     `?select=*,sender:profiles!notifications_user_id_fkey(display_name,email,avatar_url),project:projects(name)&order=created_at.desc&limit=100`
   );
@@ -2008,10 +2039,28 @@ async function checkMainAdminStatus(){
 function isMainAdmin(){ return _isMainAdmin; }
 
 async function loadAdmins(){
-  const r = await edgeFn('admin-manage',{action:'list'});
-  const admins = r.admins || [];
-  document.getElementById('admins-list').innerHTML = admins.length ? admins.map(a=>`
-    <div class="card" style="margin-bottom:10px;padding:14px 16px">
+  // Show skeleton immediately
+  const el = document.getElementById('admins-list');
+  el.innerHTML = [1,2].map(()=>`
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-av"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton skeleton-line w70"></div>
+        <div class="skeleton skeleton-line w45"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="skeleton" style="width:72px;height:32px;border-radius:8px"></div>
+        <div class="skeleton" style="width:36px;height:32px;border-radius:8px"></div>
+      </div>
+    </div>`).join('');
+
+  // Fetch directly from DB — much faster than going through edge function
+  const admins = await dbGet('profiles',
+    `?role=eq.admin&is_main_admin=eq.false&select=id,email,display_name,username,created_at,avatar_url&order=created_at.desc`);
+
+  el.innerHTML = admins.length ? admins.map(a=>`
+    <div class="card" style="margin-bottom:10px;padding:14px 16px;animation:fadein .25s ease">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="position:relative;flex-shrink:0">
           ${a.avatar_url
@@ -2025,7 +2074,7 @@ async function loadAdmins(){
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
           <button class="btn btn-outline btn-sm" onclick="openAdminPassModal('${a.id}','${esc(a.display_name||a.email)}')">
-            <i class="ri-lock-password-line"></i>Hasło
+            <i class="ri-lock-password-line"></i><span class="btn-text">Hasło</span>
           </button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteAdmin('${a.id}','${esc(a.display_name||a.email)}')">
             <i class="ri-delete-bin-line"></i>
