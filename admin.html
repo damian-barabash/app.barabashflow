@@ -236,6 +236,7 @@
         <div><h2 id="pj-name">—</h2><div class="sub" id="pj-client">—</div></div>
         <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <span class="badge" id="pj-badge"></span>
+          <button class="btn btn-sm" id="pj-complete-btn" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.08);color:var(--green);cursor:pointer" onclick="completeProject()"><i class="ri-checkbox-circle-line"></i>Zakończ projekt</button>
           <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i>Udostępnij</button>
           <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl">Archiwizuj</span></button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i>Usuń projekt</button>
@@ -245,6 +246,7 @@
         <button class="tab-btn active" data-tab="posts">Projekt</button>
         <button class="tab-btn" data-tab="chat">Czat</button>
         <button class="tab-btn" data-tab="docs">Dokumenty</button>
+        <button class="tab-btn" id="tab-btn-feedback" style="display:none" data-tab="feedback">⭐ Opinie</button>
       </div>
 
       <!-- POSTS -->
@@ -313,6 +315,11 @@
           <button class="btn btn-primary btn-sm" onclick="addDoc()" id="dc-btn"><i class="ri-upload-line"></i>Dodaj dokument</button>
         </div>
         <div id="docs-list"></div>
+      </div>
+
+      <!-- FEEDBACK TAB -->
+      <div class="tab-pane" id="tab-feedback">
+        <div id="feedback-content"></div>
       </div>
     </div>
   </div>
@@ -525,9 +532,10 @@ function nav(v) {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id==='tab-'+tab));
-  if (tab==='chat')  { chatLen=0; initChatUI(); loadChat(); }
-  if (tab==='posts') loadPosts();
-  if (tab==='docs')  loadDocs();
+  if (tab==='chat')     { chatLen=0; initChatUI(); loadChat(); }
+  if (tab==='posts')    loadPosts();
+  if (tab==='docs')     loadDocs();
+  if (tab==='feedback') loadFeedback();
 }
 function switchArchiveTab(tab) {
   document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.classList.toggle('active', b.dataset.atab===tab));
@@ -754,6 +762,73 @@ function generateToken() {
     .map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+// ── COMPLETE PROJECT ──
+async function completeProject(){
+  showConfirm(
+    '✅ Zakończ projekt',
+    `Projekt zostanie oznaczony jako zakończony. Klient otrzyma prośbę o wystawienie opinii. Czat pozostaje aktywny.`,
+    async () => {
+      // Update status to completed
+      await fetch(`${SB}/rest/v1/projects?id=eq.${PID}`,{
+        method:'PATCH',headers:hdr({Prefer:'return=minimal'}),
+        body:JSON.stringify({status:'completed'})
+      });
+      // Send notification to client with feedback request
+      const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id,name`);
+      if(proj){
+        await edgeFn('send-notification',{
+          userId:proj.client_id, projectId:PID,
+          content:`🎉 Projekt <strong>${esc(proj.name)}</strong> został zakończony! Zostaw opinię — to dla nas ważne.`,
+          type:'feedback_request'
+        });
+      }
+      toast('Projekt zakończony ✅');
+      // Refresh UI
+      await openProject(PID, document.getElementById('pj-name').textContent);
+    }
+  );
+}
+
+// ── FEEDBACK (admin view) ──
+async function loadFeedback(){
+  const feedbacks = await dbGet('project_feedback',
+    `?project_id=eq.${PID}&select=*,client:profiles(display_name,email,avatar_url)&order=created_at.desc`);
+
+  const el = document.getElementById('feedback-content');
+  if(!feedbacks.length){
+    el.innerHTML=`<div style="text-align:center;padding:48px 20px;color:var(--t3)">
+      <div style="font-size:36px;margin-bottom:12px">⭐</div>
+      <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px">Brak opinii</div>
+      <div style="font-size:13px">Klient jeszcze nie wystawił opinii.</div>
+    </div>`;
+    return;
+  }
+
+  const avg = (feedbacks.reduce((s,f)=>s+f.rating,0)/feedbacks.length).toFixed(1);
+  el.innerHTML=`
+    <div class="card" style="margin-bottom:16px;padding:20px;text-align:center">
+      <div style="font-size:40px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--a);line-height:1">${avg}</div>
+      <div style="font-size:18px;margin:6px 0">${'⭐'.repeat(Math.round(avg))}</div>
+      <div style="font-size:12px;color:var(--t3)">${feedbacks.length} ${feedbacks.length===1?'opinia':'opinii'}</div>
+    </div>
+    ${feedbacks.map(f=>{
+      const name=f.client?.display_name||f.client?.email||'Klient';
+      const stars='⭐'.repeat(f.rating)+'☆'.repeat(5-f.rating);
+      return`<div class="card" style="margin-bottom:10px;padding:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:${f.comment?'12px':'0'}">
+          ${f.client?.avatar_url
+            ?`<img src="${esc(f.client.avatar_url)}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="">`
+            :`<div class="item-av" style="width:34px;height:34px">${initials(name)||'?'}</div>`}
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">${esc(name)}</div>
+            <div style="font-size:12px;color:var(--a)">${stars} · ${timeAgo(f.created_at)}</div>
+          </div>
+        </div>
+        ${f.comment?`<div style="font-size:13px;color:var(--t2);line-height:1.65;background:var(--bg3);padding:10px 12px;border-radius:8px;font-style:italic">"${esc(f.comment)}"</div>`:''}
+      </div>`;
+    }).join('')}`;
+}
+
 // ── ARCHIVE PROJECT ──
 async function archiveProject() {
   const now=_projectArchived?null:new Date().toISOString();
@@ -904,6 +979,20 @@ async function openProject(id,name){
     const b=document.getElementById('pj-badge');b.textContent=statusLabel(p.status);b.className='badge badge-'+statusClass(p.status);
     const lbl=document.getElementById('pj-archive-lbl');
     if(_projectArchived){lbl.textContent='Przywróć';}else{lbl.textContent='Archiwizuj';}
+    // Show "Zakończ" only for active projects
+    const completeBtn=document.getElementById('pj-complete-btn');
+    const feedbackTab=document.getElementById('tab-btn-feedback');
+    if(p.status==='active'&&!p.archived_at){
+      completeBtn.style.display='inline-flex';
+    } else {
+      completeBtn.style.display='none';
+    }
+    // Show feedback tab for completed projects
+    if(p.status==='completed'){
+      feedbackTab.style.display='block';
+    } else {
+      feedbackTab.style.display='none';
+    }
   }
 }
 
