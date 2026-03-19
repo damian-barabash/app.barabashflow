@@ -44,6 +44,7 @@
     <div class="nav-link" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
     <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
+    <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
     <div class="nav-link" data-view="admins" id="nav-admins" style="display:none"><i class="ri-shield-user-line"></i>Administratorzy</div>
   </nav>
   <div class="sidebar-bottom">
@@ -203,6 +204,26 @@
       <div class="card-title" style="margin-bottom:6px">Administratorzy</div>
       <div style="font-size:12px;color:var(--t3);margin-bottom:18px">Tylko Ty możesz zarządzać innymi administratorami.</div>
       <div id="admins-list"></div>
+    </div>
+
+    <!-- ADMIN NOTIFICATIONS -->
+    <div id="v-notifs-admin" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="card-title">Powiadomienia</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:3px">Aktywność wszystkich klientów w czasie rzeczywistym</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="markAllAdminNotifsRead()"><i class="ri-check-double-line"></i>Oznacz jako przeczytane</button>
+      </div>
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" id="anf-all"   onclick="filterAdminNotifs('all')">Wszystkie</button>
+        <button class="btn btn-sm btn-outline" id="anf-msg"   onclick="filterAdminNotifs('message')">💬 Wiadomości</button>
+        <button class="btn btn-sm btn-outline" id="anf-post"  onclick="filterAdminNotifs('post')">📁 Posty</button>
+        <button class="btn btn-sm btn-outline" id="anf-doc"   onclick="filterAdminNotifs('doc')">📄 Dokumenty</button>
+        <button class="btn btn-sm btn-outline" id="anf-other" onclick="filterAdminNotifs('other')">🔔 Inne</button>
+      </div>
+      <div id="admin-notifs-list"></div>
     </div>
 
     <!-- LEADS -->
@@ -514,20 +535,21 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','admins'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','admins'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia',admins:'Administratorzy'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',admins:'Administratorzy'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
-  if (v==='dashboard') loadDash();
-  if (v==='clients')   { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
-  if (v==='orders')    loadOrders();
-  if (v==='archive')   loadArchive();
-  if (v==='calendar')  { loadCalendar(); loadEvClientSelect(); }
-  if (v==='send-notif'){ loadNotifClientSelect(); }
-  if (v==='leads')     loadLeads();
-  if (v==='admins')    loadAdmins();
+  if (v==='dashboard')     loadDash();
+  if (v==='clients')       { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
+  if (v==='orders')        loadOrders();
+  if (v==='archive')       loadArchive();
+  if (v==='calendar')      { loadCalendar(); loadEvClientSelect(); }
+  if (v==='send-notif')    { loadNotifClientSelect(); }
+  if (v==='leads')         loadLeads();
+  if (v==='notifs-admin')  loadAdminNotifs();
+  if (v==='admins')        loadAdmins();
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -1434,6 +1456,145 @@ async function loadEvClientSelect() {
   sel.innerHTML='<option value="">— brak —</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.display_name||c.email)}</option>`).join('');
 }
 
+// ── ADMIN NOTIFICATIONS ──
+let _adminNotifs = [];
+let _adminNotifsFilter = 'all';
+
+const NOTIF_TYPE_MAP = {
+  message:          { icon:'💬', label:'Nowa wiadomość' },
+  post:             { icon:'📁', label:'Nowy post' },
+  doc:              { icon:'📄', label:'Nowy dokument' },
+  feedback_request: { icon:'⭐', label:'Prośba o opinię' },
+  meeting:          { icon:'📅', label:'Spotkanie' },
+  text:             { icon:'🔔', label:'Powiadomienie' },
+};
+
+function notifMeta(type) {
+  return NOTIF_TYPE_MAP[type] || { icon:'🔔', label:'Powiadomienie' };
+}
+
+function notifFilterGroup(type) {
+  if (type === 'message') return 'message';
+  if (type === 'post') return 'post';
+  if (type === 'doc') return 'doc';
+  return 'other';
+}
+
+async function loadAdminNotifs() {
+  // Load all notifications with client and project info
+  const notifs = await dbGet('notifications',
+    `?select=*,sender:profiles!notifications_user_id_fkey(display_name,email,avatar_url),project:projects(name)&order=created_at.desc&limit=100`
+  );
+  _adminNotifs = notifs;
+
+  // Badge — unread count
+  const unread = notifs.filter(n => !n.is_read).length;
+  const nb = document.getElementById('nb-notifs-admin');
+  if (unread > 0) { nb.textContent = unread; nb.classList.add('show'); }
+  else nb.classList.remove('show');
+
+  renderAdminNotifs();
+}
+
+function filterAdminNotifs(f) {
+  _adminNotifsFilter = f;
+  // Update filter buttons
+  ['all','msg','post','doc','other'].forEach(k => {
+    const btn = document.getElementById('anf-'+k);
+    if (!btn) return;
+    btn.className = 'btn btn-sm ' + (
+      (f==='all'&&k==='all')||(f==='message'&&k==='msg')||(f==='post'&&k==='post')||(f==='doc'&&k==='doc')||(f==='other'&&k==='other')
+        ? 'btn-primary' : 'btn-outline'
+    );
+  });
+  renderAdminNotifs();
+}
+
+function renderAdminNotifs() {
+  const filtered = _adminNotifsFilter === 'all'
+    ? _adminNotifs
+    : _adminNotifs.filter(n => notifFilterGroup(n.type) === _adminNotifsFilter);
+
+  const el = document.getElementById('admin-notifs-list');
+  if (!filtered.length) {
+    el.innerHTML = emptyHTML('ri-notification-3-line', 'Brak powiadomień');
+    return;
+  }
+
+  el.innerHTML = filtered.map(n => {
+    const meta   = notifMeta(n.type);
+    const name   = n.sender?.display_name || n.sender?.email || 'Klient';
+    const projName = n.project?.name || '—';
+    const unread = !n.is_read;
+    const avatarUrl = n.sender?.avatar_url;
+
+    return `
+    <div class="card" style="margin-bottom:8px;padding:14px 16px;border-left:3px solid ${unread?'var(--a)':'var(--border)'};cursor:pointer;transition:all .2s;opacity:${unread?'1':'0.72'}"
+         onclick="openNotifProject('${n.project_id}','${esc(projName)}','${n.id}')">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <!-- Avatar -->
+        <div style="position:relative;flex-shrink:0">
+          ${avatarUrl
+            ? `<img src="${esc(avatarUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;display:block" alt="">`
+            : `<div class="item-av" style="width:36px;height:36px">${initials(name)||'?'}</div>`}
+          <span style="position:absolute;bottom:-2px;right:-2px;font-size:12px;line-height:1">${meta.icon}</span>
+        </div>
+        <!-- Content -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="font-size:13px;font-weight:${unread?'700':'500'}">${esc(name)}</span>
+            <span style="font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 7px;border-radius:100px">${meta.label}</span>
+            ${unread ? `<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(224,64,251,.6)"></span>` : ''}
+          </div>
+          <div style="font-size:12px;color:var(--t2);margin-bottom:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.content||'—'}</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px"><i class="ri-folder-line"></i>${esc(projName)}</span>
+            <span style="font-size:11px;color:var(--t3)">${timeAgo(n.created_at)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openNotifProject(projectId, projectName, notifId) {
+  if (!projectId) return;
+  // Mark as read
+  await fetch(`${SB}/rest/v1/notifications?id=eq.${notifId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({is_read:true})
+  });
+  // Update locally
+  const n = _adminNotifs.find(x => x.id === notifId);
+  if (n) n.is_read = true;
+  // Update badge
+  const unread = _adminNotifs.filter(x => !x.is_read).length;
+  const nb = document.getElementById('nb-notifs-admin');
+  if (unread > 0) { nb.textContent = unread; nb.classList.add('show'); }
+  else nb.classList.remove('show');
+
+  // Navigate to the project — need to find client_id first
+  const [proj] = await dbGet('projects', `?id=eq.${projectId}&select=id,name,client_id,status`);
+  if (!proj) { toast('Projekt nie znaleziony','error'); return; }
+  const [client] = await dbGet('profiles', `?id=eq.${proj.client_id}&select=id,display_name,email`);
+  if (!client) return;
+  // Open client then project, switch to chat
+  CID = client.id; CNAME = client.display_name || client.email; CEMAIL = client.email;
+  await openProject(proj.id, proj.name);
+  switchTab('chat');
+}
+
+async function markAllAdminNotifsRead() {
+  await fetch(`${SB}/rest/v1/notifications?is_read=eq.false`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({is_read:true})
+  });
+  _adminNotifs.forEach(n => n.is_read = true);
+  document.getElementById('nb-notifs-admin').classList.remove('show');
+  renderAdminNotifs();
+  toast('Wszystkie oznaczone jako przeczytane ✅');
+}
+
 // ── LEADS ──
 async function loadLeads() {
   const leads = await dbGet('leads', '?select=*&order=created_at.desc');
@@ -1630,6 +1791,12 @@ startGlobalPoll();
 startPresenceHeartbeat();
 loadAdminAvatar();
 checkMainAdminStatus();
+// Load notification badge on startup
+(async () => {
+  const unread = await dbGet('notifications','?is_read=eq.false&select=id');
+  const nb = document.getElementById('nb-notifs-admin');
+  if (unread.length) { nb.textContent = unread.length; nb.classList.add('show'); }
+})();
 </script>
 </body>
 </html>
