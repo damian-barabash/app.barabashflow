@@ -330,7 +330,7 @@
               <span id="stages-pct">0%</span>
             </div>
             <div style="height:8px;background:var(--bg3);border-radius:100px;overflow:hidden">
-              <div id="stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;transition:width .4s ease;width:0%"></div>
+              <div id="stages-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:100px;width:0%;transition:none"></div>
             </div>
           </div>
           <div id="stages-list"></div>
@@ -931,12 +931,13 @@ async function loadStages() {
   const pct  = stages.length ? Math.round(done/stages.length*100) : 0;
 
   document.getElementById('stages-pct').textContent = pct + '%';
-  // Force reflow then animate — fixes transition not playing on first render
   const bar = document.getElementById('stages-bar');
+  bar.style.transition = 'none';
   bar.style.width = '0%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  setTimeout(() => {
+    bar.style.transition = 'width .6s cubic-bezier(.4,0,.2,1)';
     bar.style.width = pct + '%';
-  }));
+  }, 50);
 
   const el = document.getElementById('stages-list');
   if (!stages.length) { el.innerHTML = emptyHTML('ri-flag-line','Brak etapów. Dodaj pierwszy etap projektu.'); return; }
