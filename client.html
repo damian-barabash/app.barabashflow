@@ -132,6 +132,12 @@
           <div class="form-group"><label class="form-label">Nazwa (opcjonalna)</label><input class="form-control" id="cl-dc-name" placeholder="Zostaw puste = nazwa pliku"></div>
           <button class="btn btn-primary btn-sm" onclick="clientAddDoc()" id="cl-dc-btn"><i class="ri-upload-line"></i>Dodaj dokument</button>
         </div>
+        <!-- Filter -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" id="cdf-all" onclick="clientFilterDocs('all')">Wszystkie</button>
+          <button class="btn btn-sm btn-outline" id="cdf-doc" onclick="clientFilterDocs('document')">📄 Dokumenty</button>
+          <button class="btn btn-sm btn-outline" id="cdf-inv" onclick="clientFilterDocs('invoice')">🧾 Faktury</button>
+        </div>
         <div id="docs-list"></div>
       </div>
     </div>
@@ -479,18 +485,71 @@ async function clientAddDoc() {
   finally { btn.disabled=false; btn.innerHTML='<i class="ri-upload-line"></i>Dodaj dokument'; }
 }
 
+let _cDocsFilter = 'all';
+
+function clientFilterDocs(f) {
+  _cDocsFilter = f;
+  ['all','doc','inv'].forEach(k => {
+    const btn = document.getElementById('cdf-'+k);
+    if (btn) btn.className = 'btn btn-sm ' + (
+      (f==='all'&&k==='all')||(f==='document'&&k==='doc')||(f==='invoice'&&k==='inv')
+        ? 'btn-primary' : 'btn-outline'
+    );
+  });
+  loadDocs();
+}
+
+function invoiceStatusBadge(status) {
+  const map = {
+    pending: {label:'⏳ Oczekuje',     bg:'rgba(251,191,36,.1)',  color:'#fbbf24', border:'rgba(251,191,36,.3)'},
+    paid:    {label:'✅ Opłacona',     bg:'rgba(74,222,128,.1)',  color:'var(--green)', border:'rgba(74,222,128,.3)'},
+    overdue: {label:'🔴 Przeterminowana', bg:'rgba(248,113,113,.1)', color:'var(--red)', border:'rgba(248,113,113,.3)'}
+  };
+  const s = map[status];
+  if (!s) return '';
+  return `<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;background:${s.bg};color:${s.color};border:1px solid ${s.border}">${s.label}</span>`;
+}
+
 async function loadDocs() {
-  const docs = await dbGet('documents', `?project_id=eq.${PID}&select=*&order=created_at.desc`);
+  const qs = _cDocsFilter === 'all'
+    ? `?project_id=eq.${PID}&select=*&order=created_at.desc`
+    : `?project_id=eq.${PID}&doc_type=eq.${_cDocsFilter}&select=*&order=created_at.desc`;
+  const docs = await dbGet('documents', qs);
   document.getElementById('docs-list').innerHTML = docs.map(d => {
     const url=d.file_url||d.url, mime=d.mime_type||'';
     const isImg=mime.startsWith('image/'), isPdf=mime==='application/pdf';
+    const isInv = d.doc_type === 'invoice';
+    const icon = isInv ? '🧾' : isImg ? '🖼️' : isPdf ? '📄' : '📎';
+
+    const invInfo = isInv ? `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+        ${d.invoice_number?`<span style="font-size:11px;color:var(--t3)">Nr: <strong style="color:var(--t2)">${esc(d.invoice_number)}</strong></span>`:''}
+        ${d.invoice_amount?`<span style="font-size:11px;color:var(--t3)">Kwota: <strong style="color:var(--text)">${Number(d.invoice_amount).toFixed(2)} ${d.invoice_currency||'PLN'}</strong></span>`:''}
+        ${d.invoice_due_date?`<span style="font-size:11px;color:var(--t3)">Termin: ${new Date(d.invoice_due_date).toLocaleDateString('pl-PL')}</span>`:''}
+        ${invoiceStatusBadge(d.invoice_status)}
+        ${d.invoice_status !== 'paid' ? `<button onclick="markInvoicePaid('${d.id}')" style="font-size:11px;padding:2px 10px;border-radius:100px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green);cursor:pointer;font-weight:600">Oznacz jako opłacona</button>` : ''}
+      </div>` : '';
+
     return `<div class="doc-item">
-      <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
-      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
+      <div class="doc-icon">${icon}</div>
+      <div class="doc-info" style="flex:1;min-width:0">
+        <div class="doc-name">${esc(d.name)}</div>
+        <div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div>
+        ${invInfo}
+      </div>
       ${(isImg||isPdf) ? `<button class="doc-dl" onclick="openLightbox('${isImg?'img':'pdf'}','${esc(url)}')"><i class="ri-eye-line"></i></button>` : ''}
       <a href="${esc(url)}" download="${esc(d.name)}" target="_blank" class="doc-dl"><i class="ri-download-line"></i></a>
     </div>`;
   }).join('') || emptyHTML('ri-folder-open-line','Brak dokumentów.');
+}
+
+async function markInvoicePaid(docId) {
+  await fetch(`${SB}/rest/v1/documents?id=eq.${docId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({invoice_status:'paid'})
+  });
+  toast('Faktura oznaczona jako opłacona ✅');
+  loadDocs();
 }
 
 // ── NOTIFICATIONS ──

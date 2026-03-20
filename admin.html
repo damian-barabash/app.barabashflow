@@ -279,7 +279,7 @@
       <!-- INBOX -->
       <div id="mtab-inbox" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
-          <div style="font-size:13px;color:var(--t3)">Skrzynka odbiorcza office@barabashflow.pl</div>
+          <div style="font-size:13px;color:var(--t3)">Skrzynka odbiorcza <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abc4cdcdc2c8ceebc9cad9cac9cad8c3cdc7c4dc85dbc7">[email&#160;protected]</a></div>
           <button class="btn btn-outline btn-sm" onclick="refreshInbox()"><i class="ri-refresh-line"></i>Odśwież</button>
         </div>
         <div id="inbox-list"></div>
@@ -462,9 +462,9 @@
       <!-- DOCS -->
       <div class="tab-pane" id="tab-docs">
         <div class="card" style="margin-bottom:16px">
-          <div class="card-title" style="margin-bottom:14px">Dodaj dokument</div>
+          <div class="card-title" style="margin-bottom:14px">Dodaj plik</div>
           <div class="form-group">
-            <label class="form-label">Plik dokumentu</label>
+            <label class="form-label">Plik *</label>
             <div class="upload-area" id="dc-upload-area">
               <input type="file" id="dc-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,image/*" onchange="onFileSelected('dc-file','dc-upload-preview','dc-upload-area','_dcFile')">
               <i class="ri-folder-upload-line"></i><p>Kliknij lub przeciągnij dokument</p><span>PDF, Word, Excel, PowerPoint, Zdjęcia — maks. 50MB</span>
@@ -473,7 +473,47 @@
             <div class="upload-progress" id="dc-upload-progress"><div class="upload-progress-bar" id="dc-upload-bar"></div></div>
           </div>
           <div class="form-group"><label class="form-label">Nazwa (opcjonalna)</label><input class="form-control" id="dc-name" placeholder="Zostaw puste = nazwa pliku"></div>
-          <button class="btn btn-primary btn-sm" onclick="addDoc()" id="dc-btn"><i class="ri-upload-line"></i>Dodaj dokument</button>
+          <!-- Doc type selector -->
+          <div class="form-group">
+            <label class="form-label">Typ</label>
+            <div style="display:flex;gap:10px">
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;transition:all .2s" id="dtype-doc-lbl">
+                <input type="radio" name="dc-type" value="document" id="dtype-doc" checked style="accent-color:var(--a)"> 📄 Dokument
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;transition:all .2s" id="dtype-inv-lbl">
+                <input type="radio" name="dc-type" value="invoice" id="dtype-inv" style="accent-color:var(--a)"> 🧾 Faktura
+              </label>
+            </div>
+          </div>
+          <!-- Invoice fields (shown only for invoice) -->
+          <div id="invoice-fields" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="form-group" style="margin-bottom:0"><label class="form-label">Nr faktury</label><input class="form-control" id="dc-inv-number" placeholder="np. FV/2024/001"></div>
+              <div class="form-group" style="margin-bottom:0"><label class="form-label">Kwota</label>
+                <div style="display:flex;gap:6px">
+                  <input class="form-control" id="dc-inv-amount" type="number" step="0.01" placeholder="0.00" style="flex:1">
+                  <select class="form-control" id="dc-inv-currency" style="width:80px"><option>PLN</option><option>EUR</option><option>USD</option><option>GBP</option></select>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="form-group" style="margin-bottom:0"><label class="form-label">Termin płatności</label><input class="form-control" id="dc-inv-due" type="date"></div>
+              <div class="form-group" style="margin-bottom:0"><label class="form-label">Status</label>
+                <select class="form-control" id="dc-inv-status">
+                  <option value="pending">⏳ Oczekuje</option>
+                  <option value="paid">✅ Opłacona</option>
+                  <option value="overdue">🔴 Przeterminowana</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addDoc()" id="dc-btn" style="margin-top:14px"><i class="ri-upload-line"></i>Dodaj plik</button>
+        </div>
+        <!-- Filter -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" id="df-all" onclick="filterDocs('all')">Wszystkie</button>
+          <button class="btn btn-sm btn-outline" id="df-doc" onclick="filterDocs('document')">📄 Dokumenty</button>
+          <button class="btn btn-sm btn-outline" id="df-inv" onclick="filterDocs('invoice')">🧾 Faktury</button>
         </div>
         <div id="docs-list"></div>
       </div>
@@ -719,7 +759,7 @@
   </div>
 </div>
 
-<script src="panel.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="panel.js"></script>
 <script>
 if (!Auth.requireAdmin()) throw 0;
 runPreloader();
@@ -1637,18 +1677,87 @@ async function sendMsg(){
 }
 
 // ── DOCS ──
+let _docsFilter = 'all';
+
+// Toggle invoice fields visibility
+document.querySelectorAll('input[name="dc-type"]').forEach(r =>
+  r.addEventListener('change', () => {
+    const isInv = document.getElementById('dtype-inv').checked;
+    document.getElementById('invoice-fields').style.display = isInv ? 'block' : 'none';
+    // Highlight selected label
+    document.getElementById('dtype-doc-lbl').style.borderColor = isInv ? 'var(--border)' : 'var(--a)';
+    document.getElementById('dtype-inv-lbl').style.borderColor = isInv ? 'var(--a)' : 'var(--border)';
+  })
+);
+
+function filterDocs(f) {
+  _docsFilter = f;
+  ['all','doc','inv'].forEach(k => {
+    const btn = document.getElementById('df-'+k);
+    if (btn) btn.className = 'btn btn-sm ' + (
+      (f==='all'&&k==='all')||(f==='document'&&k==='doc')||(f==='invoice'&&k==='inv')
+        ? 'btn-primary' : 'btn-outline'
+    );
+  });
+  loadDocs();
+}
+
+function invoiceStatusBadge(status) {
+  const map = {
+    pending:  {label:'⏳ Oczekuje',  bg:'rgba(251,191,36,.1)',  color:'#fbbf24', border:'rgba(251,191,36,.3)'},
+    paid:     {label:'✅ Opłacona',  bg:'rgba(74,222,128,.1)',  color:'var(--green)', border:'rgba(74,222,128,.3)'},
+    overdue:  {label:'🔴 Przeterminowana', bg:'rgba(248,113,113,.1)', color:'var(--red)', border:'rgba(248,113,113,.3)'}
+  };
+  const s = map[status];
+  if (!s) return '';
+  return `<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;background:${s.bg};color:${s.color};border:1px solid ${s.border}">${s.label}</span>`;
+}
+
 async function loadDocs(){
-  const docs=await dbGet('documents',`?project_id=eq.${PID}&select=*&order=created_at.desc`);
-  document.getElementById('docs-list').innerHTML=docs.map(d=>{
-    const url=d.file_url||d.url,mime=d.mime_type||'',isImg=mime.startsWith('image/'),isPdf=mime==='application/pdf';
-    return`<div class="doc-item">
-      <div class="doc-icon">${isImg?'🖼️':isPdf?'📄':'📎'}</div>
-      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div></div>
+  const qs = _docsFilter === 'all'
+    ? `?project_id=eq.${PID}&select=*&order=created_at.desc`
+    : `?project_id=eq.${PID}&doc_type=eq.${_docsFilter}&select=*&order=created_at.desc`;
+  const docs = await dbGet('documents', qs);
+  document.getElementById('docs-list').innerHTML = docs.map(d => {
+    const url = d.file_url||d.url, mime = d.mime_type||'';
+    const isImg = mime.startsWith('image/'), isPdf = mime==='application/pdf';
+    const isInv = d.doc_type === 'invoice';
+    const icon = isInv ? '🧾' : isImg ? '🖼️' : isPdf ? '📄' : '📎';
+
+    const invInfo = isInv ? `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+        ${d.invoice_number ? `<span style="font-size:11px;color:var(--t3)">Nr: <strong style="color:var(--t2)">${esc(d.invoice_number)}</strong></span>` : ''}
+        ${d.invoice_amount ? `<span style="font-size:11px;color:var(--t3)">Kwota: <strong style="color:var(--text)">${Number(d.invoice_amount).toFixed(2)} ${d.invoice_currency||'PLN'}</strong></span>` : ''}
+        ${d.invoice_due_date ? `<span style="font-size:11px;color:var(--t3)">Termin: ${new Date(d.invoice_due_date).toLocaleDateString('pl-PL')}</span>` : ''}
+        ${invoiceStatusBadge(d.invoice_status)}
+        <select onchange="updateInvoiceStatus('${d.id}',this.value)" style="font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--t2);padding:2px 6px;cursor:pointer" title="Zmień status">
+          <option value="pending" ${d.invoice_status==='pending'?'selected':''}>Oczekuje</option>
+          <option value="paid" ${d.invoice_status==='paid'?'selected':''}>Opłacona</option>
+          <option value="overdue" ${d.invoice_status==='overdue'?'selected':''}>Przeterminowana</option>
+        </select>
+      </div>` : '';
+
+    return `<div class="doc-item">
+      <div class="doc-icon">${icon}</div>
+      <div class="doc-info" style="flex:1;min-width:0">
+        <div class="doc-name">${esc(d.name)}</div>
+        <div class="doc-meta">${fmtSize(d.file_size)} · ${timeAgo(d.created_at)}</div>
+        ${invInfo}
+      </div>
       ${(isImg||isPdf)?`<button class="doc-dl" onclick="openLightbox('${isImg?'img':'pdf'}','${esc(url)}')"><i class="ri-eye-line"></i></button>`:''}
       <a href="${esc(url)}" download="${esc(d.name)}" target="_blank" class="doc-dl"><i class="ri-download-line"></i></a>
-      <button class="btn-icon btn-icon-del" onclick="confirmDeleteDoc('${d.id}','${esc(d.name)}')" title="Usuń dokument"><i class="ri-delete-bin-line"></i></button>
+      <button class="btn-icon btn-icon-del" onclick="confirmDeleteDoc('${d.id}','${esc(d.name)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
     </div>`;
-  }).join('')||emptyHTML('ri-folder-open-line','Brak dokumentów');
+  }).join('') || emptyHTML('ri-folder-open-line','Brak dokumentów');
+}
+
+async function updateInvoiceStatus(docId, status) {
+  await fetch(`${SB}/rest/v1/documents?id=eq.${docId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({invoice_status: status})
+  });
+  toast('Status zaktualizowany ✅');
+  loadDocs();
 }
 
 function confirmDeleteDoc(id, name) {
@@ -1660,22 +1769,55 @@ function confirmDeleteDoc(id, name) {
 
 async function addDoc(){
   if(!window._dcFile){toast('Wybierz plik','error');return;}
-  const btn=document.getElementById('dc-btn');btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
+  const btn=document.getElementById('dc-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
   try{
-    document.getElementById('dc-upload-progress').classList.add('show');document.getElementById('dc-upload-bar').style.width='40%';
-    const up=await uploadFile(window._dcFile,'doc-files');document.getElementById('dc-upload-bar').style.width='100%';
+    document.getElementById('dc-upload-progress').classList.add('show');
+    document.getElementById('dc-upload-bar').style.width='40%';
+    const up=await uploadFile(window._dcFile,'doc-files');
+    document.getElementById('dc-upload-bar').style.width='100%';
     const name=document.getElementById('dc-name').value.trim()||up.name;
-    await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url:up.url,file_url:up.url,mime_type:up.mime,file_size:up.size});
-    document.getElementById('dc-name').value='';document.getElementById('dc-upload-preview').innerHTML='';document.getElementById('dc-upload-area').style.borderColor='';window._dcFile=null;
+    const isInv = document.getElementById('dtype-inv').checked;
+
+    const docData = {
+      project_id:PID, uploaded_by:Auth.userId, name,
+      url:up.url, file_url:up.url, mime_type:up.mime, file_size:up.size,
+      doc_type: isInv ? 'invoice' : 'document',
+      ...(isInv ? {
+        invoice_number:  document.getElementById('dc-inv-number').value.trim()||null,
+        invoice_amount:  parseFloat(document.getElementById('dc-inv-amount').value)||null,
+        invoice_currency:document.getElementById('dc-inv-currency').value,
+        invoice_due_date:document.getElementById('dc-inv-due').value||null,
+        invoice_status:  document.getElementById('dc-inv-status').value
+      } : {})
+    };
+
+    await dbPost('documents', docData);
+
+    // Reset form
+    document.getElementById('dc-name').value='';
+    document.getElementById('dc-upload-preview').innerHTML='';
+    document.getElementById('dc-upload-area').style.borderColor='';
+    window._dcFile=null;
+    if(isInv){
+      ['dc-inv-number','dc-inv-amount','dc-inv-due'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('dc-inv-status').value='pending';
+    }
+
+    // Notify client
     const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
     if(proj){
       const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
-      await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`<strong>${esc(adminName)}</strong> dodał nowy dokument: <strong>${name}</strong>`,type:'doc',senderName:adminName});
+      const notifContent = isInv
+        ? `<strong>${esc(adminName)}</strong> dodał fakturę: <strong>${esc(name)}</strong>`
+        : `<strong>${esc(adminName)}</strong> dodał dokument: <strong>${esc(name)}</strong>`;
+      await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:notifContent,type:'doc',senderName:adminName});
     }
     setTimeout(()=>document.getElementById('dc-upload-progress').classList.remove('show'),800);
-    toast('Dokument dodany ✅');loadDocs();
+    toast(isInv ? 'Faktura dodana ✅' : 'Dokument dodany ✅');
+    loadDocs();
   }catch(e){toast('Błąd: '+e.message,'error');}
-  finally{btn.disabled=false;btn.innerHTML='<i class="ri-upload-line"></i>Dodaj dokument';}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ri-upload-line"></i>Dodaj plik';}
 }
 
 // ── CREATE CLIENT ──
@@ -2552,10 +2694,4 @@ loadAdminAvatar();
 checkMainAdminStatus();
 // Load notification badge on startup — all admins see all unread
 (async () => {
-  const unread = await dbGet('notifications','?is_read=eq.false&select=id&limit=99');
-  const nb = document.getElementById('nb-notifs-admin');
-  if (unread.length) { nb.textContent = unread.length; nb.classList.add('show'); }
-})();
-</script>
-</body>
-</html>
+  const unread = await db
