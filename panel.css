@@ -474,3 +474,12 @@ select.form-control option{background:var(--bg3)}
 .attach-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px}
 .attach-chip button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;line-height:1;padding:0}
 .attach-chip button:hover{color:var(--red)}
+
+/* ── DASHBOARD EXTENDED STATS ── */
+.stat-ext {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--a);
+  min-width: 32px;
+  text-align: right;
+}

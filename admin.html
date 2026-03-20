@@ -77,14 +77,89 @@
 
     <!-- DASHBOARD -->
     <div id="v-dashboard">
+      <!-- Top stats — existing -->
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-n" id="sc-c">—</div><div class="stat-l">Klientów</div></div>
         <div class="stat-card"><div class="stat-n" id="sc-p">—</div><div class="stat-l">Projektów</div></div>
         <div class="stat-card"><div class="stat-n" id="sc-o">—</div><div class="stat-l">Nowe formularze</div></div>
       </div>
+
+      <!-- Recent clients + orders -->
       <div class="grid-2">
         <div class="card"><div class="card-header"><i class="ri-team-line" style="font-size:20px;color:var(--a)"></i><div class="card-title">Ostatni klienci</div></div><div id="d-clients"></div></div>
         <div class="card"><div class="card-header"><i class="ri-file-list-3-line" style="font-size:20px;color:var(--a)"></i><div class="card-title">Nowe formularze</div></div><div id="d-orders"></div></div>
+      </div>
+
+      <!-- Extended analytics -->
+      <div style="margin-top:24px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px"><i class="ri-bar-chart-2-line" style="color:var(--a)"></i>Statystyki ogólne</div>
+
+        <!-- Projects breakdown -->
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-header" style="margin-bottom:14px"><i class="ri-folder-chart-line" style="font-size:18px;color:var(--a)"></i><div class="card-title">Projekty</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px" id="d-proj-stats">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block"></span>Aktywne</span>
+                <span class="stat-ext" id="d-proj-active">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--a);display:inline-block"></span>Zakończone</span>
+                <span class="stat-ext" id="d-proj-done">—</span>
+              </div>
+              <div style="margin-top:4px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:5px"><span>Etapy ukończone</span><span id="d-stages-pct">—</span></div>
+                <div style="height:6px;background:var(--bg3);border-radius:100px;overflow:hidden">
+                  <div id="d-stages-bar" style="height:100%;background:linear-gradient(90deg,#e040fb,#7c3aed);border-radius:100px;width:0%;transition:width .6s ease"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" style="margin-bottom:14px"><i class="ri-checkbox-circle-line" style="font-size:18px;color:var(--a)"></i><div class="card-title">Zadania</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--t2)">Ukończone zadania</span>
+                <span class="stat-ext" id="d-tasks-done">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--t2)">Wszystkie zadania</span>
+                <span class="stat-ext" id="d-tasks-total">—</span>
+              </div>
+              <div style="margin-top:4px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:5px"><span>Postęp zadań</span><span id="d-tasks-pct">—</span></div>
+                <div style="height:6px;background:var(--bg3);border-radius:100px;overflow:hidden">
+                  <div id="d-tasks-bar" style="height:100%;background:linear-gradient(90deg,#10b981,#059669);border-radius:100px;width:0%;transition:width .6s ease"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom row: messages, docs, feedback, leads -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+          <div class="card" style="padding:16px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--a)" id="d-messages">—</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ri-chat-3-line"></i>Wiadomości</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--a)" id="d-docs">—</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ri-file-line"></i>Dokumenty</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--a)" id="d-rating">—</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ri-star-line"></i>Śr. ocena</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--a)" id="d-leads-count">—</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ri-fire-line"></i>Zgłoszenia</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--a)" id="d-online-now">—</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block"></span>Online teraz</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -865,19 +940,64 @@ async function loadDash() {
       </div>
     </div>`).join('');
 
-  const [clients,projects,orders,presenceRows]=await Promise.all([
+  const [clients, projects, orders, presenceRows, allProjects, messages, docs, tasks, stages, feedback, leads] = await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
-    dbGet('projects','?archived_at=is.null&select=id'),
+    dbGet('projects','?archived_at=is.null&select=id,status'),
     dbGet('orders','?status=eq.open&select=*&order=created_at.desc'),
     dbGet('user_presence','?select=user_id,last_seen'),
+    dbGet('projects','?archived_at=is.null&select=id,status'),
+    dbGet('messages','?select=id'),
+    dbGet('documents','?select=id'),
+    dbGet('project_tasks','?select=id,completed'),
+    dbGet('project_stages','?select=id,completed'),
+    dbGet('project_feedback','?select=id,rating'),
+    dbGet('leads','?select=id'),
   ]);
+
   const presenceMap={};
   presenceRows.forEach(p=>{presenceMap[p.user_id]=p.last_seen;});
-  document.getElementById('sc-c').textContent=clients.length;
-  document.getElementById('sc-p').textContent=projects.length;
-  document.getElementById('sc-o').textContent=orders.length;
+
+  // Top stats
+  document.getElementById('sc-c').textContent = clients.length;
+  document.getElementById('sc-p').textContent = allProjects.length;
+  document.getElementById('sc-o').textContent = orders.length;
   const nb=document.getElementById('nb-orders');
   if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
+
+  // Extended — projects breakdown
+  const activePrj   = allProjects.filter(p=>p.status==='active').length;
+  const donePrj     = allProjects.filter(p=>p.status==='completed').length;
+  document.getElementById('d-proj-active').textContent = activePrj;
+  document.getElementById('d-proj-done').textContent   = donePrj;
+
+  // Stages bar
+  const stagesDone  = stages.filter(s=>s.completed).length;
+  const stagesTotal = stages.length;
+  const stagesPct   = stagesTotal ? Math.round(stagesDone/stagesTotal*100) : 0;
+  document.getElementById('d-stages-pct').textContent = `${stagesDone}/${stagesTotal}`;
+  setTimeout(()=>{ document.getElementById('d-stages-bar').style.width = stagesPct+'%'; }, 100);
+
+  // Tasks bar
+  const tasksDone   = tasks.filter(t=>t.completed).length;
+  const tasksTotal  = tasks.length;
+  const tasksPct    = tasksTotal ? Math.round(tasksDone/tasksTotal*100) : 0;
+  document.getElementById('d-tasks-done').textContent  = tasksDone;
+  document.getElementById('d-tasks-total').textContent = tasksTotal;
+  document.getElementById('d-tasks-pct').textContent   = tasksPct+'%';
+  setTimeout(()=>{ document.getElementById('d-tasks-bar').style.width = tasksPct+'%'; }, 120);
+
+  // Bottom row
+  document.getElementById('d-messages').textContent    = messages.length;
+  document.getElementById('d-docs').textContent        = docs.length;
+  const avgRating = feedback.length
+    ? (feedback.reduce((s,f)=>s+f.rating,0)/feedback.length).toFixed(1)
+    : '—';
+  document.getElementById('d-rating').textContent      = feedback.length ? '★ '+avgRating : '—';
+  document.getElementById('d-leads-count').textContent = leads.length;
+  const onlineNow = presenceRows.filter(p=>isOnline(p.last_seen)).length;
+  document.getElementById('d-online-now').textContent  = onlineNow;
+
+  // Recent clients list
   document.getElementById('d-clients').innerHTML=clients.slice(0,5).map(c=>{
     const online=isOnline(presenceMap[c.id]);
     return `
@@ -890,6 +1010,8 @@ async function loadDash() {
       <div class="item-time">${timeAgo(c.created_at)}</div>
     </div>`;
   }).join('')||emptyHTML('ri-team-line','Brak klientów');
+
+  // Orders list
   document.getElementById('d-orders').innerHTML=orders.slice(0,4).map(o=>`
     <div class="order-card open" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
