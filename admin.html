@@ -2694,4 +2694,10 @@ loadAdminAvatar();
 checkMainAdminStatus();
 // Load notification badge on startup — all admins see all unread
 (async () => {
-  const unread = await db
+  const unread = await dbGet('notifications','?is_read=eq.false&select=id&limit=99');
+  const nb = document.getElementById('nb-notifs-admin');
+  if (unread.length) { nb.textContent = unread.length; nb.classList.add('show'); }
+})();
+</script>
+</body>
+</html>
