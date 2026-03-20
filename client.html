@@ -143,11 +143,11 @@
     </div>
 
     <div id="v-notifications" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <div class="card-title">Powiadomienia</div>
         <button class="btn btn-outline btn-sm" onclick="markAllRead()"><i class="ri-check-double-line"></i>Oznacz jako przeczytane</button>
       </div>
-      <div class="card" style="padding:8px"><div id="notif-list"></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><div id="notif-list"></div></div>
     </div>
 
   </div>
@@ -264,7 +264,7 @@ function nav(v) {
   }[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='projects')      loadProjects();
-  if (v==='notifications') { loadNotifs(); markAllRead(); }
+  if (v==='notifications') { loadNotifs(); }
   // Show onboarding button only on projects page
   const obBtn = document.getElementById('ob-float-btn');
   if (obBtn) obBtn.style.display = (v==='projects' && obBtn._shouldShow) ? 'flex' : 'none';
@@ -554,23 +554,74 @@ async function markInvoicePaid(docId) {
 
 // ── NOTIFICATIONS ──
 async function loadNotifs() {
-  const notifs = await dbGet('notifications', `?user_id=eq.${Auth.userId}&select=*&order=created_at.desc`);
-  document.getElementById('notif-list').innerHTML = notifs.map(n => `
-    <div class="notif-item ${n.is_read?'':'unread'}">
-      <div class="notif-dot ${n.is_read?'read':'new'}"></div>
-      <div style="flex:1">
-        <div class="notif-text">${n.content}</div>
-        <div class="notif-time">${timeAgo(n.created_at)}</div>
-      </div>
-    </div>`).join('') || emptyHTML('ri-notification-off-line','Brak powiadomień');
+  const notifs = await dbGet('notifications', `?user_id=eq.${Auth.userId}&select=*,project:projects(name)&order=created_at.desc&limit=50`);
   updateNotifBadge(notifs);
+
+  const notifMeta = (type) => ({
+    message: {icon:'💬', label:'Wiadomość'},
+    doc:     {icon:'📄', label:'Dokument'},
+    post:    {icon:'📌', label:'Materiał'},
+    meeting: {icon:'📅', label:'Spotkanie'},
+    general: {icon:'🔔', label:'Powiadomienie'},
+  }[type] || {icon:'🔔', label:'Powiadomienie'};
+
+  document.getElementById('notif-list').innerHTML = notifs.map(n => {
+    const meta = notifMeta(n.type);
+    const unread = !n.is_read;
+    const projName = n.project?.name || '';
+    const iconBg = {
+      message: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+      doc:     'linear-gradient(135deg,#0ea5e9,#0284c7)',
+      post:    'linear-gradient(135deg,var(--a),var(--b))',
+      meeting: 'linear-gradient(135deg,#10b981,#059669)',
+    }[n.type] || 'linear-gradient(135deg,var(--a),var(--b))';
+
+    return `<div onclick="markNotifRead('${n.id}','${n.project_id||''}')"
+      style="padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;align-items:flex-start;gap:12px;opacity:${unread?'1':'0.6'};background:${unread?'rgba(224,64,251,.03)':'transparent'}"
+      onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${unread?'rgba(224,64,251,.03)':'transparent'}'">
+      <div style="width:36px;height:36px;border-radius:50%;background:${iconBg};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${meta.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 8px;border-radius:100px">${meta.label}</span>
+          ${unread?`<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(224,64,251,.6)"></span>`:''}
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${n.content||'—'}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${projName?`<span style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px"><i class="ri-folder-line"></i>${esc(projName)}</span>`:''}
+          <span style="font-size:11px;color:var(--t3)">${timeAgo(n.created_at)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || emptyHTML('ri-notification-off-line','Brak powiadomień');
+}
+
+async function markNotifRead(notifId, projectId) {
+  // Mark as read
+  await fetch(`${SB}/rest/v1/notifications?id=eq.${notifId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({is_read:true})
+  });
+  // If has project — navigate to it
+  if (projectId && projectId !== 'null' && projectId !== '') {
+    // Find project and open it
+    const [proj] = await dbGet('projects', `?id=eq.${projectId}&select=*`);
+    if (proj) {
+      PID = proj.id;
+      document.getElementById('pj-name').textContent = proj.name;
+      document.getElementById('pj-status-badge').textContent = {active:'AKTYWNY',completed:'ZAKOŃCZONY',paused:'WSTRZYMANY'}[proj.status]||proj.status.toUpperCase();
+      nav('project'); switchTab('chat');
+      completeOnboardingStep('Sprawdź swój projekt');
+      return;
+    }
+  }
+  // Just reload notifs to update read state
+  loadNotifs();
 }
 
 async function markAllRead() {
   await dbPatch('notifications', `user_id=eq.${Auth.userId}&is_read=eq.false`, {is_read:true});
   document.getElementById('nb-notif').classList.remove('show');
-  const v = document.getElementById('v-notifications');
-  if (v && v.style.display!=='none') loadNotifs();
+  loadNotifs();
 }
 
 function updateNotifBadge(notifs) {
