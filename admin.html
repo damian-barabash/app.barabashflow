@@ -478,10 +478,10 @@
             <label class="form-label">Typ</label>
             <div style="display:flex;gap:10px">
               <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;transition:all .2s" id="dtype-doc-lbl">
-                <input type="radio" name="dc-type" value="document" id="dtype-doc" checked style="accent-color:var(--a)"> 📄 Dokument
+                <input type="radio" name="dc-type" value="document" id="dtype-doc" checked style="accent-color:var(--a)" onchange="onDocTypeChange()"> 📄 Dokument
               </label>
               <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;transition:all .2s" id="dtype-inv-lbl">
-                <input type="radio" name="dc-type" value="invoice" id="dtype-inv" style="accent-color:var(--a)"> 🧾 Faktura
+                <input type="radio" name="dc-type" value="invoice" id="dtype-inv" style="accent-color:var(--a)" onchange="onDocTypeChange()"> 🧾 Faktura
               </label>
             </div>
           </div>
@@ -1679,16 +1679,16 @@ async function sendMsg(){
 // ── DOCS ──
 let _docsFilter = 'all';
 
-// Toggle invoice fields visibility
-document.querySelectorAll('input[name="dc-type"]').forEach(r =>
-  r.addEventListener('change', () => {
-    const isInv = document.getElementById('dtype-inv').checked;
-    document.getElementById('invoice-fields').style.display = isInv ? 'block' : 'none';
-    // Highlight selected label
-    document.getElementById('dtype-doc-lbl').style.borderColor = isInv ? 'var(--border)' : 'var(--a)';
-    document.getElementById('dtype-inv-lbl').style.borderColor = isInv ? 'var(--a)' : 'var(--border)';
-  })
-);
+// Toggle invoice fields — called from HTML onchange instead of querySelectorAll
+function onDocTypeChange() {
+  const isInv = document.getElementById('dtype-inv')?.checked;
+  const fields = document.getElementById('invoice-fields');
+  if (fields) fields.style.display = isInv ? 'block' : 'none';
+  const docLbl = document.getElementById('dtype-doc-lbl');
+  const invLbl = document.getElementById('dtype-inv-lbl');
+  if (docLbl) docLbl.style.borderColor = isInv ? 'var(--border)' : 'var(--a)';
+  if (invLbl) invLbl.style.borderColor = isInv ? 'var(--a)' : 'var(--border)';
+}
 
 function filterDocs(f) {
   _docsFilter = f;
