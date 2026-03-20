@@ -46,6 +46,7 @@
     <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
     <div class="nav-link" data-view="templates"><i class="ri-layout-line"></i>Szablony</div>
+    <div class="nav-link" data-view="maile"><i class="ri-mail-send-line"></i>Maile<span class="nav-badge" id="nb-maile"></span></div>
     <div class="nav-link" data-view="admins" id="nav-admins" style="display:none"><i class="ri-shield-user-line"></i>Administratorzy</div>
   </nav>
   <div class="sidebar-bottom">
@@ -200,6 +201,98 @@
         <button class="btn btn-primary" onclick="sendScheduledNotif()" id="sn-btn"><i class="ri-send-plane-line"></i>Wyślij powiadomienie</button>
       </div>
     </div>
+    <!-- MAILE -->
+    <div id="v-maile" style="display:none">
+      <!-- Tabs: Compose / Sent / Inbox -->
+      <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:12px">
+        <button class="mail-tab-btn active" data-mtab="compose" onclick="switchMailTab('compose')"><i class="ri-edit-line"></i> Nowy mail</button>
+        <button class="mail-tab-btn" data-mtab="inbox" onclick="switchMailTab('inbox')"><i class="ri-inbox-line"></i> Skrzynka odbiorcza <span id="inbox-badge" style="display:none;background:var(--a);color:#fff;border-radius:100px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px"></span></button>
+        <button class="mail-tab-btn" data-mtab="sent" onclick="switchMailTab('sent')"><i class="ri-send-plane-line"></i> Wysłane</button>
+      </div>
+
+      <!-- COMPOSE -->
+      <div id="mtab-compose">
+        <div class="card" style="padding:20px">
+          <!-- Recipients -->
+          <div class="form-group">
+            <label class="form-label">Do *</label>
+            <div id="recipients-wrap" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;min-height:42px;cursor:text" onclick="document.getElementById('recipient-inp').focus()">
+              <div id="recipients-chips"></div>
+              <input id="recipient-inp" type="email" placeholder="wpisz email i naciśnij Enter..." style="border:none;background:transparent;outline:none;color:var(--text);font-size:13px;flex:1;min-width:160px;font-family:inherit" onkeydown="handleRecipientKey(event)" onpaste="handleRecipientPaste(event)">
+            </div>
+            <div style="font-size:11px;color:var(--t3);margin-top:4px">Wciśnij Enter, Tab lub wpisz przecinek żeby dodać adres</div>
+          </div>
+          <!-- Subject -->
+          <div class="form-group">
+            <label class="form-label">Temat *</label>
+            <input class="form-control" id="mail-subject" placeholder="Temat wiadomości">
+          </div>
+          <!-- Rich Editor -->
+          <div class="form-group">
+            <label class="form-label">Treść *</label>
+            <!-- Toolbar -->
+            <div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px 10px 0 0;border-bottom:1px solid var(--border)">
+              <button class="editor-btn" onclick="execCmd('bold')" title="Pogrubienie"><i class="ri-bold"></i></button>
+              <button class="editor-btn" onclick="execCmd('italic')" title="Kursywa"><i class="ri-italic"></i></button>
+              <button class="editor-btn" onclick="execCmd('underline')" title="Podkreślenie"><i class="ri-underline"></i></button>
+              <div style="width:1px;background:var(--border);margin:0 4px"></div>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')" title="Lista"><i class="ri-list-unordered"></i></button>
+              <button class="editor-btn" onclick="execCmd('insertOrderedList')" title="Numerowana"><i class="ri-list-ordered"></i></button>
+              <div style="width:1px;background:var(--border);margin:0 4px"></div>
+              <button class="editor-btn" onclick="insertLink()" title="Link"><i class="ri-link"></i></button>
+              <button class="editor-btn" onclick="insertEditorImage()" title="Zdjęcie"><i class="ri-image-line"></i></button>
+              <div style="width:1px;background:var(--border);margin:0 4px"></div>
+              <select onchange="execCmd('fontSize',this.value);this.value=''" style="background:var(--bg3);border:none;color:var(--t2);font-size:12px;outline:none;cursor:pointer">
+                <option value="">Rozmiar</option>
+                <option value="2">Mały</option>
+                <option value="3">Normalny</option>
+                <option value="4">Duży</option>
+                <option value="5">Bardzo duży</option>
+              </select>
+              <input type="color" onchange="execCmd('foreColor',this.value)" title="Kolor tekstu" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0">
+            </div>
+            <div id="mail-editor" contenteditable="true" style="min-height:220px;padding:14px;background:var(--bg3);border:1.5px solid var(--border2);border-top:none;border-radius:0 0 10px 10px;outline:none;font-size:14px;line-height:1.7;color:var(--text)" placeholder="Wpisz treść maila..."></div>
+          </div>
+          <!-- Attachments -->
+          <div class="form-group">
+            <label class="form-label">Załączniki</label>
+            <div class="upload-area" id="mail-attach-area" onclick="document.getElementById('mail-attach-inp').click()" style="padding:14px">
+              <input type="file" id="mail-attach-inp" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt" style="display:none" onchange="addAttachments(this.files)">
+              <i class="ri-attachment-line" style="font-size:20px"></i>
+              <p style="margin:4px 0 0;font-size:13px">Kliknij żeby dodać załączniki</p>
+            </div>
+            <div id="mail-attachments-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"></div>
+          </div>
+          <!-- Options -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <input type="checkbox" id="mail-btn-check" checked style="accent-color:var(--a);width:16px;height:16px;cursor:pointer">
+            <label for="mail-btn-check" style="font-size:13px;color:var(--t2);cursor:pointer">Dodaj przycisk "Przejdź do panelu"</label>
+          </div>
+          <div class="form-err" id="mail-err"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="mail-send-btn" onclick="sendMail()"><i class="ri-send-plane-fill"></i>Wyślij mail</button>
+            <button class="btn btn-outline" onclick="clearCompose()"><i class="ri-delete-bin-line"></i>Wyczyść</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INBOX -->
+      <div id="mtab-inbox" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div style="font-size:13px;color:var(--t3)">Skrzynka odbiorcza office@barabashflow.pl</div>
+          <button class="btn btn-outline btn-sm" onclick="refreshInbox()"><i class="ri-refresh-line"></i>Odśwież</button>
+        </div>
+        <div id="inbox-list"></div>
+        <div id="inbox-detail" style="display:none"></div>
+      </div>
+
+      <!-- SENT -->
+      <div id="mtab-sent" style="display:none">
+        <div id="sent-list"></div>
+        <div id="sent-detail" style="display:none"></div>
+      </div>
+    </div>
+
     <!-- TEMPLATES -->
     <div id="v-templates" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
@@ -648,11 +741,11 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','admins'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','maile','admins'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',admins:'Administratorzy'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard')     loadDash();
   if (v==='clients')       { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
@@ -663,6 +756,7 @@ function nav(v) {
   if (v==='leads')         loadLeads();
   if (v==='notifs-admin')  loadAdminNotifs();
   if (v==='templates')     loadTemplates();
+  if (v==='maile')         initMaile();
   if (v==='admins')        loadAdmins();
 }
 function switchTab(tab) {
@@ -1995,6 +2089,251 @@ async function markAllAdminNotifsRead() {
   document.getElementById('nb-notifs-admin').classList.remove('show');
   renderAdminNotifs();
   toast('Wszystkie oznaczone jako przeczytane ✅');
+}
+
+// ── MAILE ──────────────────────────────────────────────────────
+let _mailRecipients = [];
+let _mailAttachments = []; // [{filename, content (base64), contentType, size}]
+let _mailTab = 'compose';
+let _currentInboxMsg = null;
+
+function switchMailTab(tab) {
+  _mailTab = tab;
+  document.querySelectorAll('.mail-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.mtab === tab));
+  document.getElementById('mtab-compose').style.display = tab==='compose' ? 'block' : 'none';
+  document.getElementById('mtab-inbox').style.display   = tab==='inbox'   ? 'block' : 'none';
+  document.getElementById('mtab-sent').style.display    = tab==='sent'    ? 'block' : 'none';
+  if (tab==='inbox') loadInbox();
+  if (tab==='sent')  loadSent();
+}
+
+function initMaile() {
+  switchMailTab('compose');
+  loadInboxBadge();
+}
+
+// ── RECIPIENTS ──
+function renderChips() {
+  const wrap = document.getElementById('recipients-chips');
+  wrap.innerHTML = _mailRecipients.map((e,i) => `
+    <span class="mail-chip">${esc(e)}<button onclick="removeRecipient(${i})" type="button">×</button></span>`).join('');
+}
+function addRecipient(email) {
+  email = email.trim().toLowerCase();
+  if (!email || !email.includes('@')) return;
+  if (!_mailRecipients.includes(email)) { _mailRecipients.push(email); renderChips(); }
+}
+function removeRecipient(i) { _mailRecipients.splice(i,1); renderChips(); }
+function handleRecipientKey(e) {
+  if (['Enter','Tab',','].includes(e.key)) {
+    e.preventDefault();
+    const inp = document.getElementById('recipient-inp');
+    addRecipient(inp.value); inp.value='';
+  }
+}
+function handleRecipientPaste(e) {
+  e.preventDefault();
+  const text = e.clipboardData.getData('text');
+  text.split(/[\s,;]+/).forEach(addRecipient);
+}
+
+// ── EDITOR COMMANDS ──
+function execCmd(cmd, val) {
+  document.getElementById('mail-editor').focus();
+  document.execCommand(cmd, false, val||null);
+}
+function insertLink() {
+  const url = prompt('Wpisz URL:'); if (!url) return;
+  const text = window.getSelection()?.toString()||url;
+  execCmd('insertHTML',`<a href="${esc(url)}" style="color:#e040fb">${esc(text)}</a>`);
+}
+function insertEditorImage() {
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=async()=>{
+    const file=inp.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      execCmd('insertHTML',`<img src="${e.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0" alt="">`);
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+// ── ATTACHMENTS ──
+async function addAttachments(files) {
+  for (const file of files) {
+    if (file.size > 10*1024*1024) { toast(`Plik ${file.name} za duży (max 10MB)`, 'error'); continue; }
+    const base64 = await fileToBase64(file);
+    _mailAttachments.push({filename: file.name, content: base64, contentType: file.type, size: file.size});
+  }
+  renderAttachments();
+  document.getElementById('mail-attach-inp').value='';
+}
+function fileToBase64(file) {
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+}
+function renderAttachments() {
+  document.getElementById('mail-attachments-list').innerHTML = _mailAttachments.map((a,i)=>`
+    <div class="attach-chip">
+      <i class="ri-attachment-line" style="color:var(--a)"></i>
+      <span>${esc(a.filename)} <span style="color:var(--t3)">(${(a.size/1024).toFixed(0)}KB)</span></span>
+      <button onclick="_mailAttachments.splice(${i},1);renderAttachments()" type="button">×</button>
+    </div>`).join('');
+}
+function removeAttachment(i) { _mailAttachments.splice(i,1); renderAttachments(); }
+
+// ── SEND ──
+async function sendMail() {
+  const inp = document.getElementById('recipient-inp');
+  if (inp.value.trim()) { addRecipient(inp.value); inp.value=''; }
+
+  if (!_mailRecipients.length) { document.getElementById('mail-err').textContent='Dodaj co najmniej jeden adres e-mail'; return; }
+  const subject = document.getElementById('mail-subject').value.trim();
+  if (!subject) { document.getElementById('mail-err').textContent='Wpisz temat wiadomości'; return; }
+  const bodyHtml = document.getElementById('mail-editor').innerHTML.trim();
+  if (!bodyHtml || bodyHtml==='<br>') { document.getElementById('mail-err').textContent='Wpisz treść wiadomości'; return; }
+  document.getElementById('mail-err').textContent='';
+
+  const hasButton = document.getElementById('mail-btn-check').checked;
+  const btn = document.getElementById('mail-send-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Wysyłanie...';
+
+  const r = await edgeFn('send-email',{
+    recipients: _mailRecipients,
+    subject, bodyHtml, hasButton,
+    attachments: _mailAttachments
+  });
+
+  btn.disabled=false; btn.innerHTML='<i class="ri-send-plane-fill"></i>Wyślij mail';
+
+  if (r.error) { document.getElementById('mail-err').textContent=r.error; return; }
+  toast(`Mail wysłany do ${_mailRecipients.length} odbiorców ✅`);
+  clearCompose();
+}
+
+function clearCompose() {
+  _mailRecipients=[]; _mailAttachments=[];
+  renderChips(); renderAttachments();
+  document.getElementById('mail-subject').value='';
+  document.getElementById('mail-editor').innerHTML='';
+  document.getElementById('mail-err').textContent='';
+  document.getElementById('mail-btn-check').checked=true;
+  document.getElementById('recipient-inp').value='';
+}
+
+// ── INBOX ──
+async function loadInboxBadge() {
+  const unread = await dbGet('email_inbox','?is_read=eq.false&select=id');
+  const nb = document.getElementById('nb-maile');
+  const ib = document.getElementById('inbox-badge');
+  if (unread.length) {
+    nb.textContent=unread.length; nb.classList.add('show');
+    if(ib){ib.textContent=unread.length;ib.style.display='inline';}
+  } else {
+    nb.classList.remove('show');
+    if(ib) ib.style.display='none';
+  }
+}
+
+async function refreshInbox() {
+  const btn = document.querySelector('[onclick="refreshInbox()"]');
+  if(btn) {btn.disabled=true; btn.innerHTML='<i class="ri-loader-4-line" style="animation:spin .7s linear infinite"></i> Pobieranie...';}
+  await edgeFn('fetch-inbox',{});
+  if(btn) {btn.disabled=false; btn.innerHTML='<i class="ri-refresh-line"></i>Odśwież';}
+  await loadInbox();
+}
+
+async function loadInbox() {
+  document.getElementById('inbox-detail').style.display='none';
+  const emails = await dbGet('email_inbox','?select=*&order=received_at.desc&limit=50');
+  loadInboxBadge();
+  const el = document.getElementById('inbox-list');
+  if (!emails.length) { el.innerHTML=emptyHTML('ri-inbox-line','Skrzynka pusta. Kliknij Odśwież żeby pobrać nowe maile.'); return; }
+  el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
+    <div class="mail-item ${!m.is_read?'unread':''}" onclick="openInboxMsg('${m.id}')">
+      <div class="${!m.is_read?'mail-unread-dot':''}"></div>
+      <div class="mail-from">${esc(m.from_name||m.from_email)}</div>
+      <div class="mail-time">${timeAgo(m.received_at)}</div>
+      <div class="mail-subject">${esc(m.subject)}</div>
+      <div class="mail-preview">${esc((m.body_text||'').slice(0,80))}</div>
+    </div>`).join('')}</div>`;
+}
+
+async function openInboxMsg(id) {
+  const [msg] = await dbGet('email_inbox',`?id=eq.${id}&select=*`);
+  if (!msg) return;
+  // Mark as read
+  if (!msg.is_read) {
+    await fetch(`${SB}/rest/v1/email_inbox?id=eq.${id}`,{method:'PATCH',headers:hdr({Prefer:'return=minimal'}),body:JSON.stringify({is_read:true})});
+    msg.is_read=true; loadInboxBadge();
+  }
+  const detail = document.getElementById('inbox-detail');
+  const list   = document.getElementById('inbox-list');
+  list.style.display='none'; detail.style.display='block';
+  detail.innerHTML=`
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('inbox-list').style.display='block';document.getElementById('inbox-detail').style.display='none'" style="margin-bottom:16px"><i class="ri-arrow-left-line"></i> Wróć</button>
+    <div class="card" style="padding:20px">
+      <div style="margin-bottom:16px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(msg.subject)}</div>
+        <div style="font-size:13px;color:var(--t3)">Od: <strong>${esc(msg.from_name||'')} &lt;${esc(msg.from_email)}&gt;</strong> · ${timeAgo(msg.received_at)}</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:16px;font-size:14px;line-height:1.7;color:var(--text)">
+        ${msg.body_html||`<pre style="font-family:inherit;white-space:pre-wrap">${esc(msg.body_text||'')}</pre>`}
+      </div>
+    </div>
+    <!-- Reply -->
+    <div class="card" style="padding:20px;margin-top:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="ri-reply-line"></i> Odpowiedz</div>
+      <div class="form-group"><input class="form-control" id="reply-subject" value="Re: ${esc(msg.subject)}"></div>
+      <div id="reply-editor" contenteditable="true" style="min-height:120px;padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;outline:none;font-size:14px;line-height:1.7;color:var(--text);margin-bottom:12px"></div>
+      <button class="btn btn-primary btn-sm" onclick="sendReply('${esc(msg.from_email)}','${esc(msg.subject)}')"><i class="ri-send-plane-fill"></i>Wyślij odpowiedź</button>
+    </div>`;
+}
+
+async function sendReply(toEmail, origSubject) {
+  const subject = document.getElementById('reply-subject')?.value||`Re: ${origSubject}`;
+  const bodyHtml = document.getElementById('reply-editor')?.innerHTML||'';
+  if (!bodyHtml.trim()) { toast('Wpisz treść odpowiedzi','error'); return; }
+  const r = await edgeFn('send-email',{recipients:[toEmail],subject,bodyHtml,hasButton:false,attachments:[]});
+  if (r.error) { toast(r.error,'error'); return; }
+  toast('Odpowiedź wysłana ✅');
+  document.getElementById('inbox-list').style.display='block';
+  document.getElementById('inbox-detail').style.display='none';
+}
+
+// ── SENT ──
+async function loadSent() {
+  document.getElementById('sent-detail').style.display='none';
+  const emails = await dbGet('sent_emails','?select=*,sender:profiles(display_name)&order=sent_at.desc&limit=50');
+  const el = document.getElementById('sent-list');
+  if (!emails.length) { el.innerHTML=emptyHTML('ri-send-plane-line','Brak wysłanych maili'); return; }
+  el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
+    <div class="mail-item" onclick="openSentMsg('${m.id}')">
+      <div></div>
+      <div class="mail-from">Do: ${m.recipients.slice(0,2).map(esc).join(', ')}${m.recipients.length>2?` +${m.recipients.length-2}`:''}</div>
+      <div class="mail-time">${timeAgo(m.sent_at)}</div>
+      <div class="mail-subject">${esc(m.subject)}</div>
+      <div class="mail-preview">${esc(m.sender?.display_name||'')}</div>
+    </div>`).join('')}</div>`;
+}
+
+async function openSentMsg(id) {
+  const [msg] = await dbGet('sent_emails',`?id=eq.${id}&select=*`);
+  if (!msg) return;
+  const detail=document.getElementById('sent-detail');
+  const list=document.getElementById('sent-list');
+  list.style.display='none'; detail.style.display='block';
+  detail.innerHTML=`
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('sent-list').style.display='block';document.getElementById('sent-detail').style.display='none'" style="margin-bottom:16px"><i class="ri-arrow-left-line"></i> Wróć</button>
+    <div class="card" style="padding:20px">
+      <div style="margin-bottom:16px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(msg.subject)}</div>
+        <div style="font-size:13px;color:var(--t3)">Do: <strong>${msg.recipients.map(esc).join(', ')}</strong> · ${timeAgo(msg.sent_at)}</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:16px;font-size:14px;line-height:1.7;color:var(--text)">${msg.body_html||''}</div>
+    </div>`;
 }
 
 // ── LEADS ──
