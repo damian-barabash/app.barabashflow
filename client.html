@@ -563,7 +563,7 @@ async function loadNotifs() {
     post:    {icon:'📌', label:'Materiał'},
     meeting: {icon:'📅', label:'Spotkanie'},
     general: {icon:'🔔', label:'Powiadomienie'},
-  }[type] || {icon:'🔔', label:'Powiadomienie'};
+  }[type] || {icon:'🔔', label:'Powiadomienie'});
 
   document.getElementById('notif-list').innerHTML = notifs.map(n => {
     const meta = notifMeta(n.type);
