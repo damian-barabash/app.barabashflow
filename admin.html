@@ -2388,12 +2388,18 @@ async function refreshInbox() {
 }
 
 async function loadInbox() {
-  document.getElementById('inbox-detail').style.display='none';
+  // Only reset to list view if detail is not open
+  const detail = document.getElementById('inbox-detail');
+  const list   = document.getElementById('inbox-list');
+  const detailOpen = detail?.style.display !== 'none';
+  if (!detailOpen) {
+    if (detail) detail.style.display = 'none';
+    if (list)   list.style.display = 'block';
+  }
   const emails = await dbGet('email_inbox','?select=*&order=received_at.desc&limit=50');
   loadInboxBadge();
-  const el = document.getElementById('inbox-list');
-  if (!emails.length) { el.innerHTML=emptyHTML('ri-inbox-line','Skrzynka pusta. Kliknij Odśwież żeby pobrać nowe maile.'); return; }
-  el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
+  if (!emails.length) { if(list) list.innerHTML=emptyHTML('ri-inbox-line','Skrzynka pusta. Kliknij Odśwież żeby pobrać nowe maile.'); return; }
+  if(list) list.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
     <div class="mail-item ${!m.is_read?'unread':''}" onclick="openInboxMsg('${m.id}')">
       <div class="${!m.is_read?'mail-unread-dot':''}"></div>
       <div class="mail-from">${esc(m.from_name||m.from_email)}</div>
