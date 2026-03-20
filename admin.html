@@ -1449,7 +1449,10 @@ async function addPost(){
     window._ptFile=null;document.getElementById('pt-upload-preview').innerHTML='';document.getElementById('pt-upload-area').style.borderColor='';
     setTimeout(()=>document.getElementById('pt-upload-progress').classList.remove('show'),800);
     const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Admin opublikował nowy materiał: <strong>${title}</strong>`,type:'post'});
+    if(proj){
+      const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
+      await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`<strong>${esc(adminName)}</strong> opublikował nowy materiał: <strong>${title}</strong>`,type:'post',senderName:adminName});
+    }
     toast('Post opublikowany ✅');loadPosts();
   }catch(e){toast('Błąd: '+e.message,'error');}
   finally{btn.disabled=false;btn.innerHTML='<i class="ri-send-plane-line"></i>Opublikuj';}
@@ -1518,7 +1521,15 @@ async function sendMsg(){
     }
     await dbPost('messages',msgData);
     const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:'Nowa wiadomość od Dmytrii Barabash.',type:'message',isMessage:true});
+    if(proj){
+      const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
+      await edgeFn('send-notification',{
+        userId:proj.client_id, projectId:PID,
+        content:`Nowa wiadomość od <strong>${esc(adminName)}</strong>.`,
+        type:'message', isMessage:true,
+        senderName: adminName
+      });
+    }
     loadChat();
   }catch(e){
     toast('Błąd wysyłania: '+e.message,'error');
@@ -1563,7 +1574,10 @@ async function addDoc(){
     await dbPost('documents',{project_id:PID,uploaded_by:Auth.userId,name,url:up.url,file_url:up.url,mime_type:up.mime,file_size:up.size});
     document.getElementById('dc-name').value='';document.getElementById('dc-upload-preview').innerHTML='';document.getElementById('dc-upload-area').style.borderColor='';window._dcFile=null;
     const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-    if(proj)await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`Dodano nowy dokument: <strong>${name}</strong>`,type:'doc'});
+    if(proj){
+      const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
+      await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:`<strong>${esc(adminName)}</strong> dodał nowy dokument: <strong>${name}</strong>`,type:'doc',senderName:adminName});
+    }
     setTimeout(()=>document.getElementById('dc-upload-progress').classList.remove('show'),800);
     toast('Dokument dodany ✅');loadDocs();
   }catch(e){toast('Błąd: '+e.message,'error');}
