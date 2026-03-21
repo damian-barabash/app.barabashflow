@@ -24,6 +24,7 @@
   <nav class="sidebar-nav">
     <div class="nav-link active" data-view="projects"><i class="ri-folder-line"></i>Projekty</div>
     <div class="nav-link" data-view="notifications"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notif"></span></div>
+    <div class="nav-link" data-view="past-meetings"><i class="ri-calendar-check-line"></i>Zakończone spotkania<span class="nav-badge" id="nb-past-meets" style="background:#4ade80"></span></div>
   </nav>
   <!-- Minimized meeting widgets live here, stacked in sidebar -->
   <div id="sidebar-meetings" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"></div>
@@ -150,6 +151,13 @@
       <div class="card" style="padding:0;overflow:hidden"><div id="notif-list"></div></div>
     </div>
 
+    <div id="v-past-meetings" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title">Zakończone spotkania</div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden"><div id="past-meetings-list"></div></div>
+    </div>
+
   </div>
 </main>
 </div>
@@ -253,18 +261,20 @@ document.querySelectorAll('.tab-btn').forEach(b =>
 );
 
 function nav(v) {
-  ['projects','project','notifications'].forEach(id => {
+  ['projects','project','notifications','past-meetings'].forEach(id => {
     const el = document.getElementById('v-'+id); if (el) el.style.display = id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
   document.getElementById('pageTitle').textContent = {
     projects:'Moje projekty',
     project: document.getElementById('pj-name').textContent,
-    notifications:'Powiadomienia'
+    notifications:'Powiadomienia',
+    'past-meetings':'Zakończone spotkania'
   }[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='projects')      loadProjects();
   if (v==='notifications') { loadNotifs(); }
+  if (v==='past-meetings') { loadPastMeetings(); }
   // Show onboarding button only on projects page
   const obBtn = document.getElementById('ob-float-btn');
   if (obBtn) obBtn.style.display = (v==='projects' && obBtn._shouldShow) ? 'flex' : 'none';
@@ -657,18 +667,67 @@ async function checkScheduledNotifications() {
       const isPast = meetTime < new Date(Date.now() - 60*60*1000);
       if (!isPast) {
         if (isMinimized(sn.id)) {
-          // Was minimized before → show directly as widget in sidebar
           showMeetingWidget(sn, meetTime);
         } else if (!document.getElementById('sn-meet-card-'+sn.id) && !document.getElementById('sn-meet-widget-'+sn.id)) {
           showMeetingCard(sn);
         }
       } else {
+        // Meeting is past — deactivate and move to past meetings
         setMinimized(sn.id, false);
         await fetch(`${SB}/rest/v1/scheduled_notifications?id=eq.${sn.id}`,
           {method:'PATCH',headers:hdr(),body:JSON.stringify({is_active:false})});
+        // Remove widget/card from DOM if visible
+        document.getElementById('sn-meet-card-'+sn.id)?.remove();
+        document.getElementById('sn-meet-widget-'+sn.id)?.remove();
+        // Update past meetings badge
+        loadPastMeetingsBadge();
       }
     }
   }
+}
+
+async function loadPastMeetingsBadge() {
+  // Count calendar events in past for this client's projects
+  const projs = await dbGet('projects',`?client_id=eq.${Auth.userId}&select=id`);
+  if (!projs.length) return;
+  const projIds = projs.map(p=>p.id);
+  const past = await dbGet('calendar_events',
+    `?client_id=eq.${Auth.userId}&starts_at=lt.${new Date().toISOString()}&select=id`);
+  const nb = document.getElementById('nb-past-meets');
+  if (nb && past.length) { nb.textContent=past.length; nb.classList.add('show'); }
+  else if (nb) nb.classList.remove('show');
+}
+
+async function loadPastMeetings() {
+  const el = document.getElementById('past-meetings-list');
+  el.innerHTML = '<div style="padding:20px;text-align:center"><span class="spin"><i class="ri-loader-4-line" style="font-size:20px;color:var(--a)"></i></span></div>';
+
+  const past = await dbGet('calendar_events',
+    `?client_id=eq.${Auth.userId}&starts_at=lt.${new Date().toISOString()}&select=*&order=starts_at.desc&limit=20`);
+
+  if (!past.length) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--t3);font-size:13px"><i class="ri-calendar-check-line" style="font-size:32px;display:block;margin-bottom:8px"></i>Brak zakończonych spotkań</div>';
+    return;
+  }
+
+  el.innerHTML = past.map(e => {
+    const start = new Date(e.starts_at);
+    const dateStr = start.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+    const timeStr = start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px">
+      <div style="width:42px;height:42px;border-radius:50%;background:rgba(74,222,128,.12);border:2px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">✅</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;margin-bottom:3px">${esc(e.title)}</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:6px">${dateStr} · ${timeStr}</div>
+        ${e.notes ? `
+          <div style="font-size:12px;color:var(--t2);background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:10px 12px;line-height:1.6">
+            <div style="font-size:10px;color:#4ade80;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px"><i class="ri-file-text-line"></i> Notatka ze spotkania</div>
+            ${esc(e.notes)}
+          </div>` : `<div style="font-size:11px;color:var(--t3);font-style:italic">Brak notatki od administratora</div>`}
+      </div>
+      <span style="font-size:10px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:100px;padding:2px 8px;flex-shrink:0">Zakończone</span>
+    </div>`;
+  }).join('');
 }
 
 // ── NOTIFICATION CONTAINER ──
@@ -1174,6 +1233,7 @@ loadProjects();
 startPresenceHeartbeat();
 loadClientAvatar();
 loadOnboarding();
+loadPastMeetingsBadge();
 
 
 (async () => {

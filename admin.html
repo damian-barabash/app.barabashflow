@@ -710,6 +710,23 @@
   </div>
 </div>
 
+<!-- MEETING NOTES -->
+<div class="modal-backdrop" id="m-meeting-notes">
+  <div class="modal">
+    <div class="modal-title">Notatka ze spotkania</div>
+    <div class="modal-sub">Zostanie wysłana do klienta w sekcji "Zakończone spotkania".</div>
+    <div class="form-group">
+      <label class="form-label">Treść notatki</label>
+      <textarea class="form-control" id="mn-text" rows="5" placeholder="Krótkie podsumowanie spotkania..." style="resize:vertical;min-height:100px"></textarea>
+    </div>
+    <div class="form-err" id="mn-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('m-meeting-notes')">Anuluj</button>
+      <button class="btn btn-primary" id="mn-btn" onclick="saveMeetingNotes()"><i class="ri-save-line"></i>Zapisz</button>
+    </div>
+  </div>
+</div>
+
 <!-- CHANGE CLIENT PASSWORD -->
 <div class="modal-backdrop" id="m-client-pass">
   <div class="modal">
@@ -2118,10 +2135,10 @@ async function loadCalEvents() {
   const monthStart = new Date(_calYear, _calMonth, 1).toISOString();
   const monthEnd   = new Date(_calYear, _calMonth+1, 0, 23, 59).toISOString();
 
-  // Only calendar_events — meetings already saved there via apple-calendar edge fn
   const calEvs = await dbGet('calendar_events',
     `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`);
 
+  const now = Date.now();
   const events = calEvs.map(e=>({...e,_src:'calendar'}))
     .sort((a,b)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime());
 
@@ -2140,9 +2157,11 @@ async function loadCalEvents() {
     }
   });
 
-  // Upcoming events list
-  const upcoming = events.filter(e=>new Date(e.starts_at)>Date.now());
-  document.getElementById('cal-events-list').innerHTML = upcoming.slice(0,8).map(e=>{
+  const upcoming = events.filter(e=>new Date(e.starts_at)>now);
+  const past     = events.filter(e=>new Date(e.starts_at)<=now).reverse(); // newest first
+
+  // ── UPCOMING ──
+  const upcomingHtml = upcoming.slice(0,8).map(e=>{
     const start=new Date(e.starts_at);
     const clientName=e.client?.display_name||e.client?.email||'';
     return`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;border-left:3px solid ${e.color||'#e040fb'}">
@@ -2158,6 +2177,33 @@ async function loadCalEvents() {
       <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
     </div>`;
   }).join('') || emptyHTML('ri-calendar-line','Brak nadchodzących wydarzeń');
+
+  // ── PAST ──
+  const pastHtml = past.length ? `
+    <div style="margin-top:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ri-history-line"></i>Zakończone spotkania</div>
+      ${past.slice(0,10).map(e=>{
+        const start=new Date(e.starts_at);
+        const clientName=e.client?.display_name||e.client?.email||'';
+        return`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;border-left:3px solid #4ade80;opacity:0.8">
+          <div style="text-align:center;min-width:44px">
+            <div style="font-size:18px;font-weight:800;color:#4ade80;line-height:1">${start.getDate()}</div>
+            <div style="font-size:10px;color:var(--t3);text-transform:uppercase">${MONTHS_PL[start.getMonth()].slice(0,3)}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--t2)">${esc(e.title)}</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px">${start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}${clientName?' · '+esc(clientName):''}</div>
+            ${e.notes?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:6px 8px;background:rgba(74,222,128,.07);border-radius:6px;border-left:2px solid #4ade80"><i class="ri-file-text-line"></i> ${esc(e.notes)}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-sm btn-outline" onclick="openMeetingNotes('${e.id}',${JSON.stringify(esc(e.notes||''))})" style="font-size:11px;padding:4px 8px"><i class="ri-edit-line"></i>${e.notes?'Edytuj':'Dodaj notatkę'}</button>
+            <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  document.getElementById('cal-events-list').innerHTML = upcomingHtml + pastHtml;
 }
 
 function renderCalGrid(year, month) {
@@ -2185,8 +2231,36 @@ async function deleteCalEvent(id, uid) {
   showConfirm('Usuń wydarzenie','To wydarzenie zostanie usunięte z kalendarza i Apple Calendar.', async()=>{
     await edgeFn('apple-calendar',{action:'delete', uid, ...ICLOUD_CFG});
     await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{method:'DELETE',headers:hdr()});
+    // Also deactivate client's scheduled_notification for this event
+    await fetch(`${SB}/rest/v1/scheduled_notifications?meet_url=not.is.null`,{method:'PATCH',headers:hdr({Prefer:'return=minimal'}),body:JSON.stringify({is_active:false})});
     toast('Wydarzenie usunięte ✅'); loadCalendar();
   });
+}
+
+// ── MEETING NOTES ──
+let _meetingNotesId = null;
+function openMeetingNotes(eventId, currentNotes) {
+  _meetingNotesId = eventId;
+  const decoded = currentNotes.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#039;/g,"'").replace(/&quot;/g,'"');
+  document.getElementById('mn-text').value = decoded;
+  document.getElementById('mn-err').textContent = '';
+  openModal('m-meeting-notes');
+}
+
+async function saveMeetingNotes() {
+  const notes = document.getElementById('mn-text').value.trim();
+  const btn = document.getElementById('mn-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"><i class="ri-loader-4-line"></i></span>';
+  await fetch(`${SB}/rest/v1/calendar_events?id=eq.${_meetingNotesId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({notes: notes||null, notes_added_at: notes?new Date().toISOString():null})
+  });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ri-save-line"></i>Zapisz';
+  closeModal('m-meeting-notes');
+  toast('Notatka zapisana ✅');
+  loadCalendar();
 }
 
 let _creatingEvent = false;
