@@ -2136,7 +2136,7 @@ async function loadCalEvents() {
   const monthEnd   = new Date(_calYear, _calMonth+1, 0, 23, 59).toISOString();
 
   const calEvs = await dbGet('calendar_events',
-    `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`);
+    `?starts_at=gte.${monthStart}&starts_at=lte.${monthEnd}&deleted_at=is.null&select=*,client:profiles!calendar_events_client_id_fkey(display_name,email)&order=starts_at.asc`);
 
   const now = Date.now();
   const events = calEvs.map(e=>({...e,_src:'calendar'}))
@@ -2229,13 +2229,18 @@ function renderCalGrid(year, month) {
 
 async function deleteCalEvent(id, uid) {
   showConfirm('Usuń wydarzenie','To wydarzenie zostanie usunięte z kalendarza i Apple Calendar.', async()=>{
-    // Get event details first (to match scheduled_notification by time)
     const [ev] = await dbGet('calendar_events', `?id=eq.${id}&select=starts_at,client_id`);
 
+    // Remove from Apple Calendar
     await edgeFn('apple-calendar',{action:'delete', uid, ...ICLOUD_CFG});
-    await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{method:'DELETE',headers:hdr()});
 
-    // Deactivate matching scheduled_notification by scheduled_at time
+    // Soft-delete — keep record so client can still see notes
+    await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{
+      method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+      body: JSON.stringify({deleted_at: new Date().toISOString()})
+    });
+
+    // Deactivate matching scheduled_notification
     if (ev?.starts_at) {
       await fetch(`${SB}/rest/v1/scheduled_notifications?scheduled_at=eq.${encodeURIComponent(ev.starts_at)}&type=eq.meeting`,{
         method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
@@ -2319,17 +2324,22 @@ async function createCalendarEvent() {
     if (!calR.ok) throw new Error('Apple Calendar error: '+JSON.stringify(calR));
 
     // Save to calendar_events in DB (with client_id so client can see it)
-    await dbPost('calendar_events', {
-      id: uid,
-      title: calTitle,
-      description: desc || null,
-      client_id: clientId,
-      starts_at: startsAt,
-      ends_at: endsAt,
-      meet_url: url || null,
-      ical_uid: uid,
-      color: '#e040fb'
+    const saveR = await fetch(`${SB}/rest/v1/calendar_events`, {
+      method: 'POST',
+      headers: hdr({Prefer:'return=minimal'}),
+      body: JSON.stringify({
+        id: uid,
+        title: calTitle,
+        description: desc || null,
+        client_id: clientId,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        meet_url: url || null,
+        ical_uid: uid,
+        color: '#e040fb'
+      })
     });
+    if (!saveR.ok) console.warn('calendar_events save failed:', await saveR.text());
 
     toast('Wydarzenie dodane do kalendarza ✅');
     closeModal('m-new-event');

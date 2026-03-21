@@ -708,6 +708,7 @@ async function loadPastMeetings() {
 
   const now = new Date().toISOString();
   const [pastByClient, pastBySN, readRecords] = await Promise.all([
+    // Show all past events — including deleted ones (so notes survive deletion)
     dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=*&order=starts_at.desc&limit=20`),
     dbGet('scheduled_notifications', `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=*&order=scheduled_at.desc&limit=20`),
     dbGet('meeting_notes_read', `?user_id=eq.${Auth.userId}&select=event_id,notes_hash`)
