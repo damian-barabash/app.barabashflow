@@ -2196,7 +2196,7 @@ async function loadCalEvents() {
             ${e.notes?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:6px 8px;background:rgba(74,222,128,.07);border-radius:6px;border-left:2px solid #4ade80"><i class="ri-file-text-line"></i> ${esc(e.notes)}</div>`:''}
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-sm btn-outline" onclick="openMeetingNotes('${e.id}',${JSON.stringify(esc(e.notes||''))})" style="font-size:11px;padding:4px 8px"><i class="ri-edit-line"></i>${e.notes?'Edytuj':'Dodaj notatkę'}</button>
+            <button class="btn btn-sm btn-outline" onclick="openMeetingNotesByBtn(this)" data-id="${e.id}" data-notes="${esc(e.notes||'').replace(/"/g,'&quot;')}" style="font-size:11px;padding:4px 8px"><i class="ri-edit-line"></i>${e.notes?'Edytuj':'Dodaj notatkę'}</button>
             <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
           </div>
         </div>`;
@@ -2229,20 +2229,38 @@ function renderCalGrid(year, month) {
 
 async function deleteCalEvent(id, uid) {
   showConfirm('Usuń wydarzenie','To wydarzenie zostanie usunięte z kalendarza i Apple Calendar.', async()=>{
+    // Get event details first (to match scheduled_notification by time)
+    const [ev] = await dbGet('calendar_events', `?id=eq.${id}&select=starts_at,client_id`);
+
     await edgeFn('apple-calendar',{action:'delete', uid, ...ICLOUD_CFG});
     await fetch(`${SB}/rest/v1/calendar_events?id=eq.${id}`,{method:'DELETE',headers:hdr()});
-    // Also deactivate client's scheduled_notification for this event
-    await fetch(`${SB}/rest/v1/scheduled_notifications?meet_url=not.is.null`,{method:'PATCH',headers:hdr({Prefer:'return=minimal'}),body:JSON.stringify({is_active:false})});
+
+    // Deactivate matching scheduled_notification by scheduled_at time
+    if (ev?.starts_at) {
+      await fetch(`${SB}/rest/v1/scheduled_notifications?scheduled_at=eq.${encodeURIComponent(ev.starts_at)}&type=eq.meeting`,{
+        method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+        body: JSON.stringify({is_active: false})
+      });
+    }
+
     toast('Wydarzenie usunięte ✅'); loadCalendar();
   });
 }
 
 // ── MEETING NOTES ──
 let _meetingNotesId = null;
+
+function openMeetingNotesByBtn(btn) {
+  _meetingNotesId = btn.dataset.id;
+  const notes = btn.dataset.notes || '';
+  document.getElementById('mn-text').value = notes;
+  document.getElementById('mn-err').textContent = '';
+  openModal('m-meeting-notes');
+}
+
 function openMeetingNotes(eventId, currentNotes) {
   _meetingNotesId = eventId;
-  const decoded = currentNotes.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#039;/g,"'").replace(/&quot;/g,'"');
-  document.getElementById('mn-text').value = decoded;
+  document.getElementById('mn-text').value = currentNotes || '';
   document.getElementById('mn-err').textContent = '';
   openModal('m-meeting-notes');
 }
