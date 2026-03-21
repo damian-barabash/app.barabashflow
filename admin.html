@@ -2284,12 +2284,13 @@ async function saveMeetingNotes() {
 let _creatingEvent = false;
 async function createCalendarEvent() {
   if (_creatingEvent) return;
-  const title  = document.getElementById('ev-title').value.trim();
-  const start  = document.getElementById('ev-start').value;
-  const end    = document.getElementById('ev-end').value;
-  const url    = document.getElementById('ev-url').value.trim();
-  const desc   = document.getElementById('ev-desc').value.trim();
-  const errEl  = document.getElementById('ev-err');
+  const title    = document.getElementById('ev-title').value.trim();
+  const start    = document.getElementById('ev-start').value;
+  const end      = document.getElementById('ev-end').value;
+  const url      = document.getElementById('ev-url').value.trim();
+  const desc     = document.getElementById('ev-desc').value.trim();
+  const clientId = document.getElementById('ev-client').value || null;
+  const errEl    = document.getElementById('ev-err');
   errEl.textContent='';
   if (!title)  { errEl.textContent='Wpisz tytuł'; return; }
   if (!start)  { errEl.textContent='Wybierz datę i godzinę początku'; return; }
@@ -2305,8 +2306,31 @@ async function createCalendarEvent() {
   try {
     const uid = crypto.randomUUID();
     const startsAt=startDate.toISOString(), endsAt=endDate.toISOString();
-    const calR = await edgeFn('apple-calendar',{action:'create', uid, ...ICLOUD_CFG, title, description:desc, meetUrl:url, startsAt, endsAt});
+
+    // Build calendar title — include client name if selected
+    let calTitle = title;
+    if (clientId) {
+      const sel = document.getElementById('ev-client');
+      const clientName = sel.options[sel.selectedIndex]?.text || '';
+      if (clientName && clientName !== '— brak —') calTitle = title + ' — ' + clientName;
+    }
+
+    const calR = await edgeFn('apple-calendar',{action:'create', uid, ...ICLOUD_CFG, title:calTitle, description:desc, meetUrl:url, startsAt, endsAt});
     if (!calR.ok) throw new Error('Apple Calendar error: '+JSON.stringify(calR));
+
+    // Save to calendar_events in DB (with client_id so client can see it)
+    await dbPost('calendar_events', {
+      id: uid,
+      title: calTitle,
+      description: desc || null,
+      client_id: clientId,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      meet_url: url || null,
+      ical_uid: uid,
+      color: '#e040fb'
+    });
+
     toast('Wydarzenie dodane do kalendarza ✅');
     closeModal('m-new-event');
     ['ev-title','ev-start','ev-end','ev-url','ev-desc'].forEach(id=>document.getElementById(id).value='');
