@@ -2046,6 +2046,8 @@ async function sendScheduledNotif() {
   if (!userId) { errEl.textContent='Wybierz klienta'; return; }
   if (!title)  { errEl.textContent='Wpisz tytuł'; return; }
 
+  const clientId = userId || null;
+
   let scheduledAt=null, meetUrl=null, durationMin=60, calEventId=null;
 
   if (type==='meeting') {
@@ -2092,7 +2094,7 @@ async function sendScheduledNotif() {
         body: JSON.stringify({
           id: uid,
           title: `${title} — ${clientName}`,
-          client_id: userId,
+          client_id: clientId,
           starts_at: startsAt,
           ends_at: endsAt,
           meet_url: meetUrl || null,
