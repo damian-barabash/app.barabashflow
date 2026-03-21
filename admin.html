@@ -2085,6 +2085,22 @@ async function sendScheduledNotif() {
         meetUrl:meetUrl, startsAt, endsAt
       });
 
+      // Save to calendar_events so client can see it in "Zakończone spotkania"
+      await fetch(`${SB}/rest/v1/calendar_events`, {
+        method: 'POST',
+        headers: hdr({Prefer:'return=minimal'}),
+        body: JSON.stringify({
+          id: uid,
+          title: `${title} — ${clientName}`,
+          client_id: userId,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          meet_url: meetUrl || null,
+          ical_uid: uid,
+          color: '#e040fb'
+        })
+      });
+
       const statusEl = document.getElementById('cal-sync-status');
       if (calR.ok) {
         if(statusEl){statusEl.textContent='●';statusEl.style.color='var(--green)';}
