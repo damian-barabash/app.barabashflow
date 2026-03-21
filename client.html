@@ -687,14 +687,15 @@ async function checkScheduledNotifications() {
 }
 
 async function loadPastMeetingsBadge() {
-  // Count calendar events in past for this client's projects
-  const projs = await dbGet('projects',`?client_id=eq.${Auth.userId}&select=id`);
-  if (!projs.length) return;
-  const projIds = projs.map(p=>p.id);
-  const past = await dbGet('calendar_events',
-    `?client_id=eq.${Auth.userId}&starts_at=lt.${new Date().toISOString()}&select=id`);
+  const now = new Date().toISOString();
+  const [byClient, bySN] = await Promise.all([
+    dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=id`),
+    dbGet('scheduled_notifications', `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=id`)
+  ]);
+  // Deduplicate approximately
+  const total = Math.max(byClient.length, bySN.length);
   const nb = document.getElementById('nb-past-meets');
-  if (nb && past.length) { nb.textContent=past.length; nb.classList.add('show'); }
+  if (nb && total > 0) { nb.textContent = total; nb.classList.add('show'); }
   else if (nb) nb.classList.remove('show');
 }
 
@@ -702,15 +703,41 @@ async function loadPastMeetings() {
   const el = document.getElementById('past-meetings-list');
   el.innerHTML = '<div style="padding:20px;text-align:center"><span class="spin"><i class="ri-loader-4-line" style="font-size:20px;color:var(--a)"></i></span></div>';
 
-  const past = await dbGet('calendar_events',
-    `?client_id=eq.${Auth.userId}&starts_at=lt.${new Date().toISOString()}&select=*&order=starts_at.desc&limit=20`);
+  const now = new Date().toISOString();
 
-  if (!past.length) {
+  // Get past meetings from calendar_events by client_id
+  const [pastByClient, pastBySN] = await Promise.all([
+    dbGet('calendar_events',
+      `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=*&order=starts_at.desc&limit=20`),
+    // Also find via scheduled_notifications (for events where client_id wasn't set)
+    dbGet('scheduled_notifications',
+      `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=*&order=scheduled_at.desc&limit=20`)
+  ]);
+
+  // Merge — prefer calendar_events data, use sn as fallback
+  const calIds = new Set(pastByClient.map(e => e.id));
+  const snFallback = pastBySN
+    .filter(sn => !pastByClient.some(e =>
+      Math.abs(new Date(e.starts_at) - new Date(sn.scheduled_at)) < 60000
+    ))
+    .map(sn => ({
+      id: sn.id,
+      title: sn.title,
+      starts_at: sn.scheduled_at,
+      meet_url: sn.meet_url,
+      notes: null,
+      _from_sn: true
+    }));
+
+  const all = [...pastByClient, ...snFallback]
+    .sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
+
+  if (!all.length) {
     el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--t3);font-size:13px"><i class="ri-calendar-check-line" style="font-size:32px;display:block;margin-bottom:8px"></i>Brak zakończonych spotkań</div>';
     return;
   }
 
-  el.innerHTML = past.map(e => {
+  el.innerHTML = all.map(e => {
     const start = new Date(e.starts_at);
     const dateStr = start.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
     const timeStr = start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
