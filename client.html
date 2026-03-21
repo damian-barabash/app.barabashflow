@@ -688,15 +688,18 @@ async function checkScheduledNotifications() {
 
 async function loadPastMeetingsBadge() {
   const now = new Date().toISOString();
-  const [byClient, bySN] = await Promise.all([
-    dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=id`),
-    dbGet('scheduled_notifications', `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=id`)
+  const [pastEvents, readRecords] = await Promise.all([
+    dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=id,notes`),
+    dbGet('meeting_notes_read', `?user_id=eq.${Auth.userId}&select=event_id,notes_hash`)
   ]);
-  // Deduplicate approximately
-  const total = Math.max(byClient.length, bySN.length);
+  const readMap = {};
+  readRecords.forEach(r => { readMap[r.event_id] = r.notes_hash; });
+  const unread = pastEvents.filter(e => e.notes && readMap[e.id] !== e.notes);
   const nb = document.getElementById('nb-past-meets');
-  if (nb && total > 0) { nb.textContent = total; nb.classList.add('show'); }
-  else if (nb) nb.classList.remove('show');
+  if (nb) {
+    if (unread.length) { nb.textContent = unread.length; nb.classList.add('show'); }
+    else nb.classList.remove('show');
+  }
 }
 
 async function loadPastMeetings() {
@@ -704,33 +707,20 @@ async function loadPastMeetings() {
   el.innerHTML = '<div style="padding:20px;text-align:center"><span class="spin"><i class="ri-loader-4-line" style="font-size:20px;color:var(--a)"></i></span></div>';
 
   const now = new Date().toISOString();
-
-  // Get past meetings from calendar_events by client_id
-  const [pastByClient, pastBySN] = await Promise.all([
-    dbGet('calendar_events',
-      `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=*&order=starts_at.desc&limit=20`),
-    // Also find via scheduled_notifications (for events where client_id wasn't set)
-    dbGet('scheduled_notifications',
-      `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=*&order=scheduled_at.desc&limit=20`)
+  const [pastByClient, pastBySN, readRecords] = await Promise.all([
+    dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=*&order=starts_at.desc&limit=20`),
+    dbGet('scheduled_notifications', `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=*&order=scheduled_at.desc&limit=20`),
+    dbGet('meeting_notes_read', `?user_id=eq.${Auth.userId}&select=event_id,notes_hash`)
   ]);
 
-  // Merge — prefer calendar_events data, use sn as fallback
-  const calIds = new Set(pastByClient.map(e => e.id));
-  const snFallback = pastBySN
-    .filter(sn => !pastByClient.some(e =>
-      Math.abs(new Date(e.starts_at) - new Date(sn.scheduled_at)) < 60000
-    ))
-    .map(sn => ({
-      id: sn.id,
-      title: sn.title,
-      starts_at: sn.scheduled_at,
-      meet_url: sn.meet_url,
-      notes: null,
-      _from_sn: true
-    }));
+  const readMap = {};
+  readRecords.forEach(r => { readMap[r.event_id] = r.notes_hash; });
 
-  const all = [...pastByClient, ...snFallback]
-    .sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
+  const snFallback = pastBySN
+    .filter(sn => !pastByClient.some(e => Math.abs(new Date(e.starts_at) - new Date(sn.scheduled_at)) < 60000))
+    .map(sn => ({id:sn.id, title:sn.title, starts_at:sn.scheduled_at, meet_url:sn.meet_url, notes:null, _from_sn:true}));
+
+  const all = [...pastByClient, ...snFallback].sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
 
   if (!all.length) {
     el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--t3);font-size:13px"><i class="ri-calendar-check-line" style="font-size:32px;display:block;margin-bottom:8px"></i>Brak zakończonych spotkań</div>';
@@ -738,23 +728,60 @@ async function loadPastMeetings() {
   }
 
   el.innerHTML = all.map(e => {
-    const start = new Date(e.starts_at);
-    const dateStr = start.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
-    const timeStr = start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
-    return `<div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px">
-      <div style="width:42px;height:42px;border-radius:50%;background:rgba(74,222,128,.12);border:2px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">✅</div>
+    const start    = new Date(e.starts_at);
+    const dateStr  = start.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+    const timeStr  = start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    const hasNotes = !!e.notes;
+    const notesNew = hasNotes && readMap[e.id] !== e.notes;
+    const bgColor  = notesNew ? 'rgba(74,222,128,.03)' : 'transparent';
+
+    const notesHtml = hasNotes
+      ? `<div style="font-size:12px;color:var(--t2);background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:10px 12px;line-height:1.6;margin-top:6px">
+           <div style="font-size:10px;color:#4ade80;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+             <i class="ri-file-text-line"></i> Notatka ze spotkania
+             ${notesNew ? '<span style="background:#4ade80;color:#000;border-radius:4px;padding:1px 5px;font-size:9px;margin-left:4px">NOWA</span>' : ''}
+           </div>
+           ${esc(e.notes)}
+         </div>`
+      : `<div style="font-size:11px;color:var(--t3);font-style:italic;margin-top:4px">Brak notatki od administratora</div>`;
+
+    return `<div onclick="markMeetingRead('${e.id}','${esc(e.notes||'').replace(/'/g,'\\\'')}')"
+      style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .15s;background:${bgColor}"
+      onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${bgColor}'">
+      <div style="width:42px;height:42px;border-radius:50%;background:rgba(74,222,128,.12);border:2px solid ${notesNew?'rgba(74,222,128,.6)':'rgba(74,222,128,.3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">✅</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;margin-bottom:3px">${esc(e.title)}</div>
-        <div style="font-size:11px;color:var(--t3);margin-bottom:6px">${dateStr} · ${timeStr}</div>
-        ${e.notes ? `
-          <div style="font-size:12px;color:var(--t2);background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:10px 12px;line-height:1.6">
-            <div style="font-size:10px;color:#4ade80;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px"><i class="ri-file-text-line"></i> Notatka ze spotkania</div>
-            ${esc(e.notes)}
-          </div>` : `<div style="font-size:11px;color:var(--t3);font-style:italic">Brak notatki od administratora</div>`}
+        <div style="font-size:13px;font-weight:${notesNew?'700':'600'};margin-bottom:2px">${esc(e.title)}</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:2px">${dateStr} · ${timeStr}</div>
+        ${notesHtml}
       </div>
-      <span style="font-size:10px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:100px;padding:2px 8px;flex-shrink:0">Zakończone</span>
+      <span style="font-size:10px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:2px">Zakończone</span>
     </div>`;
   }).join('');
+
+  // Auto-mark all as read after 2s
+  setTimeout(() => markAllMeetingsRead(pastByClient.filter(e => e.notes)), 2000);
+}
+
+async function markMeetingRead(eventId, notes) {
+  if (!eventId || eventId === 'null' || !notes) return;
+  await fetch(`${SB}/rest/v1/meeting_notes_read`, {
+    method:'POST',
+    headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+    body: JSON.stringify({event_id:eventId, user_id:Auth.userId, notes_hash:notes, read_at:new Date().toISOString()})
+  });
+  loadPastMeetingsBadge();
+}
+
+async function markAllMeetingsRead(events) {
+  for (const e of events) {
+    if (!e.notes) continue;
+    await fetch(`${SB}/rest/v1/meeting_notes_read`, {
+      method:'POST',
+      headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify({event_id:e.id, user_id:Auth.userId, notes_hash:e.notes, read_at:new Date().toISOString()})
+    });
+  }
+  loadPastMeetingsBadge();
 }
 
 // ── NOTIFICATION CONTAINER ──
