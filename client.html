@@ -707,21 +707,16 @@ async function loadPastMeetings() {
   el.innerHTML = '<div style="padding:20px;text-align:center"><span class="spin"><i class="ri-loader-4-line" style="font-size:20px;color:var(--a)"></i></span></div>';
 
   const now = new Date().toISOString();
-  const [pastByClient, pastBySN, readRecords] = await Promise.all([
-    // Show all past events — including deleted ones (so notes survive deletion)
+  const [pastByClient, readRecords] = await Promise.all([
+    // Show all past events including soft-deleted (so notes survive admin deletion)
     dbGet('calendar_events', `?client_id=eq.${Auth.userId}&starts_at=lt.${now}&select=*&order=starts_at.desc&limit=20`),
-    dbGet('scheduled_notifications', `?user_id=eq.${Auth.userId}&type=eq.meeting&scheduled_at=lt.${now}&select=*&order=scheduled_at.desc&limit=20`),
     dbGet('meeting_notes_read', `?user_id=eq.${Auth.userId}&select=event_id,notes_hash`)
   ]);
 
   const readMap = {};
   readRecords.forEach(r => { readMap[r.event_id] = r.notes_hash; });
 
-  const snFallback = pastBySN
-    .filter(sn => !pastByClient.some(e => Math.abs(new Date(e.starts_at) - new Date(sn.scheduled_at)) < 60000))
-    .map(sn => ({id:sn.id, title:sn.title, starts_at:sn.scheduled_at, meet_url:sn.meet_url, notes:null, _from_sn:true}));
-
-  const all = [...pastByClient, ...snFallback].sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
+  const all = pastByClient;
 
   if (!all.length) {
     el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--t3);font-size:13px"><i class="ri-calendar-check-line" style="font-size:32px;display:block;margin-bottom:8px"></i>Brak zakończonych spotkań</div>';
