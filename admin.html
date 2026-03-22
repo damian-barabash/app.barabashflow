@@ -2090,7 +2090,7 @@ async function sendScheduledNotif() {
       // Save to calendar_events so client can see it in "Zakończone spotkania"
       await fetch(`${SB}/rest/v1/calendar_events`, {
         method: 'POST',
-        headers: hdr({Prefer:'resolution=ignore-duplicates,return=minimal'}),
+        headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
         body: JSON.stringify({
           id: uid,
           title: `${title} — ${clientName}`,
@@ -2344,7 +2344,7 @@ async function createCalendarEvent() {
     // Save to calendar_events in DB (with client_id so client can see it)
     const saveR = await fetch(`${SB}/rest/v1/calendar_events`, {
       method: 'POST',
-      headers: hdr({Prefer:'resolution=ignore-duplicates,return=minimal'}),
+      headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
       body: JSON.stringify({
         id: uid,
         title: calTitle,
