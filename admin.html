@@ -872,6 +872,7 @@
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="panel.js"></script>
 <script>
 if (!Auth.requireAdmin()) throw 0;
+startTokenRefresh();
 runPreloader();
 document.getElementById('adminName').textContent = Auth.name || 'Admin';
 document.getElementById('adminAv').textContent   = initials(Auth.name) || 'D';

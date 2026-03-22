@@ -239,6 +239,7 @@
 <script src="panel.js"></script>
 <script>
 if (!Auth.requireClient()) throw 0;
+startTokenRefresh();
 runPreloader();
 
 const myName  = Auth.name  || Auth.email || 'Klient';

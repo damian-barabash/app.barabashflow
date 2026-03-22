@@ -101,12 +101,13 @@ document.getElementById('form').addEventListener('submit',async function(e){
       return;
     }
     const p=d.profile;
-    localStorage.setItem('bf_token', d.access_token);
-    localStorage.setItem('bf_uid',   d.user_id);
-    localStorage.setItem('bf_role',  p.role);
-    localStorage.setItem('bf_name',  p.display_name||email.split('@')[0]);
-    localStorage.setItem('bf_email', p.email);
-    localStorage.setItem('bf_exp',   String(Date.now()+SESSION_MS));
+    localStorage.setItem('bf_token',   d.access_token);
+    localStorage.setItem('bf_refresh', d.refresh_token || '');
+    localStorage.setItem('bf_uid',     d.user_id);
+    localStorage.setItem('bf_role',    p.role);
+    localStorage.setItem('bf_name',    p.display_name||email.split('@')[0]);
+    localStorage.setItem('bf_email',   p.email);
+    localStorage.setItem('bf_exp',     String(Date.now()+SESSION_MS));
     location.replace(p.role==='admin'?'admin.html':'client.html');
   }catch(ex){console.error(ex);showErr('Błąd połączenia. Sprawdź internet.');}
   finally{btn.disabled=false;btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';}

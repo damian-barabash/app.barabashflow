@@ -1,26 +1,63 @@
-/* BARABASH FLOW — panel.js v8 */
+/* BARABASH FLOW — panel.js v9 */
 const SB   = 'https://ztcyhlitwwganjhgbbtm.supabase.co';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
 const EDGE = SB + '/functions/v1';
 const LOGO_URL = SB + '/storage/v1/object/public/assets/logo.png';
+const SESSION_DAYS = 5;
 
 /* ── AUTH ── */
 const Auth = {
-  get token()  { return localStorage.getItem('bf_token'); },
-  get userId() { return localStorage.getItem('bf_uid'); },
-  get role()   { return localStorage.getItem('bf_role'); },
-  get name()   { return localStorage.getItem('bf_name'); },
-  get email()  { return localStorage.getItem('bf_email'); },
-  get exp()    { return Number(localStorage.getItem('bf_exp')||0); },
-  isValid()    { return !!(this.token && this.role && this.exp && Date.now() < this.exp); },
+  get token()   { return localStorage.getItem('bf_token'); },
+  get refresh() { return localStorage.getItem('bf_refresh'); },
+  get userId()  { return localStorage.getItem('bf_uid'); },
+  get role()    { return localStorage.getItem('bf_role'); },
+  get name()    { return localStorage.getItem('bf_name'); },
+  get email()   { return localStorage.getItem('bf_email'); },
+  get exp()     { return Number(localStorage.getItem('bf_exp')||0); },
+  isValid()     { return !!(this.token && this.role && this.exp && Date.now() < this.exp); },
   requireAdmin()  { if (!this.isValid() || this.role !== 'admin')  { location.href='login.html'; return false; } return true; },
   requireClient() { if (!this.isValid() || this.role !== 'client') { location.href='login.html'; return false; } return true; },
-  clear() { ['bf_token','bf_uid','bf_role','bf_name','bf_email','bf_exp'].forEach(k=>localStorage.removeItem(k)); },
+  clear() { ['bf_token','bf_refresh','bf_uid','bf_role','bf_name','bf_email','bf_exp'].forEach(k=>localStorage.removeItem(k)); },
   async logout() {
     try { await fetch(SB+'/auth/v1/logout',{method:'POST',headers:{apikey:ANON,Authorization:'Bearer '+this.token}}); } catch(_){}
     this.clear(); location.href='login.html';
+  },
+  // Refresh JWT token using refresh_token
+  async refreshToken() {
+    const rt = this.refresh;
+    if (!rt) return false;
+    try {
+      const r = await fetch(`${SB}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: {apikey: ANON, 'Content-Type':'application/json'},
+        body: JSON.stringify({refresh_token: rt})
+      });
+      if (!r.ok) return false;
+      const d = await r.json();
+      if (!d.access_token) return false;
+      localStorage.setItem('bf_token',   d.access_token);
+      localStorage.setItem('bf_refresh', d.refresh_token || rt);
+      localStorage.setItem('bf_exp',     String(Date.now() + SESSION_DAYS*24*60*60*1000));
+      return true;
+    } catch { return false; }
   }
 };
+
+// Auto-refresh: check every 30 min, refresh if JWT expires in <10 min
+async function startTokenRefresh() {
+  const check = async () => {
+    if (!Auth.isValid()) return; // already logged out
+    // JWT expires in <10 min → refresh
+    const jwtPayload = JSON.parse(atob(Auth.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    const jwtExp = jwtPayload.exp * 1000;
+    if (jwtExp - Date.now() < 10 * 60 * 1000) {
+      const ok = await Auth.refreshToken();
+      if (!ok) { Auth.clear(); location.href='login.html'; }
+    }
+  };
+  await check(); // check immediately on load
+  setInterval(check, 30 * 60 * 1000); // then every 30 min
+}
 
 /* ── HTTP ── */
 function hdr(x={}) { return {apikey:ANON, Authorization:'Bearer '+Auth.token, 'Content-Type':'application/json', ...x}; }
