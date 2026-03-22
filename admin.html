@@ -2359,6 +2359,31 @@ async function createCalendarEvent() {
     });
     if (!saveR.ok) console.warn('calendar_events save failed:', await saveR.text());
 
+    // Create scheduled_notification for client so they get the meeting widget
+    if (clientId) {
+      await fetch(`${SB}/rest/v1/scheduled_notifications`, {
+        method: 'POST',
+        headers: hdr({Prefer:'return=minimal'}),
+        body: JSON.stringify({
+          id: uid,
+          user_id: clientId,
+          type: 'meeting',
+          title: calTitle,
+          meet_url: url || null,
+          scheduled_at: startsAt,
+          is_active: true
+        })
+      });
+      // Also send a regular notification
+      const sel = document.getElementById('ev-client');
+      const clientName = clientId ? (sel.options[sel.selectedIndex]?.text || '') : '';
+      await edgeFn('send-notification', {
+        userId: clientId,
+        content: `📅 Zaproszenie na spotkanie: <strong>${calTitle}</strong> · ${new Date(startsAt).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`,
+        type: 'meeting'
+      });
+    }
+
     toast('Wydarzenie dodane do kalendarza ✅');
     closeModal('m-new-event');
     ['ev-title','ev-start','ev-end','ev-url','ev-desc'].forEach(id=>document.getElementById(id).value='');
