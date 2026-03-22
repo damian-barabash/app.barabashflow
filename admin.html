@@ -42,6 +42,7 @@
     <div class="nav-link" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="nav-badge" id="nb-orders"></span></div>
     <div class="nav-link" data-view="archive"><i class="ri-archive-line"></i>Archiwum</div>
     <div class="nav-link" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
+    <div class="nav-link" data-view="notes"><i class="ri-sticky-note-line"></i>Notatki</div>
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
     <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
@@ -188,6 +189,77 @@
       </div>
       <div id="arc-clients"><div id="arc-clients-list"></div></div>
       <div id="arc-projects" style="display:none"><div id="arc-projects-list"></div></div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="v-notes" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div class="card-title">Moje notatki</div>
+        <button class="btn btn-primary btn-sm" onclick="openNoteEditor(null)"><i class="ri-add-line"></i>Nowa notatka</button>
+      </div>
+      <div id="notes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </div>
+
+    <!-- NOTE EDITOR OVERLAY -->
+    <div id="note-editor-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:min(680px,95vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5)">
+        <!-- Editor header -->
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <input id="note-title-input" placeholder="Tytuł notatki..." maxlength="100"
+            style="flex:1;background:none;border:none;outline:none;font-size:16px;font-weight:700;color:var(--t1);font-family:inherit">
+          <!-- Color picker -->
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <div class="note-color-dot" data-color="#1e1e2e" onclick="setNoteColor(this)" title="Domyślny"
+              style="width:18px;height:18px;border-radius:50%;background:#1e1e2e;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+            <div class="note-color-dot" data-color="#1a2744" onclick="setNoteColor(this)" title="Niebieski"
+              style="width:18px;height:18px;border-radius:50%;background:#1a2744;cursor:pointer;border:2px solid transparent"></div>
+            <div class="note-color-dot" data-color="#2d1a44" onclick="setNoteColor(this)" title="Fioletowy"
+              style="width:18px;height:18px;border-radius:50%;background:#2d1a44;cursor:pointer;border:2px solid transparent"></div>
+            <div class="note-color-dot" data-color="#1a3322" onclick="setNoteColor(this)" title="Zielony"
+              style="width:18px;height:18px;border-radius:50%;background:#1a3322;cursor:pointer;border:2px solid transparent"></div>
+            <div class="note-color-dot" data-color="#3d2200" onclick="setNoteColor(this)" title="Pomarańczowy"
+              style="width:18px;height:18px;border-radius:50%;background:#3d2200;cursor:pointer;border:2px solid transparent"></div>
+            <div class="note-color-dot" data-color="#3d1010" onclick="setNoteColor(this)" title="Czerwony"
+              style="width:18px;height:18px;border-radius:50%;background:#3d1010;cursor:pointer;border:2px solid transparent"></div>
+          </div>
+          <button onclick="closeNoteEditor()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;padding:2px;line-height:1">✕</button>
+        </div>
+        <!-- Formatting toolbar -->
+        <div style="display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <button onclick="noteCmd('bold')" title="Pogrubienie (Ctrl+B)"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);font-weight:800;font-size:13px">B</button>
+          <button onclick="noteCmd('italic')" title="Kursywa (Ctrl+I)"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);font-style:italic;font-size:13px">I</button>
+          <button onclick="noteCmd('underline')" title="Podkreślenie (Ctrl+U)"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);text-decoration:underline;font-size:13px">U</button>
+          <button onclick="noteCmd('strikeThrough')" title="Przekreślenie"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);text-decoration:line-through;font-size:13px">S</button>
+          <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+          <button onclick="noteCmd('insertUnorderedList')" title="Lista"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);font-size:14px"><i class="ri-list-unordered"></i></button>
+          <button onclick="noteCmd('insertOrderedList')" title="Lista numerowana"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);font-size:14px"><i class="ri-list-ordered"></i></button>
+          <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+          <button onclick="noteFormatHeading('h2')" title="Nagłówek"
+            style="padding:0 8px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t1);font-size:12px;font-weight:700">H</button>
+          <button onclick="noteCmd('removeFormat')" title="Usuń formatowanie"
+            style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t3);font-size:13px"><i class="ri-format-clear"></i></button>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <span id="note-save-status" style="font-size:11px;color:var(--t3);align-self:center"></span>
+            <button onclick="pinCurrentNote()" id="note-pin-btn" title="Przypnij"
+              style="width:30px;height:30px;border:1px solid var(--border);background:var(--bg3);border-radius:6px;cursor:pointer;color:var(--t3);font-size:14px"><i class="ri-pushpin-line"></i></button>
+          </div>
+        </div>
+        <!-- Editor content -->
+        <div id="note-content-editor" contenteditable="true"
+          style="flex:1;padding:20px;outline:none;font-size:14px;line-height:1.8;color:var(--t1);overflow-y:auto;min-height:300px;max-height:60vh"
+          data-placeholder="Zacznij pisać..."></div>
+        <!-- Footer -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid var(--border)">
+          <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px"><i class="ri-delete-bin-line"></i>Usuń</button>
+          <button onclick="saveCurrentNote()" class="btn btn-primary btn-sm" style="margin-left:auto"><i class="ri-save-line"></i>Zapisz</button>
+        </div>
+      </div>
     </div>
 
     <!-- CALENDAR -->
@@ -892,17 +964,18 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','maile','admins'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','maile','admins','notes'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy',notes:'Moje notatki'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard')     loadDash();
   if (v==='clients')       { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
   if (v==='orders')        loadOrders();
   if (v==='archive')       loadArchive();
   if (v==='calendar')      { loadCalendar(); loadEvClientSelect(); }
+  if (v==='notes')         { loadNotes(); }
   if (v==='send-notif')    { loadNotifClientSelect(); }
   if (v==='leads')         loadLeads();
   if (v==='notifs-admin')  loadAdminNotifs();
@@ -3061,6 +3134,180 @@ loadAdminAvatar();
 checkMainAdminStatus();
 
 // Load ALL nav badges immediately on startup (parallel)
+// ══════════════════════════════════════════════════════
+// ── ADMIN NOTES ──
+// ══════════════════════════════════════════════════════
+let _currentNoteId   = null;
+let _currentNoteColor = '#1e1e2e';
+let _currentNotePinned = false;
+let _noteSaveTimer   = null;
+
+async function loadNotes() {
+  const grid = document.getElementById('notes-grid');
+  grid.innerHTML = [1,2,3].map(()=>`
+    <div class="skeleton-card note-card" style="min-height:120px;border-radius:14px">
+      <div class="skeleton skeleton-line w70" style="height:14px"></div>
+      <div class="skeleton skeleton-line w100" style="height:11px;margin-top:6px"></div>
+      <div class="skeleton skeleton-line w80" style="height:11px"></div>
+    </div>`).join('');
+
+  const notes = await dbGet('admin_notes',
+    `?admin_id=eq.${Auth.userId}&select=*&order=pinned.desc,updated_at.desc`);
+
+  if (!notes.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--t3)">
+      <i class="ri-sticky-note-line" style="font-size:40px;display:block;margin-bottom:10px"></i>
+      <div style="font-size:14px">Brak notatek. Kliknij <strong>Nowa notatka</strong> aby zacząć.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = notes.map(n => {
+    const preview = n.content
+      .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0, 160);
+    const date = new Date(n.updated_at).toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'});
+    return `
+    <div class="note-card" style="background:${n.color||'#1e1e2e'}" onclick="openNoteEditor('${n.id}')">
+      ${n.pinned ? '<span class="note-pin-badge"><i class="ri-pushpin-fill"></i></span>' : ''}
+      <div class="note-card-title">${n.title || '<span style="color:var(--t3);font-weight:400">Bez tytułu</span>'}</div>
+      ${preview ? `<div class="note-card-preview">${esc(preview)}</div>` : ''}
+      <div class="note-card-footer">
+        <span>${date}</span>
+        ${n.pinned ? '<span style="color:#e040fb;font-size:10px">📌 Przypięta</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openNoteEditor(noteId) {
+  _currentNoteId = noteId;
+  _currentNotePinned = false;
+
+  const overlay = document.getElementById('note-editor-overlay');
+  const editor  = document.getElementById('note-content-editor');
+  const titleEl = document.getElementById('note-title-input');
+  const pinBtn  = document.getElementById('note-pin-btn');
+  const delBtn  = document.getElementById('note-delete-btn');
+  const status  = document.getElementById('note-save-status');
+  status.textContent = '';
+
+  if (noteId) {
+    const [note] = await dbGet('admin_notes', `?id=eq.${noteId}&admin_id=eq.${Auth.userId}&select=*`);
+    if (!note) return;
+    titleEl.value      = note.title || '';
+    editor.innerHTML   = note.content || '';
+    _currentNoteColor  = note.color || '#1e1e2e';
+    _currentNotePinned = note.pinned || false;
+    delBtn.style.display = 'flex';
+  } else {
+    titleEl.value      = '';
+    editor.innerHTML   = '';
+    _currentNoteColor  = '#1e1e2e';
+    _currentNotePinned = false;
+    delBtn.style.display = 'none';
+  }
+
+  // Sync color dots
+  document.querySelectorAll('.note-color-dot').forEach(d => {
+    d.style.border = d.dataset.color === _currentNoteColor
+      ? '2px solid rgba(255,255,255,.8)' : '2px solid transparent';
+  });
+
+  // Pin button state
+  pinBtn.style.color = _currentNotePinned ? '#e040fb' : 'var(--t3)';
+  pinBtn.innerHTML   = _currentNotePinned
+    ? '<i class="ri-pushpin-fill"></i>' : '<i class="ri-pushpin-line"></i>';
+
+  overlay.style.display = 'flex';
+  setTimeout(() => titleEl.focus(), 50);
+}
+
+function closeNoteEditor() {
+  clearTimeout(_noteSaveTimer);
+  document.getElementById('note-editor-overlay').style.display = 'none';
+  loadNotes();
+}
+
+function noteCmd(cmd) {
+  document.getElementById('note-content-editor').focus();
+  document.execCommand(cmd, false, null);
+}
+
+function noteFormatHeading(tag) {
+  document.getElementById('note-content-editor').focus();
+  document.execCommand('formatBlock', false, tag);
+}
+
+function setNoteColor(dotEl) {
+  _currentNoteColor = dotEl.dataset.color;
+  document.querySelectorAll('.note-color-dot').forEach(d => {
+    d.style.border = d.dataset.color === _currentNoteColor
+      ? '2px solid rgba(255,255,255,.8)' : '2px solid transparent';
+  });
+}
+
+function pinCurrentNote() {
+  _currentNotePinned = !_currentNotePinned;
+  const btn = document.getElementById('note-pin-btn');
+  btn.style.color  = _currentNotePinned ? '#e040fb' : 'var(--t3)';
+  btn.innerHTML    = _currentNotePinned
+    ? '<i class="ri-pushpin-fill"></i>' : '<i class="ri-pushpin-line"></i>';
+}
+
+async function saveCurrentNote() {
+  const title   = document.getElementById('note-title-input').value.trim();
+  const content = document.getElementById('note-content-editor').innerHTML.trim();
+  const status  = document.getElementById('note-save-status');
+
+  const payload = {
+    admin_id: Auth.userId,
+    title:    title || '',
+    content:  content,
+    color:    _currentNoteColor,
+    pinned:   _currentNotePinned
+  };
+
+  status.textContent = 'Zapisywanie...';
+
+  if (_currentNoteId) {
+    await fetch(`${SB}/rest/v1/admin_notes?id=eq.${_currentNoteId}&admin_id=eq.${Auth.userId}`, {
+      method: 'PATCH', headers: hdr({Prefer:'return=minimal'}),
+      body: JSON.stringify({title:payload.title, content:payload.content, color:payload.color, pinned:payload.pinned})
+    });
+  } else {
+    const r = await fetch(`${SB}/rest/v1/admin_notes`, {
+      method: 'POST', headers: hdr({Prefer:'return=representation'}),
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    _currentNoteId = Array.isArray(d) ? d[0]?.id : d?.id;
+    document.getElementById('note-delete-btn').style.display = 'flex';
+  }
+  status.textContent = '✓ Zapisano';
+  setTimeout(()=>{ status.textContent=''; }, 2000);
+}
+
+async function deleteCurrentNote() {
+  if (!_currentNoteId) { closeNoteEditor(); return; }
+  showConfirm('Usuń notatkę', 'Tej operacji nie można cofnąć.', async () => {
+    await fetch(`${SB}/rest/v1/admin_notes?id=eq.${_currentNoteId}&admin_id=eq.${Auth.userId}`,
+      { method:'DELETE', headers:hdr() });
+    closeNoteEditor();
+  });
+}
+
+// Ctrl+S to save inside editor
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='s') {
+    if (document.getElementById('note-editor-overlay').style.display==='flex') {
+      e.preventDefault(); saveCurrentNote();
+    }
+  }
+  if (e.key==='Escape') {
+    if (document.getElementById('note-editor-overlay').style.display==='flex') closeNoteEditor();
+  }
+});
+
 async function loadAllBadges() {
   const [clients, orders, leads, notifs, inbox] = await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=id'),
