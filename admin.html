@@ -39,12 +39,33 @@
   <nav class="sidebar-nav">
     <div class="nav-link active" data-view="dashboard"><i class="ri-dashboard-line"></i>Dashboard</div>
     <div class="nav-link" data-view="clients"><i class="ri-team-line"></i>Klienci<span class="nav-badge" id="nb-clients"></span></div>
-    <div class="nav-link" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="nav-badge" id="nb-orders"></span></div>
-    <div class="nav-link" data-view="archive"><i class="ri-archive-line"></i>Archiwum</div>
-    <div class="nav-link" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
-    <div class="nav-link" data-view="notes"><i class="ri-sticky-note-line"></i>Notatki</div>
+
+    <!-- GROUP: Planowanie -->
+    <div class="nav-group" id="ng-planowanie">
+      <div class="nav-group-header" onclick="toggleNavGroup('planowanie')">
+        <span><i class="ri-calendar-2-line"></i>Planowanie</span>
+        <i class="ri-arrow-down-s-line nav-group-arrow" id="ng-arrow-planowanie"></i>
+      </div>
+      <div class="nav-group-body" id="ng-body-planowanie">
+        <div class="nav-link nav-sub" data-view="calendar"><i class="ri-calendar-line"></i>Kalendarz</div>
+        <div class="nav-link nav-sub" data-view="notes"><i class="ri-sticky-note-line"></i>Notatki</div>
+      </div>
+    </div>
+
+    <!-- GROUP: Organizacja -->
+    <div class="nav-group" id="ng-organizacja">
+      <div class="nav-group-header" onclick="toggleNavGroup('organizacja')">
+        <span><i class="ri-folder-2-line"></i>Organizacja<span class="nav-badge" id="nb-org-group"></span></span>
+        <i class="ri-arrow-down-s-line nav-group-arrow" id="ng-arrow-organizacja"></i>
+      </div>
+      <div class="nav-group-body" id="ng-body-organizacja">
+        <div class="nav-link nav-sub" data-view="orders"><i class="ri-file-list-3-line"></i>Formularze<span class="nav-badge" id="nb-orders"></span></div>
+        <div class="nav-link nav-sub" data-view="archive"><i class="ri-archive-line"></i>Archiwum</div>
+        <div class="nav-link nav-sub" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
+      </div>
+    </div>
+
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
-    <div class="nav-link" data-view="leads"><i class="ri-fire-line"></i>Zgłoszenia<span class="nav-badge" id="nb-leads"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
     <div class="nav-link" data-view="templates"><i class="ri-layout-line"></i>Szablony</div>
     <div class="nav-link" data-view="maile"><i class="ri-mail-send-line"></i>Maile<span class="nav-badge" id="nb-maile"></span></div>
@@ -945,6 +966,7 @@
 <script>
 if (!Auth.requireAdmin()) throw 0;
 startTokenRefresh();
+initNavGroups();
 runPreloader();
 document.getElementById('adminName').textContent = Auth.name || 'Admin';
 document.getElementById('adminAv').textContent   = initials(Auth.name) || 'D';
@@ -959,6 +981,48 @@ let _clientsRefreshIv=null;
 let _editingAdminId='';
 
 // ── NAV ──
+// ── NAV GROUPS ──
+const NAV_GROUP_VIEWS = {
+  planowanie:  ['calendar','notes'],
+  organizacja: ['orders','archive','leads']
+};
+
+function toggleNavGroup(id, forceOpen) {
+  const body  = document.getElementById('ng-body-'+id);
+  const arrow = document.getElementById('ng-arrow-'+id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  const open   = forceOpen !== undefined ? forceOpen : !isOpen;
+  body.classList.toggle('open', open);
+  arrow.classList.toggle('open', open);
+  try { localStorage.setItem('ng_'+id, open?'1':'0'); } catch(_){}
+}
+
+function initNavGroups() {
+  ['planowanie','organizacja'].forEach(id => {
+    const saved = localStorage.getItem('ng_'+id);
+    // Default open if never saved
+    const open = saved === null ? true : saved === '1';
+    toggleNavGroup(id, open);
+  });
+}
+
+function openGroupForView(v) {
+  for (const [id, views] of Object.entries(NAV_GROUP_VIEWS)) {
+    if (views.includes(v)) { toggleNavGroup(id, true); break; }
+  }
+}
+
+function updateOrgBadge() {
+  const orders = document.getElementById('nb-orders');
+  const leads  = document.getElementById('nb-leads');
+  const group  = document.getElementById('nb-org-group');
+  if (!group) return;
+  const n = (parseInt(orders?.textContent)||0) + (parseInt(leads?.textContent)||0);
+  if (n > 0) { group.textContent = n; group.classList.add('show'); }
+  else group.classList.remove('show');
+}
+
 document.querySelectorAll('.nav-link[data-view]').forEach(a => a.addEventListener('click', () => { nav(a.dataset.view); closeSidebar(); }));
 document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
@@ -968,6 +1032,7 @@ function nav(v) {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
+  openGroupForView(v);
   document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy',notes:'Moje notatki'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard')     loadDash();
@@ -1072,6 +1137,7 @@ async function loadDash() {
   document.getElementById('sc-o').textContent = orders.length;
   const nb=document.getElementById('nb-orders');
   if(orders.length){nb.textContent=orders.length;nb.classList.add('show');}else nb.classList.remove('show');
+  updateOrgBadge();
 
   // Extended — projects breakdown
   const activePrj   = allProjects.filter(p=>p.status==='active').length;
@@ -2882,6 +2948,7 @@ async function loadLeads() {
   const leads = await dbGet('leads', '?select=*&order=created_at.desc');
   const nb = document.getElementById('nb-leads');
   if (leads.length) { nb.textContent=leads.length; nb.classList.add('show'); } else nb.classList.remove('show');
+  updateOrgBadge();
   document.getElementById('leads-list').innerHTML = leads.map(l => `
     <div class="card" style="margin-bottom:10px;padding:16px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:${l.message?'12px':'0'}">
@@ -3350,10 +3417,15 @@ async function loadAllBadges() {
   // Orders badge
   const nbo = document.getElementById('nb-orders');
   if (nbo && orders.length) { nbo.textContent = orders.length; nbo.classList.add('show'); }
+  else if (nbo) nbo.classList.remove('show');
 
   // Leads badge
   const nbl = document.getElementById('nb-leads');
   if (nbl && leads.length) { nbl.textContent = leads.length; nbl.classList.add('show'); }
+  else if (nbl) nbl.classList.remove('show');
+
+  // Group Organizacja badge = orders + leads
+  updateOrgBadge();
 
   // Notifications badge
   const nbn = document.getElementById('nb-notifs-admin');

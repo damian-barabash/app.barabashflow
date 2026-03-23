@@ -543,3 +543,49 @@ select.form-control option{background:var(--bg3)}
 #note-content-editor h2 { font-size: 18px; font-weight: 700; margin: 12px 0 4px; }
 #note-content-editor ul, #note-content-editor ol { padding-left: 20px; }
 #note-content-editor li { margin: 2px 0; }
+
+/* ── NAV GROUPS ── */
+.nav-group { margin: 2px 0; }
+
+.nav-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t3);
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+.nav-group-header:hover { background: var(--bg3); color: var(--t2); }
+.nav-group-header > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-group-header > span i { font-size: 16px; }
+
+.nav-group-arrow {
+  font-size: 16px;
+  transition: transform .25s ease;
+  flex-shrink: 0;
+}
+.nav-group-arrow.open { transform: rotate(180deg); }
+
+.nav-group-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .28s ease;
+}
+.nav-group-body.open { max-height: 300px; }
+
+.nav-sub {
+  padding-left: 36px !important;
+  font-size: 13px;
+}
+.nav-group-header .nav-badge {
+  margin-left: 6px;
+}
