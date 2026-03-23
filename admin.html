@@ -2859,12 +2859,18 @@ async function loadInbox() {
   loadInboxBadge();
   if (!emails.length) { if(list) list.innerHTML=emptyHTML('ri-inbox-line','Skrzynka pusta. Kliknij Odśwież żeby pobrać nowe maile.'); return; }
   if(list) list.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
-    <div class="mail-item ${!m.is_read?'unread':''}" onclick="openInboxMsg('${m.id}')">
-      <div class="${!m.is_read?'mail-unread-dot':''}"></div>
-      <div class="mail-from">${esc(m.from_name||m.from_email)}</div>
-      <div class="mail-time">${timeAgo(m.received_at)}</div>
-      <div class="mail-subject">${esc(m.subject)}</div>
-      <div class="mail-preview">${esc((m.body_text||'').slice(0,80))}</div>
+    <div class="mail-item ${!m.is_read?'unread':''}" style="position:relative">
+      <div class="${!m.is_read?'mail-unread-dot':''}" onclick="openInboxMsg('${m.id}')"></div>
+      <div class="mail-from" onclick="openInboxMsg('${m.id}')">${esc(m.from_name||m.from_email)}</div>
+      <div class="mail-time" style="display:flex;align-items:center;gap:6px">
+        <span onclick="openInboxMsg('${m.id}')">${timeAgo(m.received_at)}</span>
+        <button onclick="event.stopPropagation();deleteInboxEmail('${m.id}','${esc(m.message_id||'')}')"
+          style="background:none;border:none;color:var(--t3);cursor:pointer;padding:2px;border-radius:4px;font-size:13px;line-height:1;flex-shrink:0;transition:color .15s"
+          onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t3)'"
+          title="Usuń"><i class="ri-delete-bin-line"></i></button>
+      </div>
+      <div class="mail-subject" onclick="openInboxMsg('${m.id}')">${esc(m.subject)}</div>
+      <div class="mail-preview" onclick="openInboxMsg('${m.id}')">${esc((m.body_text||'').slice(0,80))}</div>
     </div>`).join('')}</div>`;
 }
 
@@ -2880,7 +2886,13 @@ async function openInboxMsg(id) {
   const list   = document.getElementById('inbox-list');
   list.style.display='none'; detail.style.display='block';
   detail.innerHTML=`
-    <button class="btn btn-outline btn-sm" onclick="document.getElementById('inbox-list').style.display='block';document.getElementById('inbox-detail').style.display='none'" style="margin-bottom:16px"><i class="ri-arrow-left-line"></i> Wróć</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('inbox-list').style.display='block';document.getElementById('inbox-detail').style.display='none'"><i class="ri-arrow-left-line"></i> Wróć</button>
+      <button class="btn btn-sm" onclick="deleteInboxEmail('${msg.id}','${esc(msg.message_id||'')}',true)"
+        style="margin-left:auto;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px">
+        <i class="ri-delete-bin-line"></i>Usuń wiadomość
+      </button>
+    </div>
     <div class="card" style="padding:20px">
       <div style="margin-bottom:16px">
         <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(msg.subject)}</div>
@@ -2917,12 +2929,18 @@ async function loadSent() {
   const el = document.getElementById('sent-list');
   if (!emails.length) { el.innerHTML=emptyHTML('ri-send-plane-line','Brak wysłanych maili'); return; }
   el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${emails.map(m=>`
-    <div class="mail-item" onclick="openSentMsg('${m.id}')">
+    <div class="mail-item" style="position:relative">
       <div></div>
-      <div class="mail-from">Do: ${m.recipients.slice(0,2).map(esc).join(', ')}${m.recipients.length>2?` +${m.recipients.length-2}`:''}</div>
-      <div class="mail-time">${timeAgo(m.sent_at)}</div>
-      <div class="mail-subject">${esc(m.subject)}</div>
-      <div class="mail-preview">${esc(m.sender?.display_name||'')}</div>
+      <div class="mail-from" onclick="openSentMsg('${m.id}')">Do: ${m.recipients.slice(0,2).map(esc).join(', ')}${m.recipients.length>2?` +${m.recipients.length-2}`:''}</div>
+      <div class="mail-time" style="display:flex;align-items:center;gap:6px">
+        <span onclick="openSentMsg('${m.id}')">${timeAgo(m.sent_at)}</span>
+        <button onclick="event.stopPropagation();deleteSentEmail('${m.id}')"
+          style="background:none;border:none;color:var(--t3);cursor:pointer;padding:2px;border-radius:4px;font-size:13px;line-height:1;flex-shrink:0;transition:color .15s"
+          onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t3)'"
+          title="Usuń"><i class="ri-delete-bin-line"></i></button>
+      </div>
+      <div class="mail-subject" onclick="openSentMsg('${m.id}')">${esc(m.subject)}</div>
+      <div class="mail-preview" onclick="openSentMsg('${m.id}')">${esc(m.sender?.display_name||'')}</div>
     </div>`).join('')}</div>`;
 }
 
@@ -2933,7 +2951,13 @@ async function openSentMsg(id) {
   const list=document.getElementById('sent-list');
   list.style.display='none'; detail.style.display='block';
   detail.innerHTML=`
-    <button class="btn btn-outline btn-sm" onclick="document.getElementById('sent-list').style.display='block';document.getElementById('sent-detail').style.display='none'" style="margin-bottom:16px"><i class="ri-arrow-left-line"></i> Wróć</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('sent-list').style.display='block';document.getElementById('sent-detail').style.display='none'"><i class="ri-arrow-left-line"></i> Wróć</button>
+      <button onclick="deleteSentEmail('${msg.id}',true)"
+        style="margin-left:auto;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px">
+        <i class="ri-delete-bin-line"></i>Usuń wiadomość
+      </button>
+    </div>
     <div class="card" style="padding:20px">
       <div style="margin-bottom:16px">
         <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(msg.subject)}</div>
@@ -2941,6 +2965,38 @@ async function openSentMsg(id) {
       </div>
       <div style="border-top:1px solid var(--border);padding-top:16px;font-size:14px;line-height:1.7;color:var(--text)">${msg.body_html||''}</div>
     </div>`;
+}
+
+// ── DELETE EMAILS ──
+async function deleteInboxEmail(emailId, messageId, fromDetail=false) {
+  showConfirm('Usuń wiadomość', 'Wiadomość zostanie usunięta z panelu i z serwera pocztowego Hostinger.', async () => {
+    const btn = document.querySelector(`[onclick*="deleteInboxEmail('${emailId}"]`);
+    if (btn) { btn.disabled=true; btn.innerHTML='<i class="ri-loader-4-line"></i>'; }
+
+    const r = await edgeFn('fetch-inbox', {action:'delete', emailId, messageId});
+
+    if (fromDetail) {
+      document.getElementById('inbox-list').style.display='block';
+      document.getElementById('inbox-detail').style.display='none';
+    }
+    toast(r.deletedFromServer===false
+      ? 'Usunięto z panelu (nie znaleziono na serwerze)'
+      : 'Wiadomość usunięta z serwera ✅');
+    loadInbox();
+    loadInboxBadge();
+  });
+}
+
+async function deleteSentEmail(emailId, fromDetail=false) {
+  showConfirm('Usuń wiadomość', 'Wiadomość zostanie usunięta z historii wysłanych.', async () => {
+    await fetch(`${SB}/rest/v1/sent_emails?id=eq.${emailId}`, {method:'DELETE', headers:hdr()});
+    if (fromDetail) {
+      document.getElementById('sent-list').style.display='block';
+      document.getElementById('sent-detail').style.display='none';
+    }
+    toast('Wiadomość usunięta ✅');
+    loadSent();
+  });
 }
 
 // ── LEADS ──
