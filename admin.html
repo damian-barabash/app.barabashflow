@@ -1001,8 +1001,8 @@ function toggleNavGroup(id, forceOpen) {
 function initNavGroups() {
   ['planowanie','organizacja'].forEach(id => {
     const saved = localStorage.getItem('ng_'+id);
-    // Default open if never saved
-    const open = saved === null ? true : saved === '1';
+    // Default CLOSED if never saved (new admin)
+    const open = saved === '1';
     toggleNavGroup(id, open);
   });
 }
@@ -1035,18 +1035,18 @@ function nav(v) {
   openGroupForView(v);
   document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy',notes:'Moje notatki'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
-  if (v==='dashboard')     loadDash();
-  if (v==='clients')       { loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
-  if (v==='orders')        loadOrders();
-  if (v==='archive')       loadArchive();
-  if (v==='calendar')      { loadCalendar(); loadEvClientSelect(); }
-  if (v==='notes')         { loadNotes(); }
-  if (v==='send-notif')    { loadNotifClientSelect(); }
-  if (v==='leads')         loadLeads();
-  if (v==='notifs-admin')  loadAdminNotifs();
-  if (v==='templates')     loadTemplates();
-  if (v==='maile')         initMaile();
-  if (v==='admins')        loadAdmins();
+  if (v==='dashboard')     { localStorage.setItem('bf_last_view','dashboard'); loadDash(); }
+  if (v==='clients')       { localStorage.setItem('bf_last_view','clients'); loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
+  if (v==='orders')        { localStorage.setItem('bf_last_view','orders'); loadOrders(); }
+  if (v==='archive')       { localStorage.setItem('bf_last_view','archive'); loadArchive(); }
+  if (v==='calendar')      { localStorage.setItem('bf_last_view','calendar'); loadCalendar(); loadEvClientSelect(); }
+  if (v==='notes')         { localStorage.setItem('bf_last_view','notes'); loadNotes(); }
+  if (v==='send-notif')    { localStorage.setItem('bf_last_view','send-notif'); loadNotifClientSelect(); }
+  if (v==='leads')         { localStorage.setItem('bf_last_view','leads'); loadLeads(); }
+  if (v==='notifs-admin')  { localStorage.setItem('bf_last_view','notifs-admin'); loadAdminNotifs(); }
+  if (v==='templates')     { localStorage.setItem('bf_last_view','templates'); loadTemplates(); }
+  if (v==='maile')         { localStorage.setItem('bf_last_view','maile'); initMaile(); }
+  if (v==='admins')        { localStorage.setItem('bf_last_view','admins'); loadAdmins(); }
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -3443,6 +3443,14 @@ async function loadAllBadges() {
   }
 }
 loadAllBadges();
+
+// Restore last view on reload (cdetail/project → clients instead)
+(function() {
+  const last = localStorage.getItem('bf_last_view');
+  const safe = ['dashboard','clients','orders','archive','calendar','notes',
+                'send-notif','leads','notifs-admin','templates','maile','admins'];
+  if (last && safe.includes(last) && last !== 'dashboard') nav(last);
+})();
 </script>
 </body>
 </html>

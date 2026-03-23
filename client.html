@@ -273,9 +273,9 @@ function nav(v) {
     'past-meetings':'Zakończone spotkania'
   }[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
-  if (v==='projects')      loadProjects();
-  if (v==='notifications') { loadNotifs(); }
-  if (v==='past-meetings') { loadPastMeetings(); }
+  if (v==='projects')      { localStorage.setItem('bf_cl_view','projects'); loadProjects(); }
+  if (v==='notifications') { localStorage.setItem('bf_cl_view','notifications'); loadNotifs(); }
+  if (v==='past-meetings') { localStorage.setItem('bf_cl_view','past-meetings'); loadPastMeetings(); }
   // Show onboarding button only on projects page
   const obBtn = document.getElementById('ob-float-btn');
   if (obBtn) obBtn.style.display = (v==='projects' && obBtn._shouldShow) ? 'flex' : 'none';
@@ -309,6 +309,10 @@ async function loadProjects() {
 async function openProject(id, name, status) {
   PID=id; chatLen=0; _lastMsgIdForPopup=null; _chatUIInited=false;
   window._currentPID = id;
+  localStorage.setItem('bf_cl_view', 'project');
+  localStorage.setItem('bf_cl_pid', id);
+  localStorage.setItem('bf_cl_pname', name);
+  localStorage.setItem('bf_cl_pstatus', status);
   completeOnboardingStep('Przejrzyj swój projekt');
   document.getElementById('pj-name').textContent = name;
   document.getElementById('pj-status').textContent = 'Status: '+statusLabel(status);
@@ -1359,11 +1363,29 @@ async function changeOwnPassword(){
 }
 
 // ── INIT ──
-loadProjects();
 startPresenceHeartbeat();
 loadClientAvatar();
 loadOnboarding();
 loadPastMeetingsBadge();
+
+// Restore last view on reload
+(async () => {
+  const lastView   = localStorage.getItem('bf_cl_view');
+  const lastPid    = localStorage.getItem('bf_cl_pid');
+  const lastPname  = localStorage.getItem('bf_cl_pname');
+  const lastPstatus= localStorage.getItem('bf_cl_pstatus');
+
+  if (lastView === 'project' && lastPid && lastPname) {
+    // Restore project view
+    await openProject(lastPid, lastPname, lastPstatus || 'active');
+  } else if (lastView === 'notifications') {
+    nav('notifications');
+  } else if (lastView === 'past-meetings') {
+    nav('past-meetings');
+  } else {
+    loadProjects();
+  }
+})();
 
 
 (async () => {
