@@ -3549,25 +3549,27 @@ let _acFileToSend    = null;
 let _acAllAdmins     = [];
 
 async function loadAdminChats() {
-  const chats = await dbGet('admin_chats',
-    `?select=*,members:admin_chat_members(admin_id)&order=type.desc,created_at.asc`);
+  const [chats, reads, allMsgs] = await Promise.all([
+    dbGet('admin_chats', `?select=*,members:admin_chat_members(admin_id)&order=type.desc,created_at.asc`),
+    dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`),
+    dbGet('admin_chat_messages', `?select=id,chat_id,sender_id,created_at&order=created_at.asc`)
+  ]);
 
-  const reads = await dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
   const readMap = {};
   reads.forEach(r => { readMap[r.chat_id] = r.last_read_at; });
 
-  // Count unread per chat
-  const unreadCounts = {};
+  // Count unread per chat locally
+  let totalUnread = 0;
+  const unreadPerChat = {};
   for (const chat of chats) {
     const lastRead = readMap[chat.id];
-    const filter = lastRead
-      ? `?chat_id=eq.${chat.id}&created_at=gt.${lastRead}&sender_id=neq.${Auth.userId}&select=id`
-      : `?chat_id=eq.${chat.id}&sender_id=neq.${Auth.userId}&select=id`;
-    const unread = await dbGet('admin_chat_messages', filter);
-    unreadCounts[chat.id] = unread.length;
+    const msgs = allMsgs.filter(m => m.chat_id === chat.id && m.sender_id !== Auth.userId);
+    const unread = lastRead ? msgs.filter(m => m.created_at > lastRead).length : msgs.length;
+    unreadPerChat[chat.id] = unread;
+    totalUnread += unread;
   }
 
-  const totalUnread = Object.values(unreadCounts).reduce((a,b)=>a+b,0);
+  // Update global badge
   const nb = document.getElementById('nb-admin-chat');
   if (nb) {
     if (totalUnread > 0) { nb.textContent = String(totalUnread); nb.classList.add('show'); }
@@ -3578,19 +3580,24 @@ async function loadAdminChats() {
   if (!list) return;
 
   list.innerHTML = chats.map(chat => {
-    const unread = unreadCounts[chat.id] || 0;
-    const isActive = chat.id === _acCurrentChatId;
+    const unread    = unreadPerChat[chat.id] || 0;
+    const isActive  = chat.id === _acCurrentChatId;
     const memberCount = chat.members?.length || 0;
-    const icon = chat.type === 'general' ? '🏠' : '👥';
+    const icon      = chat.type === 'general' ? '🏠' : '👥';
+    // Last message preview
+    const chatMsgs  = allMsgs.filter(m => m.chat_id === chat.id);
+    const lastMsg   = chatMsgs[chatMsgs.length - 1];
+    const lastTime  = lastMsg ? timeAgo(lastMsg.created_at) : '';
+
     return `<div onclick="openAdminChat('${chat.id}','${esc(chat.name)}')"
       style="padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;background:${isActive?'var(--bg3)':'transparent'}"
       onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${isActive?'var(--bg3)':'transparent'}'">
-      <div style="width:36px;height:36px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
+      <div style="width:38px;height:38px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:${unread?'700':'600'};color:${unread?'var(--t1)':'var(--t2)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.name)}</div>
-        <div style="font-size:11px;color:var(--t3)">${memberCount} uczestnik${memberCount===1?'':'ów'}</div>
+        <div style="font-size:11px;color:var(--t3)">${lastTime || memberCount+' uczestnik'+(memberCount===1?'':'ów')}</div>
       </div>
-      ${unread ? `<span style="min-width:18px;height:18px;border-radius:100px;background:var(--a);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0">${unread}</span>` : ''}
+      ${unread ? `<span style="min-width:20px;height:20px;border-radius:100px;background:var(--a);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0">${unread}</span>` : ''}
     </div>`;
   }).join('') || `<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Brak czatów</div>`;
 }
@@ -3632,11 +3639,62 @@ async function openAdminChat(chatId, chatName) {
   // Highlight in list
   loadAdminChats();
 
-  // Poll
+  // Poll active chat
   _acPollIv = setInterval(async () => {
     if (_acCurrentChatId === chatId) await renderAdminMsgs(chatId);
   }, 3000);
 }
+
+// Global poll — notify when new messages arrive in any admin chat while not viewing it
+let _acLastSeenMsgCount = 0;
+let _acNotifThrottle = {};
+setInterval(async () => {
+  if (document.getElementById('v-admin-chat')?.style.display !== 'none') return; // viewing admin chat
+  const [chats, reads, allMsgs] = await Promise.all([
+    dbGet('admin_chats', `?select=id,name`),
+    dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`),
+    dbGet('admin_chat_messages', `?select=id,chat_id,sender_id,created_at,content`)
+  ]);
+  const readMap = {};
+  reads.forEach(r => { readMap[r.chat_id] = r.last_read_at; });
+  let totalUnread = 0;
+  for (const chat of chats) {
+    const lr   = readMap[chat.id];
+    const msgs = allMsgs.filter(m => m.chat_id === chat.id && m.sender_id !== Auth.userId);
+    const unreadMsgs = lr ? msgs.filter(m => m.created_at > lr) : msgs;
+    if (!unreadMsgs.length) continue;
+    totalUnread += unreadMsgs.length;
+    // Throttle notifications per chat — max 1 per 3 min
+    const now = Date.now();
+    const lastNotif = _acNotifThrottle[chat.id] || 0;
+    if (now - lastNotif < 3 * 60 * 1000) continue;
+    _acNotifThrottle[chat.id] = now;
+    if (unreadMsgs.length <= 3) {
+      // Show individual popup
+      showPopup({
+        title: '💬 ' + chat.name,
+        text: unreadMsgs[unreadMsgs.length-1].content?.slice(0,80) || 'Nowa wiadomość',
+        icon: LOGO_URL,
+        actionLabel: 'Otwórz czat',
+        onAction: () => { nav('admin-chat'); openAdminChat(chat.id, chat.name); }
+      });
+    } else {
+      showPopup({
+        title: '💬 Czat adminów',
+        text: `Masz ${unreadMsgs.length} nieprzeczytanych wiadomości w "${chat.name}"`,
+        icon: LOGO_URL,
+        actionLabel: 'Otwórz czat',
+        onAction: () => { nav('admin-chat'); openAdminChat(chat.id, chat.name); }
+      });
+    }
+  }
+  // Update badge
+  const nb = document.getElementById('nb-admin-chat');
+  if (nb) {
+    if (totalUnread > 0) { nb.textContent = String(totalUnread); nb.classList.add('show'); }
+    else nb.classList.remove('show');
+  }
+}, 15000); // check every 15 seconds
 
 async function renderAdminMsgs(chatId) {
   const msgs = await dbGet('admin_chat_messages',
@@ -3691,25 +3749,7 @@ async function markAdminChatRead(chatId) {
     headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
     body: JSON.stringify({chat_id:chatId, admin_id:Auth.userId, last_read_at:new Date().toISOString()})
   });
-  // Update badge
-  const nb = document.getElementById('nb-admin-chat');
-  if (nb) {
-    const allReads = await dbGet('admin_chat_reads',`?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
-    const readMap = {};
-    allReads.forEach((r) => { readMap[r.chat_id] = r.last_read_at; });
-    // just remove show if current chat was the only one
-    const chats = await dbGet('admin_chats',`?select=id`);
-    let total = 0;
-    for (const c of chats) {
-      if (c.id === chatId) continue;
-      const lr = readMap[c.id];
-      const f  = lr ? `?chat_id=eq.${c.id}&created_at=gt.${lr}&sender_id=neq.${Auth.userId}&select=id` : `?chat_id=eq.${c.id}&sender_id=neq.${Auth.userId}&select=id`;
-      const u  = await dbGet('admin_chat_messages', f);
-      total += u.length;
-    }
-    if (total > 0) { nb.textContent = String(total); nb.classList.add('show'); }
-    else nb.classList.remove('show');
-  }
+  loadAdminChatBadge();
 }
 
 async function sendAdminMsg() {
@@ -3782,8 +3822,8 @@ async function openNewAdminChatModal() {
 }
 
 async function createAdminChatGroup() {
-  const name = (document.getElementById('ac-grp-name')).value.trim();
-  const errEl = document.getElementById('ac-grp-err');
+  const name   = document.getElementById('ac-grp-name').value.trim();
+  const errEl  = document.getElementById('ac-grp-err');
   errEl.textContent = '';
 
   if (!name) { errEl.textContent = 'Podaj nazwę grupy'; return; }
@@ -3791,25 +3831,48 @@ async function createAdminChatGroup() {
   const checked = [...document.querySelectorAll('#ac-admins-list input:checked')];
   if (!checked.length) { errEl.textContent = 'Wybierz co najmniej jednego uczestnika'; return; }
 
-  // Create chat
-  const r = await fetch(`${SB}/rest/v1/admin_chats`, {
-    method:'POST', headers:hdr({Prefer:'return=representation'}),
-    body: JSON.stringify({name, type:'group', created_by:Auth.userId})
-  });
-  const [chat] = await r.json();
-  if (!chat?.id) { errEl.textContent = 'Błąd tworzenia grupy'; return; }
+  const btn = document.querySelector('#m-new-admin-chat .btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"><i class="ri-loader-4-line"></i></span>';
 
-  // Add members: self + selected
-  const memberIds = [Auth.userId, ...checked.map(c=>c.value)];
-  await fetch(`${SB}/rest/v1/admin_chat_members`, {
-    method:'POST', headers:hdr({Prefer:'return=minimal'}),
-    body: JSON.stringify(memberIds.map(id=>({chat_id:chat.id, admin_id:id})))
-  });
+  try {
+    // Create chat using service key approach — insert directly
+    const chatId = crypto.randomUUID();
+    const r = await fetch(`${SB}/rest/v1/admin_chats`, {
+      method:'POST',
+      headers: hdr({Prefer:'return=representation'}),
+      body: JSON.stringify({id: chatId, name, type:'group', created_by: Auth.userId})
+    });
+    const body = await r.json();
+    if (!r.ok) {
+      errEl.textContent = 'Błąd: ' + (body?.message || body?.error || r.status);
+      return;
+    }
+    const chat = Array.isArray(body) ? body[0] : body;
+    if (!chat?.id) { errEl.textContent = 'Błąd tworzenia grupy'; return; }
 
-  closeModal('m-new-admin-chat');
-  toast('Grupa utworzona ✅');
-  await loadAdminChats();
-  openAdminChat(chat.id, name);
+    // Add members: self + selected
+    const memberIds = [...new Set([Auth.userId, ...checked.map(c => c.value)])];
+    const membersR = await fetch(`${SB}/rest/v1/admin_chat_members`, {
+      method:'POST', headers: hdr({Prefer:'return=minimal'}),
+      body: JSON.stringify(memberIds.map(id => ({chat_id: chat.id, admin_id: id})))
+    });
+    if (!membersR.ok) {
+      const me = await membersR.json();
+      errEl.textContent = 'Błąd dodawania uczestników: ' + (me?.message || membersR.status);
+      return;
+    }
+
+    closeModal('m-new-admin-chat');
+    toast('Grupa utworzona ✅');
+    await loadAdminChats();
+    openAdminChat(chat.id, name);
+  } catch(e) {
+    errEl.textContent = 'Błąd: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-add-line"></i>Utwórz grupę';
+  }
 }
 
 async function deleteAdminChat(chatId) {
@@ -3830,17 +3893,18 @@ async function deleteAdminChat(chatId) {
 }
 
 async function loadAdminChatBadge() {
-  const chats = await dbGet('admin_chats',`?select=id`);
-  if (!chats.length) return;
-  const reads = await dbGet('admin_chat_reads',`?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
+  const [chats, reads, allMsgs] = await Promise.all([
+    dbGet('admin_chats', `?select=id`),
+    dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`),
+    dbGet('admin_chat_messages', `?select=id,chat_id,sender_id,created_at`)
+  ]);
   const readMap = {};
-  reads.forEach((r)=>{readMap[r.chat_id]=r.last_read_at;});
+  reads.forEach(r => { readMap[r.chat_id] = r.last_read_at; });
   let total = 0;
   for (const c of chats) {
-    const lr = readMap[c.id];
-    const f  = lr ? `?chat_id=eq.${c.id}&created_at=gt.${lr}&sender_id=neq.${Auth.userId}&select=id` : `?chat_id=eq.${c.id}&sender_id=neq.${Auth.userId}&select=id`;
-    const u  = await dbGet('admin_chat_messages', f);
-    total += u.length;
+    const lr   = readMap[c.id];
+    const msgs = allMsgs.filter(m => m.chat_id === c.id && m.sender_id !== Auth.userId);
+    total += lr ? msgs.filter(m => m.created_at > lr).length : msgs.length;
   }
   const nb = document.getElementById('nb-admin-chat');
   if (nb) {
