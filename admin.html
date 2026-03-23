@@ -92,7 +92,7 @@
     <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub" id="pageSub"></div></div>
     <div class="topbar-actions">
-      <button class="btn btn-outline btn-sm" onclick="openModal('m-admin')" style="margin-right:6px"><i class="ri-shield-user-line"></i><span class="btn-text">Dodaj admina</span></button>
+      <button id="btn-add-admin" class="btn btn-outline btn-sm" onclick="openModal('m-admin')" style="display:none;margin-right:6px"><i class="ri-shield-user-line"></i><span class="btn-text">Dodaj admina</span></button>
       <button class="btn btn-primary btn-sm" onclick="openModal('m-client')"><i class="ri-user-add-line"></i><span class="btn-text">Dodaj klienta</span></button>
     </div>
   </div>
@@ -3173,7 +3173,10 @@ let _isMainAdmin = false;
 async function checkMainAdminStatus(){
   const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=is_main_admin`);
   _isMainAdmin = profile?.is_main_admin === true;
-  if(_isMainAdmin) document.getElementById('nav-admins').style.display = 'flex';
+  if(_isMainAdmin) {
+    document.getElementById('nav-admins').style.display = 'flex';
+    document.getElementById('btn-add-admin').style.display = '';
+  }
 }
 
 function isMainAdmin(){ return _isMainAdmin; }
