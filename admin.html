@@ -66,6 +66,7 @@
     </div>
 
     <div class="nav-link" data-view="send-notif"><i class="ri-notification-3-line"></i>Wyślij powiadomienie</div>
+    <div class="nav-link" data-view="admin-chat"><i class="ri-team-line"></i>Czat adminów<span class="nav-badge" id="nb-admin-chat"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
     <div class="nav-link" data-view="templates"><i class="ri-layout-line"></i>Szablony</div>
     <div class="nav-link" data-view="maile"><i class="ri-mail-send-line"></i>Maile<span class="nav-badge" id="nb-maile"></span></div>
@@ -498,6 +499,83 @@
         <button class="btn btn-sm btn-outline" id="anf-other" onclick="filterAdminNotifs('other')">🔔 Inne</button>
       </div>
       <div id="admin-notifs-list"></div>
+    </div>
+
+    <!-- ADMIN CHAT -->
+    <div id="v-admin-chat" style="display:none">
+      <div style="display:flex;gap:12px;height:calc(100vh - 120px);min-height:400px">
+
+        <!-- Sidebar: chat list -->
+        <div style="width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div class="card-title" style="margin:0">Czaty</div>
+            <button class="btn btn-primary btn-sm" onclick="openNewAdminChatModal()"><i class="ri-add-line"></i>Nowa grupa</button>
+          </div>
+          <div id="ac-list" style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;flex:1"></div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="card" style="flex:1;display:flex;flex-direction:column;padding:0;overflow:hidden;min-width:0">
+          <!-- Chat header -->
+          <div id="ac-header" style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#e040fb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💬</div>
+            <div style="flex:1;min-width:0">
+              <div id="ac-chat-name" style="font-size:14px;font-weight:700">Wybierz czat</div>
+              <div id="ac-chat-members" style="font-size:11px;color:var(--t3)"></div>
+            </div>
+            <div id="ac-chat-actions"></div>
+          </div>
+          <!-- Messages -->
+          <div id="ac-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">
+            <div style="text-align:center;color:var(--t3);font-size:13px;margin:auto">Wybierz czat z listy</div>
+          </div>
+          <!-- Typing indicator -->
+          <div id="ac-typing" style="padding:0 18px 4px;font-size:11px;color:var(--t3);min-height:18px"></div>
+          <!-- Input -->
+          <div id="ac-input-wrap" style="display:none;padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px">
+            <div style="flex:1;position:relative">
+              <textarea id="ac-inp" rows="1" placeholder="Napisz wiadomość..."
+                style="width:100%;resize:none;background:var(--bg3);border:1.5px solid var(--border2);border-radius:12px;padding:10px 14px;color:var(--t1);font-size:14px;font-family:inherit;outline:none;line-height:1.5;max-height:120px;overflow-y:auto;box-sizing:border-box"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminMsg()}"
+                oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+            </div>
+            <label style="cursor:pointer;width:36px;height:36px;border-radius:10px;background:var(--bg3);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--t3);flex-shrink:0;transition:all .2s" title="Załącz plik">
+              <i class="ri-attachment-2" style="font-size:16px"></i>
+              <input type="file" id="ac-file-inp" style="display:none" onchange="onAdminFileSelect(this)">
+            </label>
+            <button onclick="sendAdminMsg()" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#e040fb,#7c3aed);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s" onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
+              <i class="ri-send-plane-fill" style="color:#fff;font-size:16px"></i>
+            </button>
+          </div>
+          <!-- File preview bar -->
+          <div id="ac-file-preview" style="display:none;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--t2);display:flex;align-items:center;gap:8px">
+            <i class="ri-file-line"></i>
+            <span id="ac-file-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+            <button onclick="clearAdminFile()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ADMIN CHAT MODAL -->
+    <div class="modal-backdrop" id="m-new-admin-chat">
+      <div class="modal">
+        <div class="modal-title">Nowa grupa czatu</div>
+        <div class="modal-sub">Wybierz uczestników i nadaj nazwę.</div>
+        <div class="form-group">
+          <label class="form-label">Nazwa grupy *</label>
+          <input class="form-control" id="ac-grp-name" placeholder="np. Zespół developerski">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Uczestnicy *</label>
+          <div id="ac-admins-list" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0"></div>
+        </div>
+        <div class="form-err" id="ac-grp-err"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('m-new-admin-chat')">Anuluj</button>
+          <button class="btn btn-primary" onclick="createAdminChatGroup()"><i class="ri-add-line"></i>Utwórz grupę</button>
+        </div>
+      </div>
     </div>
 
     <!-- LEADS -->
@@ -1028,12 +1106,12 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.addEventListener(
 document.querySelectorAll('.tab-btn[data-atab]').forEach(b => b.addEventListener('click', () => switchArchiveTab(b.dataset.atab)));
 
 function nav(v) {
-  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','maile','admins','notes'].forEach(id => {
+  ['dashboard','clients','orders','cdetail','project','archive','calendar','send-notif','leads','notifs-admin','templates','maile','admins','notes','admin-chat'].forEach(id => {
     const el=document.getElementById('v-'+id); if(el) el.style.display=id===v?'block':'none';
   });
   document.querySelectorAll('.nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view===v));
   openGroupForView(v);
-  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy',notes:'Moje notatki'}[v]||'';
+  document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',clients:'Klienci',orders:'Formularze',cdetail:CNAME,project:document.getElementById('pj-name').textContent,archive:'Archiwum',calendar:'Kalendarz','send-notif':'Wyślij powiadomienie',leads:'Zgłoszenia','notifs-admin':'Powiadomienia',templates:'Szablony projektów',maile:'Maile',admins:'Administratorzy',notes:'Moje notatki','admin-chat':'Czat adminów'}[v]||'';
   if (chatIv && v!=='project') { clearInterval(chatIv); chatIv=null; }
   if (v==='dashboard')     { localStorage.setItem('bf_last_view','dashboard'); loadDash(); }
   if (v==='clients')       { localStorage.setItem('bf_last_view','clients'); loadClients(); if(!_clientsRefreshIv) _clientsRefreshIv=setInterval(()=>{ if(document.getElementById('v-clients')?.style.display!=='none') loadClients(); },30000); }
@@ -1047,6 +1125,7 @@ function nav(v) {
   if (v==='templates')     { localStorage.setItem('bf_last_view','templates'); loadTemplates(); }
   if (v==='maile')         { localStorage.setItem('bf_last_view','maile'); initMaile(); }
   if (v==='admins')        { localStorage.setItem('bf_last_view','admins'); loadAdmins(); }
+  if (v==='admin-chat')   { localStorage.setItem('bf_last_view','admin-chat'); loadAdminChats(); }
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -3457,6 +3536,316 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ══════════════════════════════════════════════════════
+// ── ADMIN CHAT ──
+// ══════════════════════════════════════════════════════
+let _acCurrentChatId = null;
+let _acMsgLen        = 0;
+let _acPollIv        = null;
+let _acFileToSend    = null;
+let _acAllAdmins     = [];
+
+async function loadAdminChats() {
+  const chats = await dbGet('admin_chats',
+    `?select=*,members:admin_chat_members(admin_id)&order=type.desc,created_at.asc`);
+
+  const reads = await dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
+  const readMap = {};
+  reads.forEach(r => { readMap[r.chat_id] = r.last_read_at; });
+
+  // Count unread per chat
+  const unreadCounts = {};
+  for (const chat of chats) {
+    const lastRead = readMap[chat.id];
+    const filter = lastRead
+      ? `?chat_id=eq.${chat.id}&created_at=gt.${lastRead}&sender_id=neq.${Auth.userId}&select=id`
+      : `?chat_id=eq.${chat.id}&sender_id=neq.${Auth.userId}&select=id`;
+    const unread = await dbGet('admin_chat_messages', filter);
+    unreadCounts[chat.id] = unread.length;
+  }
+
+  const totalUnread = Object.values(unreadCounts).reduce((a,b)=>a+b,0);
+  const nb = document.getElementById('nb-admin-chat');
+  if (nb) {
+    if (totalUnread > 0) { nb.textContent = String(totalUnread); nb.classList.add('show'); }
+    else nb.classList.remove('show');
+  }
+
+  const list = document.getElementById('ac-list');
+  if (!list) return;
+
+  list.innerHTML = chats.map(chat => {
+    const unread = unreadCounts[chat.id] || 0;
+    const isActive = chat.id === _acCurrentChatId;
+    const memberCount = chat.members?.length || 0;
+    const icon = chat.type === 'general' ? '🏠' : '👥';
+    return `<div onclick="openAdminChat('${chat.id}','${esc(chat.name)}')"
+      style="padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;background:${isActive?'var(--bg3)':'transparent'}"
+      onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${isActive?'var(--bg3)':'transparent'}'">
+      <div style="width:36px;height:36px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:${unread?'700':'600'};color:${unread?'var(--t1)':'var(--t2)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.name)}</div>
+        <div style="font-size:11px;color:var(--t3)">${memberCount} uczestnik${memberCount===1?'':'ów'}</div>
+      </div>
+      ${unread ? `<span style="min-width:18px;height:18px;border-radius:100px;background:var(--a);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0">${unread}</span>` : ''}
+    </div>`;
+  }).join('') || `<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Brak czatów</div>`;
+}
+
+async function openAdminChat(chatId, chatName) {
+  if (_acPollIv) { clearInterval(_acPollIv); _acPollIv = null; }
+  _acCurrentChatId = chatId;
+  _acMsgLen = 0;
+
+  // Update header
+  document.getElementById('ac-chat-name').textContent = chatName;
+
+  // Load members
+  const members = await dbGet('admin_chat_members',
+    `?chat_id=eq.${chatId}&select=admin:profiles!admin_chat_members_admin_id_fkey(id,display_name,avatar_url)`);
+  const memberNames = members.map(m => m.admin?.display_name || '?').join(', ');
+  document.getElementById('ac-chat-members').textContent = memberNames;
+
+  // Show delete button for group chats (non-general)
+  const [chat] = await dbGet('admin_chats', `?id=eq.${chatId}&select=type,created_by`);
+  const actionsEl = document.getElementById('ac-chat-actions');
+  if (chat?.type === 'group') {
+    actionsEl.innerHTML = `<button onclick="deleteAdminChat('${chatId}')"
+      style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px">
+      <i class="ri-delete-bin-line"></i>Usuń grupę</button>`;
+  } else {
+    actionsEl.innerHTML = '';
+  }
+
+  // Show input
+  document.getElementById('ac-input-wrap').style.display = 'flex';
+
+  // Mark as read
+  await markAdminChatRead(chatId);
+
+  // Render messages
+  await renderAdminMsgs(chatId);
+
+  // Highlight in list
+  loadAdminChats();
+
+  // Poll
+  _acPollIv = setInterval(async () => {
+    if (_acCurrentChatId === chatId) await renderAdminMsgs(chatId);
+  }, 3000);
+}
+
+async function renderAdminMsgs(chatId) {
+  const msgs = await dbGet('admin_chat_messages',
+    `?chat_id=eq.${chatId}&select=*,sender:profiles!admin_chat_messages_sender_id_fkey(id,display_name,avatar_url)&order=created_at.asc`);
+
+  if (msgs.length === _acMsgLen) return;
+  _acMsgLen = msgs.length;
+
+  const box = document.getElementById('ac-msgs');
+  if (!box) return;
+
+  const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+
+  box.innerHTML = msgs.map(m => {
+    const mine = m.sender_id === Auth.userId;
+    const name = m.sender?.display_name || '?';
+    const av   = m.sender?.avatar_url;
+    const avHtml = av
+      ? `<img src="${esc(av)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials(name)||'?'}</div>`;
+
+    let contentHtml = '';
+    if (m.file_url && m.mime_type?.startsWith('image/')) {
+      contentHtml = `<img src="${esc(m.file_url)}" style="max-width:220px;max-height:200px;border-radius:8px;display:block;cursor:pointer" onclick="openLightbox('img','${esc(m.file_url)}')">`;
+    } else if (m.file_url) {
+      const size = m.file_size ? ` (${(m.file_size/1024).toFixed(0)} KB)` : '';
+      contentHtml = `<a href="${esc(m.file_url)}" target="_blank" style="display:flex;align-items:center;gap:6px;color:${mine?'rgba(255,255,255,.9)':'var(--a)'};font-size:12px;text-decoration:none"><i class="ri-file-line"></i>${esc(m.file_name||'Plik')}${size}</a>`;
+    }
+    if (m.content) contentHtml = `<div>${esc(m.content)}</div>${contentHtml}`;
+
+    return `<div style="display:flex;align-items:flex-end;gap:8px;${mine?'flex-direction:row-reverse':''}">
+      ${!mine ? avHtml : ''}
+      <div style="max-width:65%;min-width:0">
+        ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px;${mine?'text-align:right':''}">${esc(name)}</div>` : ''}
+        <div style="padding:9px 12px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${mine?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};color:${mine?'#fff':'var(--t1)'};font-size:13px;line-height:1.55;word-break:break-word">
+          ${contentHtml}
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:3px;${mine?'text-align:right':''}">${timeAgo(m.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('') || `<div style="text-align:center;color:var(--t3);font-size:13px;margin:auto">Brak wiadomości. Napisz pierwszą!</div>`;
+
+  if (wasAtBottom || _acMsgLen <= 5) box.scrollTop = box.scrollHeight;
+
+  // Mark read on new messages
+  await markAdminChatRead(chatId);
+}
+
+async function markAdminChatRead(chatId) {
+  await fetch(`${SB}/rest/v1/admin_chat_reads`, {
+    method: 'POST',
+    headers: hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+    body: JSON.stringify({chat_id:chatId, admin_id:Auth.userId, last_read_at:new Date().toISOString()})
+  });
+  // Update badge
+  const nb = document.getElementById('nb-admin-chat');
+  if (nb) {
+    const allReads = await dbGet('admin_chat_reads',`?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
+    const readMap = {};
+    allReads.forEach((r) => { readMap[r.chat_id] = r.last_read_at; });
+    // just remove show if current chat was the only one
+    const chats = await dbGet('admin_chats',`?select=id`);
+    let total = 0;
+    for (const c of chats) {
+      if (c.id === chatId) continue;
+      const lr = readMap[c.id];
+      const f  = lr ? `?chat_id=eq.${c.id}&created_at=gt.${lr}&sender_id=neq.${Auth.userId}&select=id` : `?chat_id=eq.${c.id}&sender_id=neq.${Auth.userId}&select=id`;
+      const u  = await dbGet('admin_chat_messages', f);
+      total += u.length;
+    }
+    if (total > 0) { nb.textContent = String(total); nb.classList.add('show'); }
+    else nb.classList.remove('show');
+  }
+}
+
+async function sendAdminMsg() {
+  if (!_acCurrentChatId) return;
+  const inp = document.getElementById('ac-inp') 
+  const txt = inp.value.trim();
+  if (!txt && !_acFileToSend) return;
+
+  const file = _acFileToSend;
+  _acFileToSend = null;
+  clearAdminFile();
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  const msgData = {
+    chat_id: _acCurrentChatId,
+    sender_id: Auth.userId,
+    content: txt || ''
+  };
+
+  if (file) {
+    try {
+      const up = await uploadFile(file, 'post-files');
+      msgData.file_url  = up.url;
+      msgData.file_name = up.name;
+      msgData.file_size = up.size;
+      msgData.mime_type = up.mime;
+    } catch(e) { toast('Błąd uploadu: '+e.message,'error'); return; }
+  }
+
+  await fetch(`${SB}/rest/v1/admin_chat_messages`, {
+    method:'POST', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify(msgData)
+  });
+  await renderAdminMsgs(_acCurrentChatId);
+}
+
+function onAdminFileSelect(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  _acFileToSend = file;
+  const preview = document.getElementById('ac-file-preview');
+  document.getElementById('ac-file-name').textContent = `${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+  preview.style.display = 'flex';
+  input.value = '';
+}
+
+function clearAdminFile() {
+  _acFileToSend = null;
+  document.getElementById('ac-file-preview').style.display = 'none';
+  document.getElementById('ac-file-name').textContent = '';
+}
+
+async function openNewAdminChatModal() {
+  // Load all admins except self
+  _acAllAdmins = await dbGet('profiles',
+    `?role=eq.admin&id=neq.${Auth.userId}&select=id,display_name,avatar_url&order=display_name`);
+
+  const listEl = document.getElementById('ac-admins-list');
+  listEl.innerHTML = _acAllAdmins.map(a => `
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;background:var(--bg3)">
+      <input type="checkbox" value="${a.id}" style="width:16px;height:16px;accent-color:var(--a);flex-shrink:0">
+      ${avatarHTML(a, 28)}
+      <span style="font-size:13px">${esc(a.display_name||a.email)}</span>
+    </label>`).join('') || '<div style="font-size:13px;color:var(--t3);padding:8px">Brak innych administratorów</div>';
+
+  document.getElementById('ac-grp-name').value = '';
+  document.getElementById('ac-grp-err').textContent = '';
+  openModal('m-new-admin-chat');
+}
+
+async function createAdminChatGroup() {
+  const name = (document.getElementById('ac-grp-name')).value.trim();
+  const errEl = document.getElementById('ac-grp-err');
+  errEl.textContent = '';
+
+  if (!name) { errEl.textContent = 'Podaj nazwę grupy'; return; }
+
+  const checked = [...document.querySelectorAll('#ac-admins-list input:checked')];
+  if (!checked.length) { errEl.textContent = 'Wybierz co najmniej jednego uczestnika'; return; }
+
+  // Create chat
+  const r = await fetch(`${SB}/rest/v1/admin_chats`, {
+    method:'POST', headers:hdr({Prefer:'return=representation'}),
+    body: JSON.stringify({name, type:'group', created_by:Auth.userId})
+  });
+  const [chat] = await r.json();
+  if (!chat?.id) { errEl.textContent = 'Błąd tworzenia grupy'; return; }
+
+  // Add members: self + selected
+  const memberIds = [Auth.userId, ...checked.map(c=>c.value)];
+  await fetch(`${SB}/rest/v1/admin_chat_members`, {
+    method:'POST', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify(memberIds.map(id=>({chat_id:chat.id, admin_id:id})))
+  });
+
+  closeModal('m-new-admin-chat');
+  toast('Grupa utworzona ✅');
+  await loadAdminChats();
+  openAdminChat(chat.id, name);
+}
+
+async function deleteAdminChat(chatId) {
+  showConfirm('Usuń grupę', 'Wszystkie wiadomości tej grupy zostaną usunięte.', async () => {
+    await fetch(`${SB}/rest/v1/admin_chats?id=eq.${chatId}`, {method:'DELETE', headers:hdr()});
+    if (_acCurrentChatId === chatId) {
+      _acCurrentChatId = null;
+      if (_acPollIv) { clearInterval(_acPollIv); _acPollIv = null; }
+      document.getElementById('ac-msgs').innerHTML = '<div style="text-align:center;color:var(--t3);font-size:13px;margin:auto">Wybierz czat z listy</div>';
+      document.getElementById('ac-input-wrap').style.display = 'none';
+      document.getElementById('ac-chat-name').textContent = 'Wybierz czat';
+      document.getElementById('ac-chat-members').textContent = '';
+      document.getElementById('ac-chat-actions').innerHTML = '';
+    }
+    toast('Grupa usunięta');
+    loadAdminChats();
+  });
+}
+
+async function loadAdminChatBadge() {
+  const chats = await dbGet('admin_chats',`?select=id`);
+  if (!chats.length) return;
+  const reads = await dbGet('admin_chat_reads',`?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`);
+  const readMap = {};
+  reads.forEach((r)=>{readMap[r.chat_id]=r.last_read_at;});
+  let total = 0;
+  for (const c of chats) {
+    const lr = readMap[c.id];
+    const f  = lr ? `?chat_id=eq.${c.id}&created_at=gt.${lr}&sender_id=neq.${Auth.userId}&select=id` : `?chat_id=eq.${c.id}&sender_id=neq.${Auth.userId}&select=id`;
+    const u  = await dbGet('admin_chat_messages', f);
+    total += u.length;
+  }
+  const nb = document.getElementById('nb-admin-chat');
+  if (nb) {
+    if (total > 0) { nb.textContent = String(total); nb.classList.add('show'); }
+    else nb.classList.remove('show');
+  }
+}
+
 async function loadAllBadges() {
   const [clients, orders, leads, notifs, inbox] = await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=id'),
@@ -3499,12 +3888,18 @@ async function loadAllBadges() {
   }
 }
 loadAllBadges();
+loadAdminChatBadge();
+
+// Poll admin chat badge every 30s when not in admin-chat view
+setInterval(()=>{
+  if(document.getElementById('v-admin-chat')?.style.display==='none') loadAdminChatBadge();
+}, 30000);
 
 // Restore last view on reload (cdetail/project → clients instead)
 (function() {
   const last = localStorage.getItem('bf_last_view');
   const safe = ['dashboard','clients','orders','archive','calendar','notes',
-                'send-notif','leads','notifs-admin','templates','maile','admins'];
+                'send-notif','leads','notifs-admin','templates','maile','admins','admin-chat'];
   if (last && safe.includes(last) && last !== 'dashboard') nav(last);
 })();
 </script>
