@@ -256,7 +256,7 @@
           data-placeholder="Zacznij pisać..."></div>
         <!-- Footer -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid var(--border)">
-          <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px"><i class="ri-delete-bin-line"></i>Usuń</button>
+          <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;align-items:center;gap:4px"><i class="ri-delete-bin-line"></i>Usuń</button>
           <button onclick="saveCurrentNote()" class="btn btn-primary btn-sm" style="margin-left:auto"><i class="ri-save-line"></i>Zapisz</button>
         </div>
       </div>
@@ -3164,16 +3164,24 @@ async function loadNotes() {
 
   grid.innerHTML = notes.map(n => {
     const preview = n.content
-      .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0, 160);
+      .replace(/<[^>]+>/g,' ')
+      .replace(/&nbsp;/g,' ')
+      .replace(/&amp;/g,'&')
+      .replace(/&lt;/g,'<')
+      .replace(/&gt;/g,'>')
+      .replace(/\s+/g,' ').trim().slice(0, 160);
     const date = new Date(n.updated_at).toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'});
     return `
     <div class="note-card" style="background:${n.color||'#1e1e2e'}" onclick="openNoteEditor('${n.id}')">
       ${n.pinned ? '<span class="note-pin-badge"><i class="ri-pushpin-fill"></i></span>' : ''}
-      <div class="note-card-title">${n.title || '<span style="color:var(--t3);font-weight:400">Bez tytułu</span>'}</div>
+      <div class="note-card-title" style="padding-right:${n.pinned?'22px':'0'}">${n.title ? esc(n.title) : '<span style="color:var(--t3);font-weight:400">Bez tytułu</span>'}</div>
       ${preview ? `<div class="note-card-preview">${esc(preview)}</div>` : ''}
       <div class="note-card-footer">
         <span>${date}</span>
-        ${n.pinned ? '<span style="color:#e040fb;font-size:10px">📌 Przypięta</span>' : ''}
+        <button onclick="event.stopPropagation();deleteNoteById('${n.id}')"
+          style="background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:13px;line-height:1;transition:color .15s"
+          onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t3)'"
+          title="Usuń notatkę"><i class="ri-delete-bin-line"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -3289,10 +3297,28 @@ async function saveCurrentNote() {
 
 async function deleteCurrentNote() {
   if (!_currentNoteId) { closeNoteEditor(); return; }
+  // Raise confirm modal above note editor overlay
+  const confirmEl = document.getElementById('m-confirm');
+  confirmEl.style.zIndex = '9500';
   showConfirm('Usuń notatkę', 'Tej operacji nie można cofnąć.', async () => {
     await fetch(`${SB}/rest/v1/admin_notes?id=eq.${_currentNoteId}&admin_id=eq.${Auth.userId}`,
       { method:'DELETE', headers:hdr() });
+    confirmEl.style.zIndex = '';
     closeNoteEditor();
+  });
+  // Reset z-index if cancelled
+  const cancelBtn = confirmEl.querySelector('.btn-outline');
+  if (cancelBtn) {
+    const orig = cancelBtn.onclick;
+    cancelBtn.onclick = () => { confirmEl.style.zIndex=''; if(orig) orig(); };
+  }
+}
+
+async function deleteNoteById(noteId) {
+  showConfirm('Usuń notatkę', 'Tej operacji nie można cofnąć.', async () => {
+    await fetch(`${SB}/rest/v1/admin_notes?id=eq.${noteId}&admin_id=eq.${Auth.userId}`,
+      { method:'DELETE', headers:hdr() });
+    loadNotes();
   });
 }
 
