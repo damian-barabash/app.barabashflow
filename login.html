@@ -71,14 +71,22 @@ body{background:var(--bg);color:var(--t);font-family:'Poppins',sans-serif;min-he
 const EDGE='https://ztcyhlitwwganjhgbbtm.supabase.co/functions/v1';
 const SESSION_MS = 15*24*60*60*1000; // 15 days
 
-// Check existing valid session
+// Check existing valid session — use real JWT expiry OR refresh token presence
 (()=>{
-  const t=localStorage.getItem('bf_token');
-  const exp=Number(localStorage.getItem('bf_exp')||0);
-  const r=localStorage.getItem('bf_role');
-  if(t&&r&&exp&&Date.now()<exp){
-    location.replace(r==='admin'?'admin.html':'client.html');
+  const t = localStorage.getItem('bf_token');
+  const rt = localStorage.getItem('bf_refresh');
+  const r = localStorage.getItem('bf_role');
+  if (!t || !r) return;
+  // If we have a refresh token, session is recoverable — let panel.js handle refresh
+  if (rt) {
+    location.replace(r === 'admin' ? 'admin.html' : 'client.html');
+    return;
   }
+  // No refresh token — check JWT directly
+  try {
+    const exp = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp * 1000;
+    if (Date.now() < exp) location.replace(r === 'admin' ? 'admin.html' : 'client.html');
+  } catch(_) {}
 })();
 
 document.getElementById('eye').onclick=function(){const i=document.getElementById('pass'),on=i.type==='password';i.type=on?'text':'password';this.querySelector('i').className=on?'ri-eye-line':'ri-eye-off-line';};
@@ -107,7 +115,7 @@ document.getElementById('form').addEventListener('submit',async function(e){
     localStorage.setItem('bf_role',    p.role);
     localStorage.setItem('bf_name',    p.display_name||email.split('@')[0]);
     localStorage.setItem('bf_email',   p.email);
-    localStorage.setItem('bf_exp',     String(Date.now()+SESSION_MS));
+    localStorage.removeItem('bf_exp'); // no longer used
     location.replace(p.role==='admin'?'admin.html':'client.html');
   }catch(ex){console.error(ex);showErr('Błąd połączenia. Sprawdź internet.');}
   finally{btn.disabled=false;btn.innerHTML='Zaloguj się &nbsp;<i class="ri-arrow-right-line"></i>';}

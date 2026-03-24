@@ -238,8 +238,12 @@
 
 <script src="panel.js"></script>
 <script>
-if (!Auth.requireClient()) throw 0;
-startTokenRefresh();
+// Init: refresh token first if needed, then check session
+(async () => {
+  if (!Auth.hasSession()) { location.href='login.html'; return; }
+  if (Auth.role !== 'client') { location.href='login.html'; return; }
+  await startTokenRefresh();
+  if (!Auth.isValid()) { Auth.clear(); location.href='login.html'; return; }
 runPreloader();
 
 const myName  = Auth.name  || Auth.email || 'Klient';
@@ -1367,6 +1371,7 @@ startPresenceHeartbeat();
 loadClientAvatar();
 loadOnboarding();
 loadPastMeetingsBadge();
+})(); // close auth init IIFE
 
 // Restore last view on reload
 (async () => {

@@ -13,16 +13,34 @@ const Auth = {
   get role()    { return localStorage.getItem('bf_role'); },
   get name()    { return localStorage.getItem('bf_name'); },
   get email()   { return localStorage.getItem('bf_email'); },
-  get exp()     { return Number(localStorage.getItem('bf_exp')||0); },
-  isValid()     { return !!(this.token && this.role && this.exp && Date.now() < this.exp); },
-  requireAdmin()  { if (!this.isValid() || this.role !== 'admin')  { location.href='login.html'; return false; } return true; },
-  requireClient() { if (!this.isValid() || this.role !== 'client') { location.href='login.html'; return false; } return true; },
+
+  // Real JWT expiry — decoded from token itself
+  jwtExp() {
+    try {
+      const p = JSON.parse(atob(this.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      return p.exp * 1000;
+    } catch { return 0; }
+  },
+
+  // Valid = has token + has refresh + JWT not expired yet (we'll refresh proactively)
+  isValid() {
+    if (!this.token || !this.role) return false;
+    return Date.now() < this.jwtExp();
+  },
+
+  // Is session recoverable (has refresh token, even if JWT expired)?
+  hasSession() { return !!(this.token && this.role && this.refresh); },
+
+  requireAdmin()  { if (!this.hasSession() || this.role !== 'admin')  { location.href='login.html'; return false; } return true; },
+  requireClient() { if (!this.hasSession() || this.role !== 'client') { location.href='login.html'; return false; } return true; },
   clear() { ['bf_token','bf_refresh','bf_uid','bf_role','bf_name','bf_email','bf_exp'].forEach(k=>localStorage.removeItem(k)); },
+
   async logout() {
     try { await fetch(SB+'/auth/v1/logout',{method:'POST',headers:{apikey:ANON,Authorization:'Bearer '+this.token}}); } catch(_){}
     this.clear(); location.href='login.html';
   },
-  // Refresh JWT token using refresh_token
+
+  // Refresh JWT using refresh_token
   async refreshToken() {
     const rt = this.refresh;
     if (!rt) return false;
@@ -37,26 +55,28 @@ const Auth = {
       if (!d.access_token) return false;
       localStorage.setItem('bf_token',   d.access_token);
       localStorage.setItem('bf_refresh', d.refresh_token || rt);
-      localStorage.setItem('bf_exp',     String(Date.now() + SESSION_DAYS*24*60*60*1000));
       return true;
     } catch { return false; }
   }
 };
 
-// Auto-refresh: check every 30 min, refresh if JWT expires in <10 min
+// Auto-refresh token: run immediately on load, then every 5 min
 async function startTokenRefresh() {
   const check = async () => {
-    if (!Auth.isValid()) return; // already logged out
-    // JWT expires in <10 min → refresh
-    const jwtPayload = JSON.parse(atob(Auth.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    const jwtExp = jwtPayload.exp * 1000;
-    if (jwtExp - Date.now() < 10 * 60 * 1000) {
+    if (!Auth.hasSession()) return;
+    const exp = Auth.jwtExp();
+    // Refresh if JWT expired OR expires in <15 min
+    if (exp - Date.now() < 15 * 60 * 1000) {
       const ok = await Auth.refreshToken();
-      if (!ok) { Auth.clear(); location.href='login.html'; }
+      if (!ok) {
+        // Refresh failed — session truly expired
+        Auth.clear();
+        location.href = 'login.html';
+      }
     }
   };
-  await check(); // check immediately on load
-  setInterval(check, 30 * 60 * 1000); // then every 30 min
+  await check(); // Always check immediately on page load
+  setInterval(check, 5 * 60 * 1000); // Re-check every 5 min
 }
 
 /* ── HTTP ── */
