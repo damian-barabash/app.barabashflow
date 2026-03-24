@@ -86,7 +86,7 @@ const _profileCache = {};
 async function loadProfiles(userIds) {
   const missing = [...new Set(userIds)].filter(id => id && !_profileCache[id]);
   if (!missing.length) return;
-  const profiles = await dbGet('profiles', `?id=in.(${missing.join(',')})&select=id,display_name,email,role,avatar_url`);
+  const profiles = await dbGet('profiles', `?id=in.(${missing.join(',')})&select=id,display_name,email,role,avatar_url,admin_role`);
   profiles.forEach(p => { _profileCache[p.id] = p; });
   missing.forEach(id => { if (!_profileCache[id]) _profileCache[id] = {id, display_name:null, email:null, role:'client', avatar_url:null}; });
 }
@@ -223,6 +223,13 @@ function buildMsgEl(m, reads, currentUserId) {
   const senderEl = document.createElement('div');
   senderEl.className = 'msg-sender';
   senderEl.textContent = senderName;
+  // Show admin role badge if present
+  if (isAdmin && profile?.admin_role) {
+    const roleTag = document.createElement('span');
+    roleTag.style.cssText = 'font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600;margin-left:5px;vertical-align:middle';
+    roleTag.textContent = profile.admin_role;
+    senderEl.appendChild(roleTag);
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';

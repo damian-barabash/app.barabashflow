@@ -557,6 +557,49 @@
       </div>
     </div>
 
+    <!-- ASSIGN ADMINS TO PROJECT MODAL -->
+    <div class="modal-backdrop" id="m-assign-admins-project">
+      <div class="modal">
+        <div class="modal-title">Administratorzy projektu</div>
+        <div class="modal-sub" id="aap-subtitle">Wybierz adminów którzy mają dostęp do tego projektu.</div>
+        <div id="aap-list" style="max-height:260px;overflow-y:auto;margin:12px 0"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('m-assign-admins-project')">Anuluj</button>
+          <button class="btn btn-primary" onclick="saveAdminProjectAssignments()"><i class="ri-check-line"></i>Zapisz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SET ROLE MODAL -->
+    <div class="modal-backdrop" id="m-set-role">
+      <div class="modal">
+        <div class="modal-title">Ustaw rolę administratora</div>
+        <div class="modal-sub" id="sr-admin-name"></div>
+        <div class="form-group">
+          <label class="form-label">Rola (np. Designer, Developer, PM)</label>
+          <input class="form-control" id="sr-role-inp" placeholder="Zostaw puste aby usunąć rolę" maxlength="40">
+        </div>
+        <div class="form-err" id="sr-err"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('m-set-role')">Anuluj</button>
+          <button class="btn btn-primary" onclick="saveAdminRole()"><i class="ri-check-line"></i>Zapisz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSIGN CLIENTS MODAL -->
+    <div class="modal-backdrop" id="m-assign-clients">
+      <div class="modal">
+        <div class="modal-title" id="ac-assign-title">Przypisz klientów</div>
+        <div class="modal-sub">Zaznacz klientów których ten administrator może obsługiwać.</div>
+        <div id="ac-assign-list" style="max-height:260px;overflow-y:auto;margin:12px 0"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('m-assign-clients')">Anuluj</button>
+          <button class="btn btn-primary" onclick="saveClientAssignments()"><i class="ri-check-line"></i>Zapisz</button>
+        </div>
+      </div>
+    </div>
+
     <!-- NEW ADMIN CHAT MODAL -->
     <div class="modal-backdrop" id="m-new-admin-chat">
       <div class="modal">
@@ -616,6 +659,7 @@
           <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i><span class="btn-text">Udostępnij</span></button>
           <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl" class="btn-text">Archiwizuj</span></button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i><span class="btn-text">Usuń</span></button>
+          <button id="pj-assign-admins-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(224,64,251,.3);background:rgba(224,64,251,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminsToProjectModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
         </div>
       </div>
       <div class="tabs">
@@ -1892,6 +1936,9 @@ async function openProject(id,name){
   document.getElementById('pj-name').textContent=name;
   document.getElementById('pj-client').textContent=CNAME;
   document.getElementById('proj-back').onclick=()=>openClient(CID,CNAME,CEMAIL,_clientArchived);
+  // Show assign admins button only for main admin
+  const assignBtn = document.getElementById('pj-assign-admins-btn');
+  if (assignBtn) assignBtn.style.display = _isMainAdmin ? 'inline-flex' : 'none';
   nav('project');switchTab('posts');
   const [p]=await dbGet('projects',`?id=eq.${PID}&select=status,archived_at`);
   if(p){
@@ -3182,14 +3229,12 @@ async function checkMainAdminStatus(){
 function isMainAdmin(){ return _isMainAdmin; }
 
 async function loadAdmins(){
-  // Show skeleton immediately
   const el = document.getElementById('admins-list');
   el.innerHTML = [1,2].map(()=>`
     <div class="skeleton-card">
       <div class="skeleton skeleton-av"></div>
       <div class="skeleton-lines">
         <div class="skeleton skeleton-line w70"></div>
-        <div class="skeleton skeleton-line w45"></div>
         <div class="skeleton skeleton-line w45"></div>
       </div>
       <div style="display:flex;gap:8px">
@@ -3198,26 +3243,45 @@ async function loadAdmins(){
       </div>
     </div>`).join('');
 
-  // Fetch directly from DB — much faster than going through edge function
-  const admins = await dbGet('profiles',
-    `?role=eq.admin&is_main_admin=eq.false&select=id,email,display_name,username,created_at,avatar_url&order=created_at.desc`);
+  const [admins, assignments] = await Promise.all([
+    dbGet('profiles', `?role=eq.admin&is_main_admin=eq.false&select=id,email,display_name,username,created_at,avatar_url,admin_role&order=created_at.desc`),
+    dbGet('admin_client_assignments', `?select=admin_id,client_id`)
+  ]);
+
+  // Count clients per admin
+  const clientCount = {};
+  assignments.forEach(a => { clientCount[a.admin_id] = (clientCount[a.admin_id]||0)+1; });
 
   el.innerHTML = admins.length ? admins.map(a=>`
     <div class="card" style="margin-bottom:10px;padding:14px 16px;animation:fadein .25s ease">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="position:relative;flex-shrink:0">
+        <div style="flex-shrink:0">
           ${a.avatar_url
-            ? `<img src="${esc(a.avatar_url)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block" alt="">`
+            ? `<img src="${esc(a.avatar_url)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block">`
             : `<div class="item-av" style="width:38px;height:38px">${initials(a.display_name||a.email)||'?'}</div>`}
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700">${esc(a.display_name||a.email)}</div>
-          <div style="font-size:11px;color:var(--t3)">${esc(a.email)}${a.username?' · @'+esc(a.username):''}</div>
-          <div style="font-size:10px;color:var(--t3);margin-top:2px">Dodano: ${timeAgo(a.created_at)}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:700">${esc(a.display_name||a.email)}</span>
+            ${a.admin_role ? `<span style="font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:1px">${esc(a.email)}${a.username?' · @'+esc(a.username):''}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px">
+            Dodano: ${timeAgo(a.created_at)} ·
+            <span style="color:var(--a);cursor:pointer" onclick="openAssignClientsModal('${a.id}','${esc(a.display_name||a.email)}')">
+              ${clientCount[a.id]||0} klientów
+            </span>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="openSetRoleModal('${a.id}','${esc(a.display_name||a.email)}','${esc(a.admin_role||'')}')" title="Ustaw rolę">
+            <i class="ri-shield-star-line"></i><span class="btn-text">Rola</span>
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="promoteToMainAdmin('${a.id}','${esc(a.display_name||a.email)}')" title="Mianuj głównym adminem">
+            <i class="ri-vip-crown-line"></i>
+          </button>
           <button class="btn btn-outline btn-sm" onclick="openAdminPassModal('${a.id}','${esc(a.display_name||a.email)}')">
-            <i class="ri-lock-password-line"></i><span class="btn-text">Hasło</span>
+            <i class="ri-lock-password-line"></i>
           </button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteAdmin('${a.id}','${esc(a.display_name||a.email)}')">
             <i class="ri-delete-bin-line"></i>
@@ -3226,6 +3290,96 @@ async function loadAdmins(){
       </div>
     </div>`).join('')
   : emptyHTML('ri-shield-user-line','Brak innych administratorów');
+}
+
+// ── SET ROLE MODAL ──
+let _roleAdminId = null;
+function openSetRoleModal(id, name, currentRole) {
+  _roleAdminId = id;
+  document.getElementById('sr-admin-name').textContent = name;
+  document.getElementById('sr-role-inp').value = currentRole || '';
+  document.getElementById('sr-err').textContent = '';
+  openModal('m-set-role');
+}
+async function saveAdminRole() {
+  const role = document.getElementById('sr-role-inp').value.trim();
+  const errEl = document.getElementById('sr-err');
+  const r = await fetch(`${SB}/rest/v1/profiles?id=eq.${_roleAdminId}`, {
+    method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+    body: JSON.stringify({admin_role: role || null})
+  });
+  if (!r.ok) { errEl.textContent = 'Błąd zapisu'; return; }
+  closeModal('m-set-role');
+  toast('Rola zaktualizowana ✅');
+  loadAdmins();
+}
+
+// ── PROMOTE TO MAIN ADMIN ──
+function promoteToMainAdmin(id, name) {
+  showConfirm(
+    '👑 Mianuj głównym administratorem',
+    `"${name}" otrzyma uprawnienia głównego administratora i dostęp do wszystkich klientów i projektów. Jego rola zostanie usunięta.`,
+    async () => {
+      const r = await fetch(`${SB}/rest/v1/profiles?id=eq.${id}`, {
+        method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
+        body: JSON.stringify({is_main_admin: true, admin_role: null})
+      });
+      if (!r.ok) { toast('Błąd', 'error'); return; }
+      toast('Administrator mianowany głównym ✅');
+      loadAdmins();
+    }
+  );
+}
+
+// ── ASSIGN CLIENTS TO ADMIN ──
+let _assignAdminId = null;
+async function openAssignClientsModal(adminId, adminName) {
+  _assignAdminId = adminId;
+  document.getElementById('ac-assign-title').textContent = 'Klienci dla: ' + adminName;
+  document.getElementById('ac-assign-list').innerHTML = '<div style="color:var(--t3);font-size:13px">Ładowanie...</div>';
+  openModal('m-assign-clients');
+
+  const [clients, assigned] = await Promise.all([
+    dbGet('profiles', `?role=eq.client&archived_at=is.null&select=id,display_name,email,avatar_url&order=display_name`),
+    dbGet('admin_client_assignments', `?admin_id=eq.${adminId}&select=client_id`)
+  ]);
+  const assignedIds = new Set(assigned.map(a => a.client_id));
+
+  document.getElementById('ac-assign-list').innerHTML = clients.length
+    ? clients.map(c => `
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;background:var(--bg3);margin-bottom:4px">
+        <input type="checkbox" value="${c.id}" ${assignedIds.has(c.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--a);flex-shrink:0">
+        ${c.avatar_url
+          ? `<img src="${esc(c.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+          : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${initials(c.display_name||c.email)||'?'}</div>`}
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600">${esc(c.display_name||c.email)}</div>
+          <div style="font-size:11px;color:var(--t3)">${esc(c.email)}</div>
+        </div>
+      </label>`).join('')
+    : '<div style="color:var(--t3);font-size:13px;padding:10px 0">Brak klientów</div>';
+}
+
+async function saveClientAssignments() {
+  const checked = [...document.querySelectorAll('#ac-assign-list input:checked')].map(i => i.value);
+  const unchecked = [...document.querySelectorAll('#ac-assign-list input:not(:checked)')].map(i => i.value);
+
+  // Add new
+  if (checked.length) {
+    await fetch(`${SB}/rest/v1/admin_client_assignments`, {
+      method:'POST', headers:hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify(checked.map(cid => ({admin_id:_assignAdminId, client_id:cid, assigned_by:Auth.userId})))
+    });
+  }
+  // Remove unchecked
+  for (const cid of unchecked) {
+    await fetch(`${SB}/rest/v1/admin_client_assignments?admin_id=eq.${_assignAdminId}&client_id=eq.${cid}`, {
+      method:'DELETE', headers:hdr()
+    });
+  }
+  closeModal('m-assign-clients');
+  toast('Przypisania zapisane ✅');
+  loadAdmins();
 }
 
 function openAdminPassModal(id, name){
@@ -3720,7 +3874,7 @@ setInterval(async () => {
 
 async function renderAdminMsgs(chatId) {
   const msgs     = await dbGet('admin_chat_messages',
-    `?chat_id=eq.${chatId}&select=*,sender:profiles!admin_chat_messages_sender_id_fkey(id,display_name,avatar_url)&order=created_at.asc`);
+    `?chat_id=eq.${chatId}&select=*,sender:profiles!admin_chat_messages_sender_id_fkey(id,display_name,avatar_url,admin_role,is_main_admin)&order=created_at.asc`);
   const filtered = msgs.filter(m => m.chat_id === chatId);
 
   if (filtered.length === _acMsgLen && _acCurrentChatId === chatId) return;
@@ -3737,6 +3891,10 @@ async function renderAdminMsgs(chatId) {
   function buildMsgHtml(m, animate) {
     const mine = m.sender_id === Auth.userId;
     const name = m.sender?.display_name || '?';
+    const role = m.sender?.admin_role;
+    const nameHtml = !mine
+      ? `${esc(name)}${role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600;margin-left:5px">${esc(role)}</span>` : ''}`
+      : '';
     const av   = m.sender?.avatar_url;
     const avHtml = av
       ? `<img src="${esc(av)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
@@ -3753,7 +3911,7 @@ async function renderAdminMsgs(chatId) {
     return `<div style="display:flex;align-items:flex-end;gap:8px;${mine?'flex-direction:row-reverse':''};${anim}">
       ${!mine ? avHtml : ''}
       <div style="max-width:65%;min-width:0">
-        ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px">${esc(name)}</div>` : ''}
+        ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px">${nameHtml}</div>` : ''}
         <div style="padding:9px 12px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${mine?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};color:${mine?'#fff':'var(--t1)'};font-size:13px;line-height:1.55;word-break:break-word">${body}</div>
         <div style="font-size:10px;color:var(--t3);margin-top:3px;${mine?'text-align:right':''}">${timeAgo(m.created_at)}</div>
       </div>
@@ -3941,6 +4099,55 @@ async function loadAdminChatBadge() {
     if (total > 0) { nb.textContent = String(total); nb.classList.add('show'); }
     else nb.classList.remove('show');
   }
+}
+
+// ── ASSIGN ADMINS TO PROJECT ──
+async function openAssignAdminsToProjectModal() {
+  document.getElementById('aap-subtitle').textContent = `Projekt: ${document.getElementById('pj-name').textContent}`;
+  document.getElementById('aap-list').innerHTML = '<div style="color:var(--t3);font-size:13px">Ładowanie...</div>';
+  openModal('m-assign-admins-project');
+
+  const [admins, assigned] = await Promise.all([
+    dbGet('profiles', `?role=eq.admin&is_main_admin=eq.false&select=id,display_name,email,avatar_url,admin_role&order=display_name`),
+    dbGet('admin_project_assignments', `?project_id=eq.${PID}&select=admin_id`)
+  ]);
+  const assignedIds = new Set(assigned.map(a => a.admin_id));
+
+  document.getElementById('aap-list').innerHTML = admins.length
+    ? admins.map(a => `
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;background:var(--bg3);margin-bottom:4px">
+        <input type="checkbox" value="${a.id}" ${assignedIds.has(a.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--a);flex-shrink:0">
+        ${a.avatar_url
+          ? `<img src="${esc(a.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+          : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${initials(a.display_name||a.email)||'?'}</div>`}
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px">
+            ${esc(a.display_name||a.email)}
+            ${a.admin_role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
+          </div>
+          <div style="font-size:11px;color:var(--t3)">${esc(a.email)}</div>
+        </div>
+      </label>`).join('')
+    : '<div style="color:var(--t3);font-size:13px;padding:10px 0">Brak innych administratorów</div>';
+}
+
+async function saveAdminProjectAssignments() {
+  const checked   = [...document.querySelectorAll('#aap-list input:checked')].map(i => i.value);
+  const unchecked = [...document.querySelectorAll('#aap-list input:not(:checked)')].map(i => i.value);
+
+  if (checked.length) {
+    await fetch(`${SB}/rest/v1/admin_project_assignments`, {
+      method:'POST', headers:hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify(checked.map(aid => ({admin_id:aid, project_id:PID, assigned_by:Auth.userId})))
+    });
+  }
+  for (const aid of unchecked) {
+    await fetch(`${SB}/rest/v1/admin_project_assignments?admin_id=eq.${aid}&project_id=eq.${PID}`, {
+      method:'DELETE', headers:hdr()
+    });
+  }
+  closeModal('m-assign-admins-project');
+  toast('Przypisania administratorów zaktualizowane ✅');
 }
 
 async function loadAllBadges() {
