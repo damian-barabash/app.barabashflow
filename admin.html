@@ -3579,67 +3579,87 @@ async function loadAdminChats() {
   const list = document.getElementById('ac-list');
   if (!list) return;
 
-  list.innerHTML = chats.map(chat => {
+  list.innerHTML = chats.map((chat, idx) => {
     const unread    = unreadPerChat[chat.id] || 0;
     const isActive  = chat.id === _acCurrentChatId;
     const memberCount = chat.members?.length || 0;
     const icon      = chat.type === 'general' ? '🏠' : '👥';
-    // Last message preview
     const chatMsgs  = allMsgs.filter(m => m.chat_id === chat.id);
     const lastMsg   = chatMsgs[chatMsgs.length - 1];
     const lastTime  = lastMsg ? timeAgo(lastMsg.created_at) : '';
 
     return `<div onclick="openAdminChat('${chat.id}','${esc(chat.name)}')"
-      style="padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;background:${isActive?'var(--bg3)':'transparent'}"
+      class="ac-list-item"
+      style="padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s,transform .1s;background:${isActive?'var(--bg3)':'transparent'};animation-delay:${idx*40}ms"
       onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${isActive?'var(--bg3)':'transparent'}'">
       <div style="width:38px;height:38px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:${unread?'700':'600'};color:${unread?'var(--t1)':'var(--t2)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.name)}</div>
         <div style="font-size:11px;color:var(--t3)">${lastTime || memberCount+' uczestnik'+(memberCount===1?'':'ów')}</div>
       </div>
-      ${unread ? `<span style="min-width:20px;height:20px;border-radius:100px;background:var(--a);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0">${unread}</span>` : ''}
+      ${unread ? `<span style="min-width:20px;height:20px;border-radius:100px;background:var(--a);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0;animation:acMsgIn .2s ease">${unread}</span>` : ''}
     </div>`;
   }).join('') || `<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Brak czatów</div>`;
 }
 
 async function openAdminChat(chatId, chatName) {
   if (_acPollIv) { clearInterval(_acPollIv); _acPollIv = null; }
+
+  const box      = document.getElementById('ac-msgs');
+  const nameEl   = document.getElementById('ac-chat-name');
+  const membersEl= document.getElementById('ac-chat-members');
+
+  // Fade out messages area if switching chat
+  if (_acCurrentChatId && _acCurrentChatId !== chatId && box) {
+    box.classList.add('switching');
+    box.classList.remove('ready');
+  }
+
   _acCurrentChatId = chatId;
-  _acMsgLen = -1; // Force re-render on chat switch
+  _acMsgLen = -1;
 
-  // Update header
-  document.getElementById('ac-chat-name').textContent = chatName;
+  // Fade out header text
+  nameEl.style.opacity   = '0';
+  membersEl.style.opacity= '0';
 
-  // Load members
-  const members = await dbGet('admin_chat_members',
-    `?chat_id=eq.${chatId}&select=admin:profiles!admin_chat_members_admin_id_fkey(id,display_name,avatar_url)`);
+  // Load members + chat info in parallel
+  const [members, chatArr] = await Promise.all([
+    dbGet('admin_chat_members',
+      `?chat_id=eq.${chatId}&select=admin:profiles!admin_chat_members_admin_id_fkey(id,display_name,avatar_url)`),
+    dbGet('admin_chats', `?id=eq.${chatId}&select=type,created_by`)
+  ]);
+
+  const chat = chatArr?.[0];
   const memberNames = members.map(m => m.admin?.display_name || '?').join(', ');
-  document.getElementById('ac-chat-members').textContent = memberNames;
 
-  // Show delete button for group chats (non-general)
-  const [chat] = await dbGet('admin_chats', `?id=eq.${chatId}&select=type,created_by`);
+  // Update header with fade-in
+  nameEl.textContent    = chatName;
+  membersEl.textContent = memberNames;
+  requestAnimationFrame(() => {
+    nameEl.style.opacity   = '1';
+    membersEl.style.opacity= '1';
+  });
+
+  // Show delete button for group chats
   const actionsEl = document.getElementById('ac-chat-actions');
   if (chat?.type === 'group') {
     actionsEl.innerHTML = `<button onclick="deleteAdminChat('${chatId}')"
-      style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px">
+      style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px;animation:acChatSwitch .2s ease both">
       <i class="ri-delete-bin-line"></i>Usuń grupę</button>`;
   } else {
     actionsEl.innerHTML = '';
   }
 
-  // Show input
-  document.getElementById('ac-input-wrap').style.display = 'flex';
+  // Show input with animation
+  const inputWrap = document.getElementById('ac-input-wrap');
+  inputWrap.style.display = 'flex';
 
-  // Mark as read
   await markAdminChatRead(chatId);
-
-  // Render messages
   await renderAdminMsgs(chatId);
 
-  // Highlight in list
+  // Refresh list to update active state + badges
   loadAdminChats();
 
-  // Poll active chat
   _acPollIv = setInterval(async () => {
     if (_acCurrentChatId === chatId) await renderAdminMsgs(chatId);
   }, 3000);
@@ -3700,22 +3720,27 @@ async function renderAdminMsgs(chatId) {
   const msgs = await dbGet('admin_chat_messages',
     `?chat_id=eq.${chatId}&select=*,sender:profiles!admin_chat_messages_sender_id_fkey(id,display_name,avatar_url)&order=created_at.asc`);
 
-  // Client-side safety filter — only show messages for this chat
   const filtered = msgs.filter(m => m.chat_id === chatId);
 
   if (filtered.length === _acMsgLen && _acCurrentChatId === chatId) return;
+
+  const isFirstLoad = _acMsgLen === -1;
+  const prevLen     = _acMsgLen;
   _acMsgLen = filtered.length;
 
   const box = document.getElementById('ac-msgs');
   if (!box) return;
 
-  const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
 
-  box.innerHTML = filtered.map(m => {
-    const mine = m.sender_id === Auth.userId;
-    const name = m.sender?.display_name || '?';
-    const av   = m.sender?.avatar_url;
-    const avHtml = av
+  // Build HTML with staggered animation delays for new messages
+  const html = filtered.map((m, i) => {
+    const mine       = m.sender_id === Auth.userId;
+    const isNew      = isFirstLoad || i >= prevLen;
+    const delay      = isFirstLoad ? Math.min(i * 30, 300) : 0;
+    const name       = m.sender?.display_name || '?';
+    const av         = m.sender?.avatar_url;
+    const avHtml     = av
       ? `<img src="${esc(av)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
       : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials(name)||'?'}</div>`;
 
@@ -3728,21 +3753,41 @@ async function renderAdminMsgs(chatId) {
     }
     if (m.content) contentHtml = `<div>${esc(m.content)}</div>${contentHtml}`;
 
-    return `<div style="display:flex;align-items:flex-end;gap:8px;${mine?'flex-direction:row-reverse':''}">
+    const animStyle = isNew
+      ? `animation:${mine?'acMsgInMine':'acMsgIn'} .25s cubic-bezier(.34,1.2,.64,1) ${delay}ms both`
+      : '';
+
+    return `<div class="ac-msg-bubble${mine?' mine':''}" style="display:flex;align-items:flex-end;gap:8px;${mine?'flex-direction:row-reverse':''};${animStyle}">
       ${!mine ? avHtml : ''}
       <div style="max-width:65%;min-width:0">
-        ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px;${mine?'text-align:right':''}">${esc(name)}</div>` : ''}
+        ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px">${esc(name)}</div>` : ''}
         <div style="padding:9px 12px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${mine?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};color:${mine?'#fff':'var(--t1)'};font-size:13px;line-height:1.55;word-break:break-word">
           ${contentHtml}
         </div>
         <div style="font-size:10px;color:var(--t3);margin-top:3px;${mine?'text-align:right':''}">${timeAgo(m.created_at)}</div>
       </div>
     </div>`;
-  }).join('') || `<div style="text-align:center;color:var(--t3);font-size:13px;margin:auto">Brak wiadomości. Napisz pierwszą!</div>`;
+  }).join('') || `<div style="text-align:center;color:var(--t3);font-size:13px;margin:auto;animation:acChatSwitch .3s ease">Brak wiadomości. Napisz pierwszą!</div>`;
 
-  if (wasAtBottom || _acMsgLen <= 5) box.scrollTop = box.scrollHeight;
+  // Fade out → update → fade in
+  if (isFirstLoad) {
+    box.classList.add('switching');
+    box.classList.remove('ready');
+    await new Promise(r => setTimeout(r, 120));
+  }
 
-  // Mark read on new messages
+  box.innerHTML = html;
+
+  // Trigger fade-in
+  requestAnimationFrame(() => {
+    box.classList.remove('switching');
+    box.classList.add('ready');
+  });
+
+  if (wasAtBottom || isFirstLoad) {
+    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
+  }
+
   await markAdminChatRead(chatId);
 }
 

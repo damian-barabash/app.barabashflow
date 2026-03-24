@@ -589,3 +589,65 @@ select.form-control option{background:var(--bg3)}
 .nav-group-header .nav-badge {
   margin-left: 6px;
 }
+
+/* ── ADMIN CHAT ANIMATIONS ── */
+@keyframes acMsgIn {
+  from { opacity:0; transform:translateY(10px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes acMsgInMine {
+  from { opacity:0; transform:translateY(10px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes acFadeSlide {
+  from { opacity:0; transform:translateX(-8px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes acChatSwitch {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.ac-msg-bubble {
+  animation: acMsgIn .22s cubic-bezier(.34,1.2,.64,1) both;
+}
+.ac-msg-bubble.mine {
+  animation: acMsgInMine .22s cubic-bezier(.34,1.2,.64,1) both;
+}
+.ac-chat-switch {
+  animation: acChatSwitch .2s ease both;
+}
+.ac-list-item {
+  animation: acFadeSlide .18s ease both;
+}
+
+/* Smooth chat area transition */
+#ac-msgs {
+  scroll-behavior: smooth;
+}
+#ac-msgs.switching {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .15s ease, transform .15s ease;
+}
+#ac-msgs.ready {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+/* Chat list item hover */
+#ac-list > div {
+  transition: background .15s ease, transform .1s ease;
+}
+#ac-list > div:active {
+  transform: scale(.98);
+}
+
+/* Header transition */
+#ac-chat-name {
+  transition: opacity .15s ease;
+}
+#ac-chat-members {
+  transition: opacity .15s ease;
+}
