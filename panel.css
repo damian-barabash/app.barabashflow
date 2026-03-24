@@ -279,16 +279,16 @@ select.form-control option{background:var(--bg3)}
 
 /* ── MSG ANIMATION ─────────────────────── */
 @keyframes msgSlideIn{
-  from{opacity:0;transform:translateY(12px) scale(.97)}
+  from{opacity:0;transform:translateY(10px) scale(.97)}
   to  {opacity:1;transform:translateY(0)    scale(1)}
 }
 @keyframes msgSlideInMine{
-  from{opacity:0;transform:translateX(16px) scale(.97)}
+  from{opacity:0;transform:translateX(12px) scale(.97)}
   to  {opacity:1;transform:translateX(0)    scale(1)}
 }
-.msg-entering{opacity:0;transform:translateY(12px) scale(.97)}
-.msg-entered{animation:msgSlideIn .28s cubic-bezier(.34,1.2,.64,1) forwards}
-.msg.mine.msg-entered{animation:msgSlideInMine .28s cubic-bezier(.34,1.2,.64,1) forwards}
+.msg-entering{opacity:0;transform:translateY(10px) scale(.97)}
+.msg-entered{animation:msgSlideIn .25s cubic-bezier(.34,1.15,.64,1) forwards}
+.msg.mine.msg-entered{animation:msgSlideInMine .25s cubic-bezier(.34,1.15,.64,1) forwards}
 
 /* ── CHAT LINK ──────────────────────────── */
 .chat-link{color:var(--a);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
@@ -592,62 +592,60 @@ select.form-control option{background:var(--bg3)}
 
 /* ── ADMIN CHAT ANIMATIONS ── */
 @keyframes acMsgIn {
-  from { opacity:0; transform:translateY(10px) scale(.97); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
-}
-@keyframes acMsgInMine {
-  from { opacity:0; transform:translateY(10px) scale(.97); }
+  from { opacity:0; transform:translateY(8px) scale(.98); }
   to   { opacity:1; transform:translateY(0) scale(1); }
 }
 @keyframes acFadeSlide {
-  from { opacity:0; transform:translateX(-8px); }
+  from { opacity:0; transform:translateX(-6px); }
   to   { opacity:1; transform:translateX(0); }
 }
-@keyframes acChatSwitch {
-  from { opacity:0; transform:translateY(6px); }
+@keyframes acFadeIn {
+  from { opacity:0; transform:translateY(5px); }
   to   { opacity:1; transform:translateY(0); }
 }
 
+/* New message bubble animation */
 .ac-msg-bubble {
-  animation: acMsgIn .22s cubic-bezier(.34,1.2,.64,1) both;
+  animation: acMsgIn .25s cubic-bezier(.34,1.15,.64,1) both;
 }
-.ac-msg-bubble.mine {
-  animation: acMsgInMine .22s cubic-bezier(.34,1.2,.64,1) both;
-}
-.ac-chat-switch {
-  animation: acChatSwitch .2s ease both;
-}
+
+/* Chat list items */
 .ac-list-item {
   animation: acFadeSlide .18s ease both;
 }
 
-/* Smooth chat area transition */
+/* Messages container — fade in when content loads */
+.ac-msgs-fadein {
+  animation: acFadeIn .2s ease both;
+}
+
+/* Smooth scroll */
 #ac-msgs {
   scroll-behavior: smooth;
-}
-#ac-msgs.switching {
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity .15s ease, transform .15s ease;
-}
-#ac-msgs.ready {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity .2s ease, transform .2s ease;
 }
 
 /* Chat list item hover */
 #ac-list > div {
-  transition: background .15s ease, transform .1s ease;
+  transition: background .12s ease, transform .1s ease;
 }
 #ac-list > div:active {
   transform: scale(.98);
 }
 
 /* Header transition */
-#ac-chat-name {
-  transition: opacity .15s ease;
+#ac-chat-name, #ac-chat-members {
+  transition: opacity .12s ease;
 }
-#ac-chat-members {
-  transition: opacity .15s ease;
+
+/* ── PROJECT CHAT ANIMATIONS ── */
+@keyframes msgFadeIn {
+  from { opacity:0; transform:translateY(8px) scale(.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes chatHistoryIn {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.msg-history-fadein {
+  animation: chatHistoryIn .22s ease both;
 }

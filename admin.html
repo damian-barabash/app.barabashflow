@@ -3609,10 +3609,9 @@ async function openAdminChat(chatId, chatName) {
   const nameEl   = document.getElementById('ac-chat-name');
   const membersEl= document.getElementById('ac-chat-members');
 
-  // Fade out messages area if switching chat
+  // Fade out → update → fade in
   if (_acCurrentChatId && _acCurrentChatId !== chatId && box) {
-    box.classList.add('switching');
-    box.classList.remove('ready');
+    box.innerHTML = '';
   }
 
   _acCurrentChatId = chatId;
@@ -3771,18 +3770,14 @@ async function renderAdminMsgs(chatId) {
 
   // Fade out → update → fade in
   if (isFirstLoad) {
-    box.classList.add('switching');
-    box.classList.remove('ready');
-    await new Promise(r => setTimeout(r, 120));
+    box.innerHTML = html;
+    // Trigger fade-in by re-adding class
+    box.classList.remove('ac-msgs-fadein');
+    void box.offsetWidth; // force reflow
+    box.classList.add('ac-msgs-fadein');
+  } else {
+    box.innerHTML = html;
   }
-
-  box.innerHTML = html;
-
-  // Trigger fade-in
-  requestAnimationFrame(() => {
-    box.classList.remove('switching');
-    box.classList.add('ready');
-  });
 
   if (wasAtBottom || isFirstLoad) {
     setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);

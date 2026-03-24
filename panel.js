@@ -384,15 +384,26 @@ async function renderChat(projectId, currentUserId, boxId) {
   // Full redraw
   const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
   const prevCount   = _chatState.msgIds ? _chatState.msgIds.length : 0;
+  const isFirstProject = _chatState.projectId !== projectId;
   _chatState = { projectId, msgIds: msgs.map(m => m.id), readMap: newReadMap };
 
   box.innerHTML = '';
   msgs.forEach((m, i) => {
     const el = buildMsgEl(m, reads, currentUserId);
-    // Animate only NEW messages (not full history reload)
-    if (sameProject && i >= prevCount) {
+    const isNew = sameProject && i >= prevCount;
+    if (isNew) {
+      // New message — pop in from bottom
       el.classList.add('msg-entering');
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('msg-entered')));
+    } else if (isFirstProject) {
+      // First load of project — staggered cascade
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(6px)';
+      el.style.transition = `opacity .2s ease ${Math.min(i * 25, 400)}ms, transform .2s ease ${Math.min(i * 25, 400)}ms`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }));
     }
     box.appendChild(el);
   });
