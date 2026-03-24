@@ -1928,6 +1928,13 @@ async function createProject(){
   if(!name){toast('Wpisz nazwę','error');return;}
   const [newProj]=await dbPost('projects',{client_id:CID,name,description:desc,status:'active'},{returning:true});
   if(tplId && newProj?.id) await applyTemplate(newProj.id, tplId);
+  // Auto-assign non-main admin to the project they created
+  if(newProj?.id && !_isMainAdmin) {
+    await fetch(`${SB}/rest/v1/admin_project_assignments`,{
+      method:'POST', headers:hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({admin_id:Auth.userId, project_id:newProj.id, assigned_by:Auth.userId})
+    });
+  }
   closeModal('m-proj');toast('Projekt utworzony ✅');openClient(CID,CNAME,CEMAIL);
 }
 async function openProject(id,name){
