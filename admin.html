@@ -3550,7 +3550,7 @@ let _acAllAdmins     = [];
 
 async function loadAdminChats() {
   const [chats, reads, allMsgs] = await Promise.all([
-    dbGet('admin_chats', `?select=*,members:admin_chat_members(admin_id)&order=type.desc,created_at.asc`),
+    dbGet('admin_chats', `?select=*,members:admin_chat_members(admin_id)&order=type.asc,created_at.asc`),
     dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`),
     dbGet('admin_chat_messages', `?select=id,chat_id,sender_id,created_at&order=created_at.asc`)
   ]);
@@ -3605,7 +3605,7 @@ async function loadAdminChats() {
 async function openAdminChat(chatId, chatName) {
   if (_acPollIv) { clearInterval(_acPollIv); _acPollIv = null; }
   _acCurrentChatId = chatId;
-  _acMsgLen = 0;
+  _acMsgLen = -1; // Force re-render on chat switch
 
   // Update header
   document.getElementById('ac-chat-name').textContent = chatName;
@@ -3700,15 +3700,18 @@ async function renderAdminMsgs(chatId) {
   const msgs = await dbGet('admin_chat_messages',
     `?chat_id=eq.${chatId}&select=*,sender:profiles!admin_chat_messages_sender_id_fkey(id,display_name,avatar_url)&order=created_at.asc`);
 
-  if (msgs.length === _acMsgLen) return;
-  _acMsgLen = msgs.length;
+  // Client-side safety filter — only show messages for this chat
+  const filtered = msgs.filter(m => m.chat_id === chatId);
+
+  if (filtered.length === _acMsgLen && _acCurrentChatId === chatId) return;
+  _acMsgLen = filtered.length;
 
   const box = document.getElementById('ac-msgs');
   if (!box) return;
 
   const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
 
-  box.innerHTML = msgs.map(m => {
+  box.innerHTML = filtered.map(m => {
     const mine = m.sender_id === Auth.userId;
     const name = m.sender?.display_name || '?';
     const av   = m.sender?.avatar_url;
