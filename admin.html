@@ -3836,37 +3836,21 @@ async function createAdminChatGroup() {
   btn.innerHTML = '<span class="spin"><i class="ri-loader-4-line"></i></span>';
 
   try {
-    // Create chat using service key approach — insert directly
-    const chatId = crypto.randomUUID();
-    const r = await fetch(`${SB}/rest/v1/admin_chats`, {
-      method:'POST',
-      headers: hdr({Prefer:'return=representation'}),
-      body: JSON.stringify({id: chatId, name, type:'group', created_by: Auth.userId})
+    const result = await edgeFn('admin-chat', {
+      action: 'create-group',
+      name,
+      memberIds: checked.map(c => c.value)
     });
-    const body = await r.json();
-    if (!r.ok) {
-      errEl.textContent = 'Błąd: ' + (body?.message || body?.error || r.status);
-      return;
-    }
-    const chat = Array.isArray(body) ? body[0] : body;
-    if (!chat?.id) { errEl.textContent = 'Błąd tworzenia grupy'; return; }
 
-    // Add members: self + selected
-    const memberIds = [...new Set([Auth.userId, ...checked.map(c => c.value)])];
-    const membersR = await fetch(`${SB}/rest/v1/admin_chat_members`, {
-      method:'POST', headers: hdr({Prefer:'return=minimal'}),
-      body: JSON.stringify(memberIds.map(id => ({chat_id: chat.id, admin_id: id})))
-    });
-    if (!membersR.ok) {
-      const me = await membersR.json();
-      errEl.textContent = 'Błąd dodawania uczestników: ' + (me?.message || membersR.status);
+    if (result.error) {
+      errEl.textContent = 'Błąd: ' + result.error;
       return;
     }
 
     closeModal('m-new-admin-chat');
     toast('Grupa utworzona ✅');
     await loadAdminChats();
-    openAdminChat(chat.id, name);
+    openAdminChat(result.chatId, name);
   } catch(e) {
     errEl.textContent = 'Błąd: ' + e.message;
   } finally {
@@ -3877,7 +3861,8 @@ async function createAdminChatGroup() {
 
 async function deleteAdminChat(chatId) {
   showConfirm('Usuń grupę', 'Wszystkie wiadomości tej grupy zostaną usunięte.', async () => {
-    await fetch(`${SB}/rest/v1/admin_chats?id=eq.${chatId}`, {method:'DELETE', headers:hdr()});
+    const r = await edgeFn('admin-chat', {action:'delete-group', chatId});
+    if (r.error) { toast(r.error, 'error'); return; }
     if (_acCurrentChatId === chatId) {
       _acCurrentChatId = null;
       if (_acPollIv) { clearInterval(_acPollIv); _acPollIv = null; }
