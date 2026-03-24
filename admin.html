@@ -1100,6 +1100,20 @@
 document.getElementById('adminName').textContent = Auth.name || 'Admin';
 document.getElementById('adminAv').textContent   = initials(Auth.name) || 'D';
 document.getElementById('pageSub').textContent   = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// Load admin role for sidebar label
+(async () => {
+  const [p] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=admin_role,is_main_admin,avatar_url`);
+  if (!p) return;
+  // Role label: main admin = "Administrator", regular admin = their role or "Administrator"
+  const roleLabel = (!p.is_main_admin && p.admin_role) ? p.admin_role : 'Administrator';
+  document.querySelector('.user-role').textContent = roleLabel;
+  // Update avatar if exists
+  if (p.avatar_url) {
+    const av = document.getElementById('adminAvWrap');
+    av.innerHTML = `<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+})();
 _profileCache[Auth.userId] = {id:Auth.userId, display_name:Auth.name, email:Auth.email, role:'admin'};
 
 let CID='', CNAME='', CEMAIL='', PID='', OID='', chatLen=0, chatIv=null;
