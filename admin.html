@@ -1238,18 +1238,26 @@ async function loadDash() {
       </div>
     </div>`).join('');
 
-  const [clients, projects, orders, presenceRows, allProjects, messages, docs, tasks, stages, feedback, leads] = await Promise.all([
+  // Load clients + projects first — RLS already scopes these for non-main admins
+  const [clients, allProjects, orders, presenceRows, leads] = await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=is.null&select=*&order=created_at.desc'),
     dbGet('projects','?archived_at=is.null&select=id,status'),
     dbGet('orders','?status=eq.open&select=*&order=created_at.desc'),
     dbGet('user_presence','?select=user_id,last_seen'),
-    dbGet('projects','?archived_at=is.null&select=id,status'),
-    dbGet('messages','?select=id'),
-    dbGet('documents','?select=id'),
-    dbGet('project_tasks','?select=id,completed'),
-    dbGet('project_stages','?select=id,completed'),
-    dbGet('project_feedback','?select=id,rating'),
     dbGet('leads','?select=id'),
+  ]);
+
+  // Build project IDs filter for scoped queries
+  const pids = allProjects.map(p=>p.id);
+  const pidFilter = pids.length ? `project_id=in.(${pids.join(',')})` : 'project_id=eq.00000000-0000-0000-0000-000000000000';
+
+  // Load all stats scoped to visible projects
+  const [messages, docs, tasks, stages, feedback] = await Promise.all([
+    dbGet('messages',`?${pidFilter}&select=id`),
+    dbGet('documents',`?${pidFilter}&select=id`),
+    dbGet('project_tasks',`?${pidFilter}&select=id,completed`),
+    dbGet('project_stages',`?${pidFilter}&select=id,completed`),
+    dbGet('project_feedback',`?${pidFilter}&select=id,rating`),
   ]);
 
   const presenceMap={};
