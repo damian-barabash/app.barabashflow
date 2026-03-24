@@ -633,6 +633,7 @@
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
         <div><h2 id="cd-name">—</h2><div class="sub" id="cd-email">—</div></div>
         <div class="page-header-btns" style="margin-left:auto">
+          <button id="cd-assign-admin-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(224,64,251,.3);background:rgba(224,64,251,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminToClientModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
           <button class="btn btn-sm btn-icon-arc" id="cd-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveClient()"><i class="ri-archive-line"></i><span id="cd-archive-lbl" class="btn-text">Archiwizuj</span></button>
           <button class="btn btn-primary btn-sm" onclick="openNewProj()"><i class="ri-add-line"></i><span class="btn-text">Nowy projekt</span></button>
         </div>
@@ -1386,12 +1387,24 @@ async function openClient(id,name,email,isArchived=false) {
   CID=id;CNAME=name;CEMAIL=email;_clientArchived=isArchived;
   document.getElementById('cd-name').textContent=name;
   document.getElementById('cd-email').textContent=email;
+  // Show assign admins button only for main admin
+  const assignBtn = document.getElementById('cd-assign-admin-btn');
+  if (assignBtn) assignBtn.style.display = _isMainAdmin ? 'inline-flex' : 'none';
   // Update archive button label
   const lbl=document.getElementById('cd-archive-lbl');
   const btn=document.getElementById('cd-archive-btn');
   if(isArchived){lbl.textContent='Przywróć';btn.style.background='rgba(74,222,128,.08)';btn.style.color='var(--green)';btn.style.borderColor='rgba(74,222,128,.3)';}
   else{lbl.textContent='Archiwizuj';btn.style.background='rgba(251,191,36,.08)';btn.style.color='#fbbf24';btn.style.borderColor='rgba(251,191,36,.3)';}
   nav('cdetail');
+  document.getElementById('cd-projs').innerHTML = [1,2].map(()=>`
+    <div class="skeleton-card" style="border-radius:12px;margin-bottom:8px;padding:14px">
+      <div class="skeleton" style="width:36px;height:36px;border-radius:10px;flex-shrink:0"></div>
+      <div class="skeleton-lines" style="flex:1">
+        <div class="skeleton skeleton-line w70"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+      <div class="skeleton" style="width:60px;height:22px;border-radius:100px"></div>
+    </div>`).join('');
   const [projs,notifs]=await Promise.all([
     dbGet('projects',`?client_id=eq.${id}&select=*&order=archived_at.asc,updated_at.desc`),
     dbGet('notifications',`?user_id=eq.${id}&is_read=eq.false&select=project_id`)
@@ -1614,8 +1627,9 @@ async function deleteTask(id) {
 let _templates = [];
 
 async function loadTemplates() {
-  _templates = await dbGet('project_templates', '?select=*&order=created_at.desc');
   const el = document.getElementById('templates-list');
+  el.innerHTML = skeletonList(2);
+  _templates = await dbGet('project_templates', '?select=*&order=created_at.desc');
   if (!_templates.length) { el.innerHTML = emptyHTML('ri-layout-line','Brak szablonów. Utwórz pierwszy szablon.'); return; }
   el.innerHTML = _templates.map(t => {
     const stages = Array.isArray(t.stages) ? t.stages : [];
@@ -1787,8 +1801,10 @@ async function archiveProject() {
 
 // ── ORDERS ──
 async function loadOrders() {
+  const el = document.getElementById('or-list');
+  el.innerHTML = skeletonList(3);
   const orders=await dbGet('orders','?select=*&order=created_at.desc');
-  document.getElementById('or-list').innerHTML=orders.map(o=>`
+  el.innerHTML=orders.map(o=>`
     <div class="order-card ${o.status}">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <div><strong>${esc(o.name)}</strong> &nbsp;<a href="mailto:${esc(o.email)}" style="font-size:12px;color:var(--a)">${esc(o.email)}</a></div>
@@ -1816,6 +1832,8 @@ async function deleteOrder(id) {
 
 // ── ARCHIVE VIEW ──
 async function loadArchive() {
+  document.getElementById('arc-clients-list').innerHTML = skeletonList(2);
+  document.getElementById('arc-projects-list').innerHTML = skeletonList(2);
   const [archivedClients,archivedProjects]=await Promise.all([
     dbGet('profiles','?role=eq.client&archived_at=not.is.null&select=*&order=archived_at.desc'),
     dbGet('projects','?archived_at=not.is.null&select=*,client:profiles!projects_client_id_fkey(display_name,email)&order=archived_at.desc'),
@@ -3134,11 +3152,13 @@ async function deleteSentEmail(emailId, fromDetail=false) {
 
 // ── LEADS ──
 async function loadLeads() {
+  const el = document.getElementById('leads-list');
+  el.innerHTML = skeletonList(3);
   const leads = await dbGet('leads', '?select=*&order=created_at.desc');
   const nb = document.getElementById('nb-leads');
   if (leads.length) { nb.textContent=leads.length; nb.classList.add('show'); } else nb.classList.remove('show');
   updateOrgBadge();
-  document.getElementById('leads-list').innerHTML = leads.map(l => `
+  el.innerHTML = leads.map(l => `
     <div class="card" style="margin-bottom:10px;padding:16px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:${l.message?'12px':'0'}">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#c0392b);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${l.type==='agency'?'🏢':'👤'}</div>
@@ -3343,7 +3363,7 @@ let _assignAdminId = null;
 async function openAssignClientsModal(adminId, adminName) {
   _assignAdminId = adminId;
   document.getElementById('ac-assign-title').textContent = 'Klienci dla: ' + adminName;
-  document.getElementById('ac-assign-list').innerHTML = '<div style="color:var(--t3);font-size:13px">Ładowanie...</div>';
+  document.getElementById('ac-assign-list').innerHTML = skeletonLines(3);
   openModal('m-assign-clients');
 
   const [clients, assigned] = await Promise.all([
@@ -3387,6 +3407,59 @@ async function saveClientAssignments() {
   closeModal('m-assign-clients');
   toast('Przypisania zapisane ✅');
   loadAdmins();
+}
+
+// ── ASSIGN ADMINS TO CLIENT (from client detail page) ──
+async function openAssignAdminToClientModal() {
+  document.getElementById('ac-assign-title').textContent = 'Administratorzy dla: ' + CNAME;
+  document.getElementById('ac-assign-list').innerHTML = skeletonLines(3);
+  openModal('m-assign-clients');
+
+  const [admins, assigned] = await Promise.all([
+    dbGet('profiles', `?role=eq.admin&is_main_admin=eq.false&select=id,display_name,email,avatar_url,admin_role&order=display_name`),
+    dbGet('admin_client_assignments', `?client_id=eq.${CID}&select=admin_id`)
+  ]);
+  const assignedIds = new Set(assigned.map(a => a.admin_id));
+
+  document.getElementById('ac-assign-list').innerHTML = admins.length
+    ? admins.map(a => `
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;background:var(--bg3);margin-bottom:4px">
+        <input type="checkbox" value="${a.id}" ${assignedIds.has(a.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--a);flex-shrink:0">
+        ${a.avatar_url
+          ? `<img src="${esc(a.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+          : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${initials(a.display_name||a.email)||'?'}</div>`}
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px">
+            ${esc(a.display_name||a.email)}
+            ${a.admin_role?`<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--t3)">${esc(a.email)}</div>
+        </div>
+      </label>`).join('')
+    : '<div style="color:var(--t3);font-size:13px;padding:10px 0">Brak innych administratorów</div>';
+
+  // Override save to work by client
+  document.querySelector('#m-assign-clients .btn-primary').onclick = saveAdminToClientAssignments;
+}
+
+async function saveAdminToClientAssignments() {
+  const checked   = [...document.querySelectorAll('#ac-assign-list input:checked')].map(i => i.value);
+  const unchecked = [...document.querySelectorAll('#ac-assign-list input:not(:checked)')].map(i => i.value);
+
+  if (checked.length) {
+    await fetch(`${SB}/rest/v1/admin_client_assignments`, {
+      method:'POST', headers:hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify(checked.map(aid => ({admin_id:aid, client_id:CID, assigned_by:Auth.userId})))
+    });
+  }
+  for (const aid of unchecked) {
+    await fetch(`${SB}/rest/v1/admin_client_assignments?admin_id=eq.${aid}&client_id=eq.${CID}`, {
+      method:'DELETE', headers:hdr()
+    });
+  }
+  document.querySelector('#m-assign-clients .btn-primary').onclick = saveClientAssignments;
+  closeModal('m-assign-clients');
+  toast('Administratorzy przypisani ✅');
 }
 
 function openAdminPassModal(id, name){
@@ -3711,6 +3784,19 @@ let _acAllAdmins     = [];
 let _acListInited    = false; // tracks if list was rendered at least once
 
 async function loadAdminChats() {
+  // Show skeleton on first load only
+  const list = document.getElementById('ac-list');
+  if (list && !_acListInited) {
+    list.innerHTML = Array(3).fill(0).map(()=>`
+      <div class="skeleton-card" style="border-radius:10px;margin-bottom:4px">
+        <div class="skeleton skeleton-av" style="border-radius:10px;width:38px;height:38px"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton skeleton-line w70"></div>
+          <div class="skeleton skeleton-line w45"></div>
+        </div>
+      </div>`).join('');
+  }
+
   const [chats, reads, allMsgs] = await Promise.all([
     dbGet('admin_chats', `?select=*,members:admin_chat_members(admin_id)&order=type.asc,created_at.asc`),
     dbGet('admin_chat_reads', `?admin_id=eq.${Auth.userId}&select=chat_id,last_read_at`),
@@ -3738,7 +3824,6 @@ async function loadAdminChats() {
     else nb.classList.remove('show');
   }
 
-  const list = document.getElementById('ac-list');
   if (!list) return;
 
   list.innerHTML = chats.map((chat, idx) => {
@@ -4111,7 +4196,7 @@ async function loadAdminChatBadge() {
 // ── ASSIGN ADMINS TO PROJECT ──
 async function openAssignAdminsToProjectModal() {
   document.getElementById('aap-subtitle').textContent = `Projekt: ${document.getElementById('pj-name').textContent}`;
-  document.getElementById('aap-list').innerHTML = '<div style="color:var(--t3);font-size:13px">Ładowanie...</div>';
+  document.getElementById('aap-list').innerHTML = skeletonLines(3);
   openModal('m-assign-admins-project');
 
   const [admins, assigned] = await Promise.all([

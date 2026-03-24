@@ -586,6 +586,24 @@ function statusClass(s){ return s||'active'; }
 function emptyHTML(icon,txt){ return `<div class="empty"><i class="${icon}"></i><p>${txt}</p></div>`; }
 function fmtSize(b){ if(!b)return''; if(b<1024)return b+'B'; if(b<1048576)return(b/1024).toFixed(0)+'KB'; return(b/1048576).toFixed(1)+'MB'; }
 
+/* ── SKELETON HELPERS ── */
+function skeletonCard(lines=2, hasAvatar=true, hasAction=true) {
+  const lns=[70,45,45].slice(0,lines).map(w=>`<div class="skeleton skeleton-line w${w}"></div>`).join('');
+  return `<div class="skeleton-card" style="border-radius:12px;margin-bottom:8px">
+    ${hasAvatar?'<div class="skeleton skeleton-av"></div>':''}
+    <div class="skeleton-lines">${lns}</div>
+    ${hasAction?'<div class="skeleton" style="width:60px;height:28px;border-radius:8px;margin-left:auto"></div>':''}
+  </div>`;
+}
+function skeletonList(n=3){ return Array(n).fill(0).map(()=>skeletonCard()).join(''); }
+function skeletonLines(n=3){
+  return Array(n).fill(0).map((_,i)=>`
+    <div class="skeleton-card" style="border-radius:8px;margin-bottom:4px;min-height:44px">
+      <div class="skeleton skeleton-av" style="width:28px;height:28px"></div>
+      <div class="skeleton-lines"><div class="skeleton skeleton-line w${i%2===0?70:50}"></div></div>
+    </div>`).join('');
+}
+
 /* ── FILE SELECTION (posts/docs) ── */
 function onFileSelected(inputId, previewId, areaId, storeKey) {
   const file=document.getElementById(inputId)?.files?.[0]; if(!file)return;
