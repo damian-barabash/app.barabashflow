@@ -756,17 +756,18 @@
       <!-- DOCS -->
       <div class="tab-pane" id="tab-docs">
         <div class="card" style="margin-bottom:16px">
-          <div class="card-title" style="margin-bottom:14px">Dodaj plik</div>
+          <div class="card-title" style="margin-bottom:14px">Dodaj pliki</div>
           <div class="form-group">
-            <label class="form-label">Plik *</label>
-            <div class="upload-area" id="dc-upload-area">
-              <input type="file" id="dc-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,image/*" onchange="onFileSelected('dc-file','dc-upload-preview','dc-upload-area','_dcFile')">
-              <i class="ri-folder-upload-line"></i><p>Kliknij lub przeciągnij dokument</p><span>PDF, Word, Excel, PowerPoint, Zdjęcia — maks. 50MB</span>
+            <div class="upload-area" id="dc-upload-area" onclick="document.getElementById('dc-file').click()" ondrop="onDocsDrop(event)" ondragover="event.preventDefault();event.stopPropagation();this.style.borderColor='var(--a)'" ondragleave="this.style.borderColor=''">
+              <input type="file" id="dc-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,image/*" multiple style="display:none" onchange="onDocsSelected(this)">
+              <i class="ri-folder-upload-line"></i>
+              <p>Kliknij lub przeciągnij pliki</p>
+              <span>PDF, Word, Excel, PowerPoint, Zdjęcia — maks. 50MB · Możesz wybrać wiele plików</span>
             </div>
-            <div id="dc-upload-preview" style="margin-top:8px"></div>
-            <div class="upload-progress" id="dc-upload-progress"><div class="upload-progress-bar" id="dc-upload-bar"></div></div>
+            <!-- Selected files queue -->
+            <div id="dc-files-queue" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
-          <div class="form-group"><label class="form-label">Nazwa (opcjonalna)</label><input class="form-control" id="dc-name" placeholder="Zostaw puste = nazwa pliku"></div>
+
           <!-- Doc type selector -->
           <div class="form-group">
             <label class="form-label">Typ</label>
@@ -801,7 +802,12 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="addDoc()" id="dc-btn" style="margin-top:14px"><i class="ri-upload-line"></i>Dodaj plik</button>
+
+          <!-- Upload progress -->
+          <div class="upload-progress" id="dc-upload-progress"><div class="upload-progress-bar" id="dc-upload-bar"></div></div>
+          <div id="dc-upload-status" style="font-size:12px;color:var(--t3);margin-top:6px;display:none"></div>
+
+          <button class="btn btn-primary btn-sm" onclick="addDoc()" id="dc-btn" style="margin-top:14px"><i class="ri-upload-line"></i>Dodaj pliki</button>
         </div>
         <!-- Filter -->
         <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
@@ -2261,57 +2267,132 @@ function confirmDeleteDoc(id, name) {
   });
 }
 
+// ── MULTI-FILE DOCS ──
+let _dcFiles = []; // Array of File objects
+
+function onDocsSelected(input) {
+  const files = [...input.files];
+  files.forEach(f => { if (!_dcFiles.find(x => x.name===f.name && x.size===f.size)) _dcFiles.push(f); });
+  renderDocQueue();
+  input.value = '';
+  document.getElementById('dc-upload-area').style.borderColor = '';
+}
+
+function onDocsDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('dc-upload-area').style.borderColor = '';
+  const files = [...e.dataTransfer.files];
+  files.forEach(f => { if (!_dcFiles.find(x => x.name===f.name && x.size===f.size)) _dcFiles.push(f); });
+  renderDocQueue();
+}
+
+function renderDocQueue() {
+  const el = document.getElementById('dc-files-queue');
+  if (!_dcFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = _dcFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border-radius:8px;font-size:13px;animation:fadein .15s ease">
+      <i class="ri-file-line" style="color:var(--a);flex-shrink:0"></i>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>
+      <span style="color:var(--t3);font-size:11px;flex-shrink:0">${fmtSize(f.size)}</span>
+      <button onclick="removeDocFile(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:16px;line-height:1;flex-shrink:0" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t3)'">&times;</button>
+    </div>`).join('');
+}
+
+function removeDocFile(i) {
+  _dcFiles.splice(i, 1);
+  renderDocQueue();
+}
+
 async function addDoc(){
-  if(!window._dcFile){toast('Wybierz plik','error');return;}
+  if(!_dcFiles.length){toast('Wybierz przynajmniej jeden plik','error');return;}
   const btn=document.getElementById('dc-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;Przesyłanie...';
-  try{
-    document.getElementById('dc-upload-progress').classList.add('show');
-    document.getElementById('dc-upload-bar').style.width='40%';
-    const up=await uploadFile(window._dcFile,'doc-files');
-    document.getElementById('dc-upload-bar').style.width='100%';
-    const name=document.getElementById('dc-name').value.trim()||up.name;
-    const isInv = document.getElementById('dtype-inv').checked;
+  btn.disabled=true;
 
-    const docData = {
-      project_id:PID, uploaded_by:Auth.userId, name,
-      url:up.url, file_url:up.url, mime_type:up.mime, file_size:up.size,
-      doc_type: isInv ? 'invoice' : 'document',
-      ...(isInv ? {
-        invoice_number:  document.getElementById('dc-inv-number').value.trim()||null,
-        invoice_amount:  parseFloat(document.getElementById('dc-inv-amount').value)||null,
-        invoice_currency:document.getElementById('dc-inv-currency').value,
-        invoice_due_date:document.getElementById('dc-inv-due').value||null,
-        invoice_status:  document.getElementById('dc-inv-status').value
-      } : {})
-    };
+  const isInv = document.getElementById('dtype-inv').checked;
+  const totalFiles = _dcFiles.length;
 
-    await dbPost('documents', docData);
+  // Progress elements
+  const progressWrap = document.getElementById('dc-upload-progress');
+  const progressBar  = document.getElementById('dc-upload-bar');
+  const statusEl     = document.getElementById('dc-upload-status');
+  progressWrap.classList.add('show');
+  statusEl.style.display = 'block';
 
-    // Reset form
-    document.getElementById('dc-name').value='';
-    document.getElementById('dc-upload-preview').innerHTML='';
-    document.getElementById('dc-upload-area').style.borderColor='';
-    window._dcFile=null;
-    if(isInv){
-      ['dc-inv-number','dc-inv-amount','dc-inv-due'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('dc-inv-status').value='pending';
+  // Get client_id for notification
+  const [proj] = await dbGet('projects',`?id=eq.${PID}&select=client_id`);
+  const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
+
+  let uploaded = 0;
+  let errors = 0;
+
+  for (let i = 0; i < _dcFiles.length; i++) {
+    const file = _dcFiles[i];
+    const pct = Math.round((i / totalFiles) * 100);
+    progressBar.style.width = pct + '%';
+    statusEl.textContent = `Przesyłanie ${i+1} z ${totalFiles}: ${file.name}`;
+    btn.innerHTML = `<span class="spin"><i class="ri-loader-4-line"></i></span>&nbsp;${i+1}/${totalFiles}`;
+
+    try {
+      const up = await uploadFile(file, 'doc-files');
+      const name = up.name;
+
+      const docData = {
+        project_id: PID, uploaded_by: Auth.userId, name,
+        url: up.url, file_url: up.url, mime_type: up.mime, file_size: up.size,
+        doc_type: isInv ? 'invoice' : 'document',
+        ...(isInv ? {
+          invoice_number:   document.getElementById('dc-inv-number').value.trim()||null,
+          invoice_amount:   parseFloat(document.getElementById('dc-inv-amount').value)||null,
+          invoice_currency: document.getElementById('dc-inv-currency').value,
+          invoice_due_date: document.getElementById('dc-inv-due').value||null,
+          invoice_status:   document.getElementById('dc-inv-status').value
+        } : {})
+      };
+
+      await dbPost('documents', docData);
+      uploaded++;
+
+      // Notify client for each file
+      if (proj) {
+        const notifContent = isInv
+          ? `<strong>${esc(adminName)}</strong> dodał fakturę: <strong>${esc(name)}</strong>`
+          : `<strong>${esc(adminName)}</strong> dodał dokument: <strong>${esc(name)}</strong>`;
+        edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:notifContent,type:'doc',senderName:adminName}).catch(()=>{});
+      }
+    } catch(e) {
+      errors++;
+      console.error('Upload error:', file.name, e.message);
     }
+  }
 
-    // Notify client
-    const [proj]=await dbGet('projects',`?id=eq.${PID}&select=client_id`);
-    if(proj){
-      const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
-      const notifContent = isInv
-        ? `<strong>${esc(adminName)}</strong> dodał fakturę: <strong>${esc(name)}</strong>`
-        : `<strong>${esc(adminName)}</strong> dodał dokument: <strong>${esc(name)}</strong>`;
-      await edgeFn('send-notification',{userId:proj.client_id,projectId:PID,content:notifContent,type:'doc',senderName:adminName});
-    }
-    setTimeout(()=>document.getElementById('dc-upload-progress').classList.remove('show'),800);
-    toast(isInv ? 'Faktura dodana ✅' : 'Dokument dodany ✅');
-    loadDocs();
-  }catch(e){toast('Błąd: '+e.message,'error');}
-  finally{btn.disabled=false;btn.innerHTML='<i class="ri-upload-line"></i>Dodaj plik';}
+  // Done
+  progressBar.style.width = '100%';
+  statusEl.textContent = errors
+    ? `Przesłano ${uploaded} z ${totalFiles} (${errors} błędów)`
+    : `Przesłano ${uploaded} z ${totalFiles} ✅`;
+
+  // Reset form
+  _dcFiles = [];
+  renderDocQueue();
+  if(isInv){
+    ['dc-inv-number','dc-inv-amount','dc-inv-due'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('dc-inv-status').value='pending';
+  }
+
+  setTimeout(()=>{
+    progressWrap.classList.remove('show');
+    statusEl.style.display='none';
+    progressBar.style.width='0';
+  }, 1500);
+
+  btn.disabled=false;
+  btn.innerHTML='<i class="ri-upload-line"></i>Dodaj pliki';
+
+  if (errors && uploaded === 0) { toast(`Błąd przesyłania wszystkich plików`,'error'); }
+  else if (errors) { toast(`Przesłano ${uploaded} plików, ${errors} błędów`,'error'); }
+  else { toast(`${uploaded === 1 ? 'Plik dodany' : uploaded+' plików dodanych'} ✅`); }
+
+  loadDocs();
 }
 
 // ── CREATE CLIENT ──
