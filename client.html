@@ -11,7 +11,33 @@
 <link rel="stylesheet" href="panel.css">
 </head>
 <body>
-<div class="preloader" id="preloader"><div class="pre-logo">Barabash <span>Flow</span></div><div class="pre-track"><div class="pre-bar" id="preBar"></div></div></div>
+<div class="preloader" id="preloader">
+  <div class="pre-bg-glow"></div>
+  <div class="pre-content">
+    <div class="pre-logo-wrap">
+      <div class="pre-logo-ring"></div>
+      <div class="pre-logo-ring pre-logo-ring2"></div>
+      <div class="pre-logo-icon">
+        <img src="https://ztcyhlitwwganjhgbbtm.supabase.co/storage/v1/object/public/Logo/logo.png"
+             alt="Barabash Flow"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+             style="width:48px;height:48px;object-fit:contain;border-radius:14px">
+        <div style="display:none;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#9b27af,#e040fb);align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff">B</div>
+      </div>
+    </div>
+    <div class="pre-brand">Barabash <span>Flow</span></div>
+    <div class="pre-tagline">Panel klienta</div>
+    <div class="pre-track">
+      <div class="pre-bar" id="preBar"></div>
+      <div class="pre-bar-glow" id="preBarGlow"></div>
+    </div>
+    <div class="pre-dots">
+      <span class="pre-dot"></span>
+      <span class="pre-dot"></span>
+      <span class="pre-dot"></span>
+    </div>
+  </div>
+</div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="layout">

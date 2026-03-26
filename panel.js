@@ -641,13 +641,25 @@ function onFileSelected(inputId, previewId, areaId, storeKey) {
 
 /* ── PRELOADER ── */
 function runPreloader() {
-  const bar=document.getElementById('preBar'),pre=document.getElementById('preloader');
-  if (!bar||!pre) return;
-  let w=0;
-  const iv=setInterval(()=>{
-    w=Math.min(w+Math.random()*18+5,100); bar.style.width=w+'%';
-    if (w>=100) { clearInterval(iv); setTimeout(()=>pre.classList.add('hidden'),350); }
-  },55);
+  const bar  = document.getElementById('preBar');
+  const glow = document.getElementById('preBarGlow');
+  const pre  = document.getElementById('preloader');
+  if (!bar || !pre) return;
+  let w = 0;
+  const iv = setInterval(() => {
+    w = Math.min(w + Math.random() * 15 + 4, 100);
+    bar.style.width  = w + '%';
+    if (glow) glow.style.width = w + '%';
+    if (w >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        pre.style.opacity = '0';
+        pre.style.transform = 'scale(1.02)';
+        pre.style.transition = 'opacity .5s ease, transform .5s ease, visibility .5s';
+        setTimeout(() => pre.classList.add('hidden'), 500);
+      }, 300);
+    }
+  }, 55);
 }
 
 /* ── SIDEBAR ── */
