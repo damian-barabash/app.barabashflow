@@ -69,7 +69,7 @@
     <div class="nav-link" data-view="admin-chat"><i class="ri-team-line"></i>Czat adminów<span class="nav-badge" id="nb-admin-chat"></span></div>
     <div class="nav-link" data-view="notifs-admin"><i class="ri-notification-3-line"></i>Powiadomienia<span class="nav-badge" id="nb-notifs-admin"></span></div>
     <div class="nav-link" data-view="templates"><i class="ri-layout-line"></i>Szablony</div>
-    <div class="nav-link" data-view="maile"><i class="ri-mail-send-line"></i>Maile<span class="nav-badge" id="nb-maile"></span></div>
+    <div class="nav-link" id="nav-maile" data-view="maile" style="display:none"><i class="ri-mail-send-line"></i>Maile<span class="nav-badge" id="nb-maile"></span></div>
     <div class="nav-link" data-view="admins" id="nav-admins" style="display:none"><i class="ri-shield-user-line"></i>Administratorzy</div>
   </nav>
   <div class="sidebar-bottom">
@@ -3275,9 +3275,10 @@ let _isMainAdmin = false;
 async function checkMainAdminStatus(){
   const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=is_main_admin`);
   _isMainAdmin = profile?.is_main_admin === true;
-  if(_isMainAdmin) {
+  if (_isMainAdmin) {
     document.getElementById('nav-admins').style.display = 'flex';
     document.getElementById('btn-add-admin').style.display = '';
+    document.getElementById('nav-maile').style.display = '';
   }
 }
 
