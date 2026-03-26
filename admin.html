@@ -1433,11 +1433,19 @@ async function openClient(id,name,email,isArchived=false) {
       </div>
       <div class="skeleton" style="width:60px;height:22px;border-radius:100px"></div>
     </div>`).join('');
-  const [projs,notifs]=await Promise.all([
-    dbGet('projects',`?client_id=eq.${id}&select=*&order=archived_at.asc,updated_at.desc`),
-    dbGet('notifications',`?user_id=eq.${id}&is_read=eq.false&select=project_id`)
-  ]);
-  const nm={};notifs.forEach(n=>{if(n.project_id)nm[n.project_id]=(nm[n.project_id]||0)+1;});
+  const projs = await dbGet('projects',`?client_id=eq.${id}&select=*&order=archived_at.asc,updated_at.desc`);
+  const nm = {};
+  const projIds = projs.map(p => p.id);
+  if (projIds.length) {
+    const [clientMessages, myReads] = await Promise.all([
+      dbGet('messages', `?project_id=in.(${projIds.join(',')})&sender_id=eq.${id}&select=id,project_id`),
+      dbGet('message_reads', `?user_id=eq.${Auth.userId}&select=message_id`)
+    ]);
+    const readIds = new Set(myReads.map(r => r.message_id));
+    clientMessages.forEach(m => {
+      if (!readIds.has(m.id)) nm[m.project_id] = (nm[m.project_id]||0) + 1;
+    });
+  }
   document.getElementById('cd-projs').innerHTML=projs.map(p=>`
     <div class="proj-card" onclick="openProject('${p.id}','${esc(p.name)}')">
       <div class="proj-icon">${p.archived_at?'📦':'🚀'}</div>
