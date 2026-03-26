@@ -3388,27 +3388,35 @@ async function loadAdmins(){
       </div>
     </div>`).join('');
 
-  const [admins, assignments] = await Promise.all([
+  const [admins, assignments, presenceRows] = await Promise.all([
     dbGet('profiles', `?role=eq.admin&is_main_admin=eq.false&select=id,email,display_name,username,created_at,avatar_url,admin_role&order=created_at.desc`),
-    dbGet('admin_client_assignments', `?select=admin_id,client_id`)
+    dbGet('admin_client_assignments', `?select=admin_id,client_id`),
+    dbGet('user_presence', `?select=user_id,last_seen`)
   ]);
+
+  const presenceMap = {};
+  presenceRows.forEach(p => { presenceMap[p.user_id] = p.last_seen; });
 
   // Count clients per admin
   const clientCount = {};
   assignments.forEach(a => { clientCount[a.admin_id] = (clientCount[a.admin_id]||0)+1; });
 
-  el.innerHTML = admins.length ? admins.map(a=>`
+  el.innerHTML = admins.length ? admins.map(a => {
+    const online = isOnline(presenceMap[a.id]);
+    return `
     <div class="card" style="margin-bottom:10px;padding:14px 16px;animation:fadein .25s ease">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="flex-shrink:0">
+        <div style="flex-shrink:0;position:relative">
           ${a.avatar_url
             ? `<img src="${esc(a.avatar_url)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block">`
             : `<div class="item-av" style="width:38px;height:38px">${initials(a.display_name||a.email)||'?'}</div>`}
+          <span style="position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:${online?'#4ade80':'var(--t3)'};border:2px solid var(--bg2);box-shadow:${online?'0 0 6px rgba(74,222,128,.6)':'none'}" title="${online?'Online':'Offline'}"></span>
         </div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span style="font-size:13px;font-weight:700">${esc(a.display_name||a.email)}</span>
             ${a.admin_role ? `<span style="font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
+            ${online ? `<span style="font-size:10px;font-weight:600;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);padding:1px 7px;border-radius:100px">Online</span>` : ''}
           </div>
           <div style="font-size:11px;color:var(--t3);margin-top:1px">${esc(a.email)}${a.username?' · @'+esc(a.username):''}</div>
           <div style="font-size:10px;color:var(--t3);margin-top:2px">
@@ -3433,7 +3441,8 @@ async function loadAdmins(){
           </button>
         </div>
       </div>
-    </div>`).join('')
+    </div>`;
+  }).join('')
   : emptyHTML('ri-shield-user-line','Brak innych administratorów');
 }
 
