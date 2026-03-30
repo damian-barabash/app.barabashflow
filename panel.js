@@ -2,7 +2,7 @@
 const SB   = 'https://ztcyhlitwwganjhgbbtm.supabase.co';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y3lobGl0d3dnYW5qaGdiYnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTg5NTUsImV4cCI6MjA4NzY3NDk1NX0.7vjhHT3n8DTuXHbfvGIBoA6wxWtcgDoIJ_UfNamg0Zs';
 const EDGE = SB + '/functions/v1';
-const LOGO_URL = SB + '/storage/v1/object/public/assets/logo.png';
+const LOGO_URL = SB + '/storage/v1/object/public/Logo/logo.png';
 const SESSION_DAYS = 5;
 
 /* ── AUTH ── */
