@@ -273,7 +273,7 @@ select.form-control option{background:var(--bg3)}
 .pdf-icon{font-size:26px}
 .pdf-name{font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:80px}
 .file-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border2);font-size:13px;font-weight:500;flex-wrap:wrap}
-.file-chip i{font-size:18px;color:var(--a)}
+.file-chip i{font-size:18px;color:var(--t)}
 
 /* UPLOAD */
 .upload-area{border:2px dashed var(--border2);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);position:relative}
