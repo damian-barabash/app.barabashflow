@@ -97,7 +97,7 @@ h1{font-family:'Syne',sans-serif;font-size:clamp(38px,5vw,66px);font-weight:800;
 .m-typing-row span:nth-child(3){animation-delay:.4s}
 @keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-3px)}}
 
-/* FLOATING BADGES — row under mockup */
+/* FLOATING BADGES */
 .float-badges-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .float-badge{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:9px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(0,0,0,.35);white-space:nowrap;animation:fbob 4s ease-in-out infinite alternate}
 .float-badge:last-child{animation-delay:-2s}
@@ -133,6 +133,64 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 .fc-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
 .fc-desc{font-size:13px;color:var(--t2);line-height:1.65}
 
+/* ──── INTERACTIVE DEMO SECTION ──── */
+.demo-section{padding:100px 0;position:relative;z-index:1;overflow:hidden}
+.demo-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(124,58,237,.06),transparent);pointer-events:none}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:56px}
+.demo-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.demo-tab{padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);color:var(--t2);background:transparent;transition:all .2s}
+.demo-tab.active{background:rgba(224,64,251,.12);border-color:rgba(224,64,251,.4);color:var(--a)}
+.demo-screen{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);min-height:320px;transition:all .3s}
+.demo-screen-inner{display:none;padding:0;height:100%}
+.demo-screen-inner.active{display:flex;flex-direction:column}
+.ds-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600}
+.ds-dot-row{display:flex;gap:5px}
+.ds-dot{width:8px;height:8px;border-radius:50%}
+.demo-text-block{padding:0 0 12px}
+.demo-text-block h3{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em}
+.demo-text-block p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:16px}
+.demo-feat-list{display:flex;flex-direction:column;gap:8px}
+.dfl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--t2)}
+.dfl-ico{width:28px;height:28px;border-radius:8px;background:rgba(224,64,251,.1);border:1px solid rgba(224,64,251,.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+
+/* Admin dashboard preview */
+.admin-dash{padding:14px}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ad-stat{background:var(--bg3);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)}
+.ad-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--a)}
+.ad-lbl{font-size:8px;color:var(--t3);margin-top:2px}
+.admin-clients{display:flex;flex-direction:column;gap:6px}
+.ac-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
+.ac-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.ac-name{font-size:10px;font-weight:600;flex:1}
+.ac-badge{font-size:8px;padding:2px 7px;border-radius:100px;font-weight:700}
+.ac-online{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.ac-msg{background:rgba(224,64,251,.12);color:var(--a);border:1px solid rgba(224,64,251,.2)}
+
+/* Video call preview */
+.vcall-preview{padding:14px;display:flex;flex-direction:column;gap:8px}
+.vcall-main{background:var(--bg3);border-radius:12px;height:140px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);position:relative;overflow:hidden}
+.vcall-main::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(224,64,251,.08))}
+.vcall-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;position:relative;z-index:1;box-shadow:0 0 0 3px rgba(224,64,251,.3)}
+.vcall-name{position:absolute;bottom:8px;left:10px;font-size:9px;font-weight:600;color:#fff;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:100px;z-index:1}
+.vcall-thumb-row{display:flex;gap:6px}
+.vcall-thumb{flex:1;background:var(--bg3);border-radius:8px;height:52px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);position:relative;overflow:hidden}
+.vcall-thumb::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(74,222,128,.1),transparent)}
+.vcall-controls{display:flex;gap:6px;justify-content:center;padding-top:4px}
+.vcall-btn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:none;cursor:default}
+
+/* Doc preview */
+.doc-preview{padding:12px;display:flex;flex-direction:column;gap:6px}
+.doc-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:border-color .2s}
+.doc-item:hover{border-color:rgba(224,64,251,.2)}
+.doc-ico{font-size:16px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:8px;color:var(--t3);margin-top:1px}
+.doc-type{font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700}
+.doc-type.inv{background:rgba(251,191,36,.1);color:var(--yellow)}
+.doc-type.doc{background:rgba(96,165,250,.1);color:#60a5fa}
+
 /* ──── HOW ──── */
 .how-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:56px}
@@ -141,6 +199,19 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 .hs-n{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin:0 auto 18px;box-shadow:0 0 28px rgba(224,64,251,.35)}
 .hs-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
 .hs-d{font-size:13px;color:var(--t2);line-height:1.6}
+
+/* ──── COMPARE VISUAL ──── */
+.compare-section{padding:100px 0;position:relative;z-index:1}
+.compare-wrap{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:800px;margin-inline:auto;margin-top:56px}
+.compare-col{border-radius:20px;overflow:hidden;border:1px solid var(--border)}
+.compare-col.bad{opacity:.6}
+.compare-col.good{border-color:rgba(224,64,251,.3);background:linear-gradient(160deg,rgba(224,64,251,.04),var(--bg2))}
+.compare-col.good::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--a),transparent)}
+.compare-header{padding:16px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.compare-list{padding:14px 20px;display:flex;flex-direction:column;gap:10px}
+.cl-item{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px;line-height:1.4}
+.cl-item.no::before{content:'✕';color:var(--red);font-weight:700;font-size:12px;flex-shrink:0}
+.cl-item.yes::before{content:'✓';color:var(--a);font-weight:700;font-size:12px;flex-shrink:0}
 
 /* ──── PRICING ──── */
 .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px;align-items:start}
@@ -157,6 +228,10 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 .pc-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;line-height:1;color:var(--text)}
 .pc-per{font-size:13px;color:var(--t3)}
 .pc-note{font-size:11px;color:var(--t3);margin-bottom:22px}
+.pc-limits{background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:18px;display:flex;flex-direction:column;gap:6px}
+.pc-limit-row{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.pc-limit-lbl{color:var(--t3)}
+.pc-limit-val{font-weight:700;color:var(--text)}
 .pc-div{height:1px;background:var(--border);margin:20px 0}
 .pc-feats{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
 .pf{font-size:13px;color:var(--t2);display:flex;align-items:flex-start;gap:9px;line-height:1.4}
@@ -234,40 +309,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 .rv.in{opacity:1;transform:none}
 .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
 
-/* ──── RESPONSIVE ──── */
-@media(max-width:960px){
-  .hero-grid{grid-template-columns:1fr}
-  .hero-right{display:none}
-  .hero-mobile-visual{display:block}
-  .feat-grid{grid-template-columns:1fr 1fr}
-  .price-grid{grid-template-columns:1fr;max-width:400px;margin-inline:auto}
-  .pc.pop{transform:none}.pc.pop:hover{transform:translateY(-3px)}
-  .tg{grid-template-columns:1fr}
-  .how-grid{grid-template-columns:1fr 1fr;gap:28px}.hs+.hs::before{display:none}
-}
-@media(max-width:640px){
-  .feat-grid,.stats-inner{grid-template-columns:1fr}
-  .stat-item{border-right:none;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}
-  .nav-links{display:none}
-  /* NAV — кнопка не выходит за экран */
-  .nav-inner{gap:8px}
-  .nav-cta{padding:9px 14px;font-size:13px;flex-shrink:0}
-  .nav-logo-name{font-size:15px}
-  /* NAV scrolled — не обрезается */
-  nav.scrolled{padding:12px 0}
-  /* h1 */
-  h1{font-size:clamp(32px,9vw,42px)}
-  /* CTA — текст не выходит за экран */
-  .cta-h{font-size:clamp(28px,8vw,42px);word-break:break-word;overflow-wrap:break-word}
-  /* hero buttons — стак вертикально */
-  .hero-btns{flex-direction:column;align-items:stretch}
-  .btn-fill,.btn-ghost{text-align:center;justify-content:center}
-  /* section padding */
-  .section{padding:64px 0}
-  .cta-sec{padding:72px 0}
-}
-
-/* ── MOBILE HERO VISUAL ── */
+/* ──── MOBILE HERO VISUAL ── */
 .hero-mobile-visual{display:none;margin-top:40px;animation:fup .7s .4s ease both}
 .hmv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .hmv-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:16px;position:relative;overflow:hidden}
@@ -289,6 +331,35 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 .hmv-typing span{width:4px;height:4px;border-radius:50%;background:var(--t3);animation:tb 1.2s infinite}
 .hmv-typing span:nth-child(2){animation-delay:.2s}
 .hmv-typing span:nth-child(3){animation-delay:.4s}
+
+/* ──── RESPONSIVE ──── */
+@media(max-width:960px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .hero-mobile-visual{display:block}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .price-grid{grid-template-columns:1fr;max-width:400px;margin-inline:auto}
+  .pc.pop{transform:none}.pc.pop:hover{transform:translateY(-3px)}
+  .tg{grid-template-columns:1fr}
+  .how-grid{grid-template-columns:1fr 1fr;gap:28px}.hs+.hs::before{display:none}
+  .demo-grid{grid-template-columns:1fr}
+  .compare-wrap{grid-template-columns:1fr;max-width:400px}
+}
+@media(max-width:640px){
+  .feat-grid,.stats-inner{grid-template-columns:1fr}
+  .stat-item{border-right:none;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}
+  .nav-links{display:none}
+  .nav-inner{gap:8px}
+  .nav-cta{padding:9px 14px;font-size:13px;flex-shrink:0}
+  .nav-logo-name{font-size:15px}
+  nav.scrolled{padding:12px 0}
+  h1{font-size:clamp(32px,9vw,42px)}
+  .cta-h{font-size:clamp(28px,8vw,42px);word-break:break-word;overflow-wrap:break-word}
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .btn-fill,.btn-ghost{text-align:center;justify-content:center}
+  .section{padding:64px 0}
+  .cta-sec{padding:72px 0}
+}
 </style>
 </head>
 <body>
@@ -320,13 +391,11 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div>
         <div class="hero-eyebrow"><span class="hero-dot"></span> Panel klienta nowej generacji</div>
         <h1>Twoi klienci zasługują <span class="h1-grad">na coś lepszego</span></h1>
-        <p class="hero-p">Barabash Flow to gotowy portal klienta — czat w czasie rzeczywistym, projekty, dokumenty, kalendarz i inteligentne powiadomienia. Koniec z chaosem maili.</p>
+        <p class="hero-p">Barabash Flow to gotowy portal klienta — czat w czasie rzeczywistym, projekty, dokumenty, wideorozmowy i inteligentne powiadomienia. Koniec z chaosem maili.</p>
         <div class="hero-btns">
           <button class="btn-fill" onclick="openModal()">Chcę wypróbować za darmo →</button>
           <a href="#jak-dziala" class="btn-ghost">▶ Jak to działa</a>
         </div>
-
-        <!-- Mobile-only visual — shown instead of desktop mockup -->
         <div class="hero-mobile-visual">
           <div class="hmv-grid">
             <div class="hmv-card">
@@ -335,9 +404,9 @@ footer{border-top:1px solid var(--border);padding:36px 0}
               <div class="hmv-desc">Pliki, linki i wskaźnik pisania</div>
             </div>
             <div class="hmv-card">
-              <div class="hmv-ico">📅</div>
-              <div class="hmv-title">Kalendarz</div>
-              <div class="hmv-desc">Sync z Apple Calendar</div>
+              <div class="hmv-ico">🎥</div>
+              <div class="hmv-title">Wideorozmowy</div>
+              <div class="hmv-desc">Bezpośrednio w panelu</div>
             </div>
             <div class="hmv-card">
               <div class="hmv-ico">📁</div>
@@ -345,9 +414,9 @@ footer{border-top:1px solid var(--border);padding:36px 0}
               <div class="hmv-desc">Posty, pliki, dokumenty</div>
             </div>
             <div class="hmv-card">
-              <div class="hmv-ico">🔔</div>
-              <div class="hmv-title">Powiadomienia</div>
-              <div class="hmv-desc">Email + push + popup</div>
+              <div class="hmv-ico">📅</div>
+              <div class="hmv-title">Kalendarz</div>
+              <div class="hmv-desc">Sync z Apple Calendar</div>
             </div>
           </div>
           <div class="hmv-chat">
@@ -385,7 +454,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
                 <div class="m-nav"><div class="m-nav-i"></div>Czat</div>
                 <div class="m-nav"><div class="m-nav-i"></div>Dokumenty</div>
                 <div class="m-nav"><div class="m-nav-i"></div>Kalendarz</div>
-                <div class="m-nav"><div class="m-nav-i"></div>Powiadomienia</div>
+                <div class="m-nav"><div class="m-nav-i"></div>Wideo</div>
               </div>
               <div class="m-main">
                 <div class="m-cards">
@@ -411,7 +480,6 @@ footer{border-top:1px solid var(--border);padding:36px 0}
               </div>
             </div>
           </div>
-          <!-- Badges row — below mockup, no overlap -->
           <div class="float-badges-row">
             <div class="float-badge">
               <span style="font-size:14px">✨</span>
@@ -465,48 +533,224 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <div class="fc-tag hot">⭐ Ulubiona</div>
         <div class="fc-ico">💬</div>
         <div class="fc-title">Czat z plikami i linkami</div>
-        <div class="fc-desc">Komunikacja w czasie rzeczywistym. Zdjęcia, PDF-y, dokumenty — bezpośrednio w czacie. Linki podświetlane automatycznie, wskaźnik pisania jak w Messengerze. Galerie ze podglądem.</div>
+        <div class="fc-desc">Komunikacja w czasie rzeczywistym. Zdjęcia, PDF-y, dokumenty — bezpośrednio w czacie. Linki podświetlane automatycznie, wskaźnik pisania jak w Messengerze.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico">📁</div>
-        <div class="fc-title">Projekty i materiały</div>
-        <div class="fc-desc">Każdy projekt ma swoją przestrzeń. Publikuj posty tekstowe, linki, pliki i PDF-y. Klient na bieżąco widzi postęp — bez wysyłania maila z pytaniem "co słychać".</div>
+        <div class="fc-ico">🎥</div>
+        <div class="fc-title">Wideorozmowy w panelu</div>
+        <div class="fc-desc">Połączenie wideo bezpośrednio w panelu klienta — bez wychodzenia do zewnętrznych aplikacji. Zaplanuj, klikasz i rozmawiasz. Nagrywanie i zapis spotkań w historii projektu.</div>
       </div>
       <div class="fc rv d3">
+        <div class="fc-ico">📁</div>
+        <div class="fc-title">Projekty i materiały</div>
+        <div class="fc-desc">Każdy projekt ma swoją przestrzeń. Publikuj posty, linki, pliki i PDF-y. Klient na bieżąco widzi postęp — bez wysyłania maila z pytaniem "co słychać".</div>
+      </div>
+      <div class="fc rv d1">
         <div class="fc-ico">📅</div>
         <div class="fc-title">Kalendarz + Apple Calendar</div>
         <div class="fc-desc">Zaplanuj spotkanie w panelu, wyślij zaproszenie klientowi — automatycznie pojawia się w Twoim Apple Calendar. Klient dostaje popup z odliczaniem do spotkania.</div>
       </div>
-      <div class="fc rv d1">
+      <div class="fc rv d2">
         <div class="fc-ico">🔔</div>
         <div class="fc-title">Inteligentne powiadomienia</div>
         <div class="fc-desc">Klient nie sprawdza panelu? Dostaje popup w oknie. Nie ma go na stronie? Dostaje maila. System throttlingu sprawia że powiadomienia nigdy nie są spamem.</div>
       </div>
-      <div class="fc rv d2">
+      <div class="fc rv d3">
         <div class="fc-ico">📂</div>
-        <div class="fc-title">Dokumenty dwustronne</div>
+        <div class="fc-title">Dokumenty i faktury</div>
         <div class="fc-desc">Ty uploadujesz faktury i umowy, klient przesyła swoje materiały. Pliki posegregowane przy projekcie, zawsze pod ręką — bez szukania w mailach.</div>
       </div>
-      <div class="fc rv d3">
-        <div class="fc-ico">🗄️</div>
-        <div class="fc-title">Archiwum projektów</div>
-        <div class="fc-desc">Zakończony projekt? Jednym klikiem archiwizujesz. Historia pozostaje, klient może przeglądać co robiłeś. Nic nie ginie, nic nie zajmuje miejsca w aktywnych projektach.</div>
-      </div>
-      <!-- New features -->
       <div class="fc rv d1">
         <div class="fc-ico">📊</div>
-        <div class="fc-title">Etapy projektu</div>
+        <div class="fc-title">Etapy i postęp projektu</div>
         <div class="fc-desc">Wizualny pasek postępu z etapami. Klient widzi w którym miejscu jest projekt i co na niego czeka. Zero pytań o status.</div>
       </div>
       <div class="fc rv d2">
         <div class="fc-ico">✅</div>
         <div class="fc-title">Zadania i checklisty</div>
-        <div class="fc-desc">Lista zadań w projekcie z przypisaniem odpowiedzialności i terminów. Klient widzi co trwa, co jest zrobione — bez pytania.</div>
+        <div class="fc-desc">Lista zadań w projekcie z terminami. Klient widzi co trwa, co jest zrobione. Wewnętrzny czat między administratorami z grupami i prywatnymi kanałami.</div>
       </div>
       <div class="fc rv d3">
         <div class="fc-ico">⭐</div>
         <div class="fc-title">Oceny i feedback</div>
         <div class="fc-desc">Po projekcie klient ocenia współpracę gwiazdkami i zostawia komentarz. Budujesz portfolio referencji bez wysiłku.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE DEMO -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="rv" style="max-width:600px">
+      <div class="stag">Podgląd</div>
+      <h2>Zobaczm jak to <span class="g">wygląda w akcji</span></h2>
+      <p class="sub">Przełączaj widoki i odkryj co Twoi klienci i Ty będziecie widzieć na co dzień.</p>
+    </div>
+    <div class="demo-grid rv">
+      <div>
+        <div class="demo-tabs">
+          <button class="demo-tab active" onclick="switchDemo('admin')">👑 Panel admina</button>
+          <button class="demo-tab" onclick="switchDemo('video')">🎥 Wideorozmowy</button>
+          <button class="demo-tab" onclick="switchDemo('docs')">📂 Dokumenty</button>
+        </div>
+        <div class="demo-screen">
+          <!-- Admin screen -->
+          <div class="demo-screen-inner active" id="demo-admin">
+            <div class="ds-header">
+              <div class="ds-dot-row">
+                <div class="ds-dot" style="background:#ff5f57"></div>
+                <div class="ds-dot" style="background:#febc2e"></div>
+                <div class="ds-dot" style="background:#28c840"></div>
+              </div>
+              <span style="font-size:10px;color:var(--t3);margin-left:6px">Panel administratora</span>
+            </div>
+            <div class="admin-dash">
+              <div class="admin-stats">
+                <div class="ad-stat"><div class="ad-num">12</div><div class="ad-lbl">Klientów</div></div>
+                <div class="ad-stat"><div class="ad-num">34</div><div class="ad-lbl">Projektów</div></div>
+                <div class="ad-stat"><div class="ad-num">5</div><div class="ad-lbl">Online</div></div>
+              </div>
+              <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Aktywni klienci</div>
+              <div class="admin-clients">
+                <div class="ac-row">
+                  <div class="ac-av" style="background:linear-gradient(135deg,#e040fb,#7c3aed)">A</div>
+                  <div class="ac-name">Anna Kowalska</div>
+                  <span class="ac-badge ac-online">● Online</span>
+                </div>
+                <div class="ac-row">
+                  <div class="ac-av" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">M</div>
+                  <div class="ac-name">Marek Nowak</div>
+                  <span class="ac-badge ac-msg">2 wiad.</span>
+                </div>
+                <div class="ac-row">
+                  <div class="ac-av" style="background:linear-gradient(135deg,#10b981,#059669)">P</div>
+                  <div class="ac-name">Piotr Zielony</div>
+                  <span class="ac-badge ac-online">● Online</span>
+                </div>
+                <div class="ac-row">
+                  <div class="ac-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">K</div>
+                  <div class="ac-name">Karolina Wiśniewska</div>
+                  <span class="ac-badge ac-msg">1 wiad.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Video screen -->
+          <div class="demo-screen-inner" id="demo-video">
+            <div class="ds-header">
+              <div class="ds-dot-row">
+                <div class="ds-dot" style="background:#ff5f57"></div>
+                <div class="ds-dot" style="background:#febc2e"></div>
+                <div class="ds-dot" style="background:#28c840"></div>
+              </div>
+              <span style="font-size:10px;color:var(--t3);margin-left:6px">Wideorozmowa w toku</span>
+              <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+                <div style="width:5px;height:5px;border-radius:50%;background:var(--red);animation:blink 1.5s infinite"></div>
+                <span style="font-size:9px;color:var(--red);font-weight:600">REC 12:34</span>
+              </div>
+            </div>
+            <div class="vcall-preview">
+              <div class="vcall-main">
+                <div class="vcall-avatar">D</div>
+                <div class="vcall-name">Dmytrii Barabash</div>
+              </div>
+              <div class="vcall-thumb-row">
+                <div class="vcall-thumb">
+                  <div style="font-size:16px;position:relative;z-index:1">👤</div>
+                  <div style="position:absolute;bottom:4px;left:6px;font-size:8px;color:#fff;font-weight:600">Anna K.</div>
+                </div>
+                <div class="vcall-thumb" style="background:var(--bg3)">
+                  <div style="font-size:11px;color:var(--t3);position:relative;z-index:1">🎤 mute</div>
+                </div>
+              </div>
+              <div class="vcall-controls">
+                <div class="vcall-btn" style="background:rgba(74,222,128,.15)">🎤</div>
+                <div class="vcall-btn" style="background:rgba(224,64,251,.15)">📷</div>
+                <div class="vcall-btn" style="background:rgba(96,165,250,.15)">💬</div>
+                <div class="vcall-btn" style="background:rgba(248,113,113,.15)">📵</div>
+              </div>
+            </div>
+          </div>
+          <!-- Docs screen -->
+          <div class="demo-screen-inner" id="demo-docs">
+            <div class="ds-header">
+              <div class="ds-dot-row">
+                <div class="ds-dot" style="background:#ff5f57"></div>
+                <div class="ds-dot" style="background:#febc2e"></div>
+                <div class="ds-dot" style="background:#28c840"></div>
+              </div>
+              <span style="font-size:10px;color:var(--t3);margin-left:6px">Dokumenty projektu</span>
+            </div>
+            <div class="doc-preview">
+              <div class="doc-item">
+                <div class="doc-ico">🧾</div>
+                <div class="doc-info">
+                  <div class="doc-name">Faktura FV/2026/003.pdf</div>
+                  <div class="doc-meta">Dodano 2 dni temu · 342 KB</div>
+                </div>
+                <span class="doc-type inv">Faktura</span>
+              </div>
+              <div class="doc-item">
+                <div class="doc-ico">📄</div>
+                <div class="doc-info">
+                  <div class="doc-name">Projekt_graficzny_v2.pdf</div>
+                  <div class="doc-meta">Dodano tydzień temu · 4.2 MB</div>
+                </div>
+                <span class="doc-type doc">Dokument</span>
+              </div>
+              <div class="doc-item">
+                <div class="doc-ico">🖼️</div>
+                <div class="doc-info">
+                  <div class="doc-name">Logo_final_RGB.png</div>
+                  <div class="doc-meta">Dodano 10 dni temu · 1.1 MB</div>
+                </div>
+                <span class="doc-type doc">Dokument</span>
+              </div>
+              <div class="doc-item">
+                <div class="doc-ico">📋</div>
+                <div class="doc-info">
+                  <div class="doc-name">Umowa_o_wspolpracy.docx</div>
+                  <div class="doc-meta">Dodano miesiąc temu · 89 KB</div>
+                </div>
+                <span class="doc-type doc">Dokument</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Text side -->
+      <div>
+        <div id="demo-text-admin" class="demo-text-block">
+          <h3>Panel administratora<br>w pełnej kontroli</h3>
+          <p>Widzisz wszystkich klientów, kto jest online, kto czeka na odpowiedź. Zarządzaj wieloma adminami z różnymi rolami i uprawnieniami — każdy widzi tylko to co ma widzieć.</p>
+          <div class="demo-feat-list">
+            <div class="dfl"><div class="dfl-ico">👑</div>Główny i zwykli administratorzy</div>
+            <div class="dfl"><div class="dfl-ico">🟢</div>Status online klientów w czasie rzeczywistym</div>
+            <div class="dfl"><div class="dfl-ico">💬</div>Wewnętrzny czat między adminami</div>
+            <div class="dfl"><div class="dfl-ico">📊</div>Statystyki i raporty aktywności</div>
+          </div>
+        </div>
+        <div id="demo-text-video" class="demo-text-block" style="display:none">
+          <h3>Wideorozmowy<br>bez opuszczania panelu</h3>
+          <p>Koniec z "wejdź na Meet, podaj linka, zaloguj się...". Klient klika jeden przycisk w panelu i od razu jesteście w rozmowie wideo. Nagranie trafia automatycznie do historii projektu.</p>
+          <div class="demo-feat-list">
+            <div class="dfl"><div class="dfl-ico">🎥</div>HD wideo bezpośrednio w panelu</div>
+            <div class="dfl"><div class="dfl-ico">⏺️</div>Nagrywanie i zapis do projektu</div>
+            <div class="dfl"><div class="dfl-ico">📅</div>Planowanie przez kalendarz</div>
+            <div class="dfl"><div class="dfl-ico">🔗</div>Dedykowany link per projekt</div>
+          </div>
+        </div>
+        <div id="demo-text-docs" class="demo-text-block" style="display:none">
+          <h3>Dokumenty i faktury<br>zawsze pod ręką</h3>
+          <p>Wrzuć jednocześnie wiele plików — faktury, projekty, zdjęcia, umowy. Klient widzi wszystko posegregowane przy swoim projekcie, bez szukania w e-mailach i folderach.</p>
+          <div class="demo-feat-list">
+            <div class="dfl"><div class="dfl-ico">📤</div>Upload wielu plików naraz</div>
+            <div class="dfl"><div class="dfl-ico">🧾</div>Faktury z numerem, kwotą i terminem</div>
+            <div class="dfl"><div class="dfl-ico">👁️</div>Podgląd PDF i zdjęć inline</div>
+            <div class="dfl"><div class="dfl-ico">📥</div>Klient też może uploadować pliki</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -539,7 +783,44 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div class="hs rv d4">
         <div class="hs-n">4</div>
         <div class="hs-t">Komunikujesz się</div>
-        <div class="hs-d">Czat, dokumenty, kalendarz — w jednym miejscu. Koniec z przeszukiwaniem dziesiątek maili i wiadomości.</div>
+        <div class="hs-d">Czat, wideo, dokumenty, kalendarz — w jednym miejscu. Koniec z przeszukiwaniem dziesiątek maili i wiadomości.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section class="compare-section">
+  <div class="container">
+    <div class="rv" style="text-align:center;max-width:520px;margin:0 auto">
+      <div class="stag">Dlaczego Barabash Flow</div>
+      <h2>Koniec z <span class="g">chaosem narzędzi</span></h2>
+      <p class="sub">Jedno narzędzie zamiast pięciu. Profesjonalne wrażenie od pierwszego kontaktu.</p>
+    </div>
+    <div class="compare-wrap rv">
+      <div class="compare-col bad">
+        <div class="compare-header">❌ Bez Barabash Flow</div>
+        <div class="compare-list">
+          <div class="cl-item no">Maile z pytaniem "co z projektem?"</div>
+          <div class="cl-item no">WhatsApp zmieszany z pracą i życiem prywatnym</div>
+          <div class="cl-item no">Faktury wysyłane osobnym mailem</div>
+          <div class="cl-item no">Linki Google Meet kopiowane ręcznie</div>
+          <div class="cl-item no">Pliki zgubione w Dysku Google</div>
+          <div class="cl-item no">Brak historii projektu po zakończeniu</div>
+          <div class="cl-item no">Nieporofesjonalne pierwsze wrażenie</div>
+        </div>
+      </div>
+      <div class="compare-col good">
+        <div class="compare-header">✓ Z Barabash Flow</div>
+        <div class="compare-list">
+          <div class="cl-item yes">Klient sam sprawdza status w panelu</div>
+          <div class="cl-item yes">Czat, wideo i dokumenty w jednym miejscu</div>
+          <div class="cl-item yes">Faktury z podglądem bezpośrednio w projekcie</div>
+          <div class="cl-item yes">Wideo jednym klikiem z poziomu panelu</div>
+          <div class="cl-item yes">Pliki posegregowane przy projekcie</div>
+          <div class="cl-item yes">Archiwum z pełną historią na zawsze</div>
+          <div class="cl-item yes">Profesjonalny branding pod Twoją domeną</div>
+        </div>
       </div>
     </div>
   </div>
@@ -555,71 +836,92 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     </div>
     <div class="price-grid">
 
+      <!-- STARTER -->
       <div class="pc rv d1">
-        <div class="pc-name">Starter</div>
-        <div class="pc-desc">Dla freelancerów porządkujących komunikację z klientami.</div>
+        <div class="pc-name">🚀 Starter</div>
+        <div class="pc-desc">Dla freelancerów i małych agencji porządkujących komunikację z klientami.</div>
         <div class="pc-price">
           <span class="pc-cur">PLN</span>
-          <span class="pc-num">—</span>
-          <span class="pc-per">/mies.</span>
+          <span class="pc-num">124</span>
+          <span class="pc-per">/mies. netto</span>
         </div>
-        <div class="pc-note">Cena wkrótce · pierwsze 30 dni gratis</div>
+        <div class="pc-note">Pierwsze 30 dni gratis · bez karty kredytowej</div>
+        <div class="pc-limits">
+          <div class="pc-limit-row"><span class="pc-limit-lbl">👥 Klientów</span><span class="pc-limit-val">do 50</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">🛡️ Administratorów</span><span class="pc-limit-val">do 5</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">💬 Wiadomości / mies.</span><span class="pc-limit-val">1 500</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">📁 Przestrzeń na pliki</span><span class="pc-limit-val">512 MB</span></div>
+        </div>
         <div class="pc-div"></div>
         <div class="pc-feats">
-          <div class="pf">Do 5 aktywnych klientów</div>
-          <div class="pf">Czat z plikami i linkami</div>
-          <div class="pf">Projekty i dokumenty</div>
-          <div class="pf">Powiadomienia email</div>
-          <div class="pf">Archiwum projektów</div>
-          <div class="pf x">Kalendarz + Apple Calendar</div>
-          <div class="pf x">Powiadomienia spotkaniowe</div>
+          <div class="pf">Dedykowany panel dla każdego klienta</div>
+          <div class="pf">Czat w czasie rzeczywistym</div>
+          <div class="pf">Projekty, etapy i zadania</div>
+          <div class="pf">Dokumenty i faktury online</div>
+          <div class="pf">Powiadomienia e-mail dla klientów</div>
+          <div class="pf">Kalendarz + Apple CalDAV sync</div>
+          <div class="pf">Wewnętrzny czat między adminami</div>
+          <div class="pf">Role i uprawnienia adminów</div>
+          <div class="pf x">Wideorozmowy przez Meet / Zoom (link ręczny)</div>
         </div>
         <button class="pc-btn line" onclick="openModal()">Chcę wypróbować</button>
       </div>
 
+      <!-- PRO -->
       <div class="pc pop rv d2">
         <div class="pc-badge">⭐ Najpopularniejszy</div>
-        <div class="pc-name">Pro</div>
-        <div class="pc-desc">Dla freelancerów i małych agencji chcących wyglądać profesjonalnie.</div>
+        <div class="pc-name">⚡ Pro</div>
+        <div class="pc-desc">Dla agencji obsługujących setki klientów z pełnym arsenałem narzędzi.</div>
         <div class="pc-price">
           <span class="pc-cur">PLN</span>
-          <span class="pc-num">—</span>
-          <span class="pc-per">/mies.</span>
+          <span class="pc-num">369</span>
+          <span class="pc-per">/mies. netto</span>
         </div>
-        <div class="pc-note">Cena wkrótce · pierwsze 30 dni gratis</div>
+        <div class="pc-note">Pierwsze 30 dni gratis · bez karty kredytowej</div>
+        <div class="pc-limits">
+          <div class="pc-limit-row"><span class="pc-limit-lbl">👥 Klientów</span><span class="pc-limit-val">do 500</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">🛡️ Administratorów</span><span class="pc-limit-val">do 30</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">💬 Wiadomości / mies.</span><span class="pc-limit-val">150 000</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">📁 Przestrzeń na pliki</span><span class="pc-limit-val">60 GB</span></div>
+        </div>
         <div class="pc-div"></div>
         <div class="pc-feats">
-          <div class="pf">Do 20 aktywnych klientów</div>
-          <div class="pf">Czat z plikami i linkami</div>
-          <div class="pf">Projekty i dokumenty</div>
-          <div class="pf">Powiadomienia email + push</div>
-          <div class="pf">Kalendarz + Apple Calendar</div>
-          <div class="pf">Archiwum projektów</div>
-          <div class="pf">Zaawansowane powiadomienia</div>
-          <div class="pf">Wsparcie priorytetowe</div>
+          <div class="pf">Wszystko z planu Starter</div>
+          <div class="pf">Wbudowane wideorozmowy w panelu</div>
+          <div class="pf">Nagrywanie i zapis spotkań</div>
+          <div class="pf">Dedykowany link wideo per projekt</div>
+          <div class="pf">Zaawansowane raporty i statystyki</div>
+          <div class="pf">Pełna historia bez ograniczeń czasowych</div>
+          <div class="pf">Priorytetowe powiadomienia e-mail</div>
+          <div class="pf">Dedykowane wsparcie techniczne</div>
         </div>
         <button class="pc-btn fill" onclick="openModal()">Chcę wypróbować</button>
       </div>
 
+      <!-- AGENCY -->
       <div class="pc rv d3">
-        <div class="pc-name">Agency</div>
-        <div class="pc-desc">Dla agencji z dużą bazą klientów i zespołem współpracowników.</div>
-        <div class="pc-price">
-          <span class="pc-cur">PLN</span>
-          <span class="pc-num">—</span>
-          <span class="pc-per">/mies.</span>
+        <div class="pc-name">🏢 Agency</div>
+        <div class="pc-desc">Dla dużych agencji i firm bez żadnych kompromisów i ograniczeń.</div>
+        <div class="pc-price" style="align-items:center">
+          <span class="pc-num" style="font-size:32px;color:var(--a)">Wycena indywidualna</span>
         </div>
-        <div class="pc-note">Cena wkrótce · wycena indywidualna</div>
+        <div class="pc-note">Dopasowane do Twoich potrzeb i skali</div>
+        <div class="pc-limits">
+          <div class="pc-limit-row"><span class="pc-limit-lbl">👥 Klientów</span><span class="pc-limit-val" style="color:var(--a)">∞ Bez limitu</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">🛡️ Administratorów</span><span class="pc-limit-val" style="color:var(--a)">∞ Bez limitu</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">💬 Wiadomości / mies.</span><span class="pc-limit-val" style="color:var(--a)">∞ Bez limitu</span></div>
+          <div class="pc-limit-row"><span class="pc-limit-lbl">📁 Przestrzeń na pliki</span><span class="pc-limit-val" style="color:var(--a)">∞ Bez limitu</span></div>
+        </div>
         <div class="pc-div"></div>
         <div class="pc-feats">
-          <div class="pf">Nieograniczona liczba klientów</div>
           <div class="pf">Wszystko z planu Pro</div>
-          <div class="pf">Etapy projektu <span style="font-size:10px;color:var(--a)">(wkrótce)</span></div>
-          <div class="pf">Zadania i checklisty <span style="font-size:10px;color:var(--a)">(wkrótce)</span></div>
-          <div class="pf">Oceny i feedback <span style="font-size:10px;color:var(--a)">(wkrótce)</span></div>
-          <div class="pf">Szablony projektów <span style="font-size:10px;color:var(--a)">(wkrótce)</span></div>
-          <div class="pf">Instalacja na własnej domenie</div>
-          <div class="pf">Dedykowane wsparcie 1:1</div>
+          <div class="pf">Wideorozmowy bez limitów uczestników</div>
+          <div class="pf">Dedykowany opiekun techniczny</div>
+          <div class="pf">Priorytetowe wdrożenia i aktualizacje</div>
+          <div class="pf"><strong>3 dedykowane funkcje lub integracje</strong> tworzone specjalnie pod Twoją agencję</div>
+          <div class="pf">Indywidualna konfiguracja i branding</div>
+          <div class="pf">Dostęp do API Barabash Flow</div>
+          <div class="pf">SLA i gwarantowany czas odpowiedzi</div>
         </div>
         <button class="pc-btn line" onclick="openModal()">Zapytaj o wycenę</button>
       </div>
@@ -756,6 +1058,19 @@ const cobs=new IntersectionObserver(es=>{
   });
 },{threshold:.6});
 document.querySelectorAll('.s-num[data-target]').forEach(el=>cobs.observe(el));
+
+// DEMO TABS
+function switchDemo(tab) {
+  // Update tabs
+  document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  // Update screens
+  document.querySelectorAll('.demo-screen-inner').forEach(s=>s.classList.remove('active'));
+  document.getElementById('demo-'+tab).classList.add('active');
+  // Update text
+  document.querySelectorAll('[id^="demo-text-"]').forEach(t=>t.style.display='none');
+  document.getElementById('demo-text-'+tab).style.display='block';
+}
 
 // MODAL
 let _type='freelancer';
