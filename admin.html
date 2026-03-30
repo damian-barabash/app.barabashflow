@@ -38,7 +38,7 @@
              alt="Barabash Flow"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
              style="width:48px;height:48px;object-fit:contain;border-radius:14px">
-        <div style="display:none;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#9b27af,#e040fb);align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff">B</div>
+        <div style="display:none;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#0341a0,#0059FF);align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff">B</div>
       </div>
     </div>
     <!-- Brand name -->
@@ -105,7 +105,7 @@
   <div class="sidebar-bottom">
     <div class="user-card">
       <div class="avatar-upload-wrap" onclick="openAvatarPicker(Auth.userId, url=>updateAdminAvatar(url))" title="Zmień zdjęcie">
-        <div id="adminAvWrap" style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9b27af,#e040fb);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0">
+        <div id="adminAvWrap" style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#0341a0,#0059FF);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0">
           <span id="adminAv">D</span>
         </div>
         <div class="avatar-overlay"><i class="ri-camera-line" style="font-size:14px"></i></div>
@@ -163,7 +163,7 @@
               <div style="margin-top:4px">
                 <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:5px"><span>Etapy ukończone</span><span id="d-stages-pct">—</span></div>
                 <div style="height:6px;background:var(--bg3);border-radius:100px;overflow:hidden">
-                  <div id="d-stages-bar" style="height:100%;background:linear-gradient(90deg,#e040fb,#7c3aed);border-radius:100px;width:0%;transition:width .6s ease"></div>
+                  <div id="d-stages-bar" style="height:100%;background:linear-gradient(90deg,#0059FF,#041A53);border-radius:100px;width:0%;transition:width .6s ease"></div>
                 </div>
               </div>
             </div>
@@ -351,7 +351,7 @@
           <div style="display:flex;gap:10px">
             <label style="flex:1;cursor:pointer">
               <input type="radio" name="sn-type" value="meeting" checked onchange="snTypeChange()" style="display:none">
-              <div class="sn-type-btn active" id="sn-type-meeting" style="padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s">
+              <div class="sn-type-btn active" id="sn-type-meeting" style="padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s">
                 📅 Spotkanie
               </div>
             </label>
@@ -548,7 +548,7 @@
         <div class="card" style="flex:1;display:flex;flex-direction:column;padding:0;overflow:hidden;min-width:0">
           <!-- Chat header -->
           <div id="ac-header" style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#e040fb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💬</div>
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0059FF,#041A53);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💬</div>
             <div style="flex:1;min-width:0">
               <div id="ac-chat-name" style="font-size:14px;font-weight:700">Wybierz czat</div>
               <div id="ac-chat-members" style="font-size:11px;color:var(--t3)"></div>
@@ -573,7 +573,7 @@
               <i class="ri-attachment-2" style="font-size:16px"></i>
               <input type="file" id="ac-file-inp" style="display:none" onchange="onAdminFileSelect(this)">
             </label>
-            <button onclick="sendAdminMsg()" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#e040fb,#7c3aed);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s" onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
+            <button onclick="sendAdminMsg()" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0059FF,#041A53);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s" onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
               <i class="ri-send-plane-fill" style="color:#fff;font-size:16px"></i>
             </button>
           </div>
@@ -663,7 +663,7 @@
         <button class="btn btn-outline btn-sm" onclick="nav('clients')"><i class="ri-arrow-left-line"></i></button>
         <div><h2 id="cd-name">—</h2><div class="sub" id="cd-email">—</div></div>
         <div class="page-header-btns" style="margin-left:auto">
-          <button id="cd-assign-admin-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(224,64,251,.3);background:rgba(224,64,251,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminToClientModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
+          <button id="cd-assign-admin-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(0,89,255,.3);background:rgba(0,89,255,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminToClientModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
           <button class="btn btn-sm btn-icon-arc" id="cd-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveClient()"><i class="ri-archive-line"></i><span id="cd-archive-lbl" class="btn-text">Archiwizuj</span></button>
           <button class="btn btn-primary btn-sm" onclick="openNewProj()"><i class="ri-add-line"></i><span class="btn-text">Nowy projekt</span></button>
         </div>
@@ -690,7 +690,7 @@
           <button class="btn btn-sm" id="pj-share-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;cursor:pointer" onclick="copyPublicLink()"><i class="ri-share-line"></i><span class="btn-text">Udostępnij</span></button>
           <button class="btn btn-sm" id="pj-archive-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;cursor:pointer" onclick="archiveProject()"><i class="ri-archive-line"></i><span id="pj-archive-lbl" class="btn-text">Archiwizuj</span></button>
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject()"><i class="ri-delete-bin-line"></i><span class="btn-text">Usuń</span></button>
-          <button id="pj-assign-admins-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(224,64,251,.3);background:rgba(224,64,251,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminsToProjectModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
+          <button id="pj-assign-admins-btn" class="btn btn-sm" style="display:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:5px;border:1px solid rgba(0,89,255,.3);background:rgba(0,89,255,.08);color:var(--a);cursor:pointer" onclick="openAssignAdminsToProjectModal()"><i class="ri-user-settings-line"></i><span class="btn-text">Adminów</span></button>
         </div>
       </div>
       <div class="tabs">
@@ -1572,7 +1572,7 @@ async function loadStages() {
   document.getElementById('stages-pct').textContent = pct + '%';
   // Rebuild bar HTML — avoids transition issues with display:none parent
   const barWrap = document.getElementById('stages-bar').parentElement;
-  barWrap.innerHTML = `<div id="stages-bar" style="height:100%;background:linear-gradient(90deg,#e040fb,#7c3aed);border-radius:100px;width:${pct}%"></div>`;
+  barWrap.innerHTML = `<div id="stages-bar" style="height:100%;background:linear-gradient(90deg,#0059FF,#041A53);border-radius:100px;width:${pct}%"></div>`;
 
   const el = document.getElementById('stages-list');
   if (!stages.length) { el.innerHTML = emptyHTML('ri-flag-line','Brak etapów. Dodaj pierwszy etap projektu.'); return; }
@@ -1713,7 +1713,7 @@ async function loadTemplates() {
           <div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(t.name)}</div>
           ${t.description?`<div style="font-size:12px;color:var(--t3);margin-bottom:8px">${esc(t.description)}</div>`:''}
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            ${stages.length?`<span style="font-size:11px;color:var(--a);background:rgba(224,64,251,.08);padding:2px 9px;border-radius:100px;border:1px solid rgba(224,64,251,.15)">📊 ${stages.length} etapów</span>`:''}
+            ${stages.length?`<span style="font-size:11px;color:var(--a);background:rgba(0,89,255,.08);padding:2px 9px;border-radius:100px;border:1px solid rgba(0,89,255,.15)">📊 ${stages.length} etapów</span>`:''}
             ${tasks.length?`<span style="font-size:11px;color:var(--t2);background:var(--bg3);padding:2px 9px;border-radius:100px;border:1px solid var(--border)">✅ ${tasks.length} zadań</span>`:''}
           </div>
         </div>
@@ -2459,10 +2459,10 @@ function snTypeChange() {
   const t = document.querySelector('input[name="sn-type"]:checked')?.value;
   document.getElementById('sn-meeting-fields').style.display = t==='meeting' ? 'block' : 'none';
   document.getElementById('sn-type-meeting').style.cssText = t==='meeting'
-    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
+    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
     : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
   document.getElementById('sn-type-text').style.cssText = t==='text'
-    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(224,64,251,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
+    ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
     : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
 }
 
@@ -2537,7 +2537,7 @@ async function sendScheduledNotif() {
           ends_at: endsAt,
           meet_url: meetUrl || null,
           ical_uid: uid,
-          color: '#e040fb'
+          color: '#0059FF'
         })
       });
 
@@ -2620,9 +2620,9 @@ async function loadCalEvents() {
   const upcomingHtml = upcoming.slice(0,8).map(e=>{
     const start=new Date(e.starts_at);
     const clientName=e.client?.display_name||e.client?.email||'';
-    return`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;border-left:3px solid ${e.color||'#e040fb'}">
+    return`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;border-left:3px solid ${e.color||'#0059FF'}">
       <div style="text-align:center;min-width:44px">
-        <div style="font-size:20px;font-weight:800;color:${e.color||'#e040fb'};line-height:1">${start.getDate()}</div>
+        <div style="font-size:20px;font-weight:800;color:${e.color||'#0059FF'};line-height:1">${start.getDate()}</div>
         <div style="font-size:10px;color:var(--t3);text-transform:uppercase">${MONTHS_PL[start.getMonth()].slice(0,3)}</div>
       </div>
       <div style="flex:1;min-width:0">
@@ -2677,7 +2677,7 @@ function renderCalGrid(year, month) {
   for (let d=1;d<=last.getDate();d++) {
     const isToday = d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
     html+=`<div id="cal-day-${d}" style="min-height:52px;background:var(--bg2);border:1px solid var(--border);padding:6px;position:relative;cursor:default">
-      <div style="font-size:12px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--a)':'var(--t2)'};${isToday?'background:rgba(224,64,251,.15);border-radius:6px;display:inline-block;padding:0 4px':''};">${d}</div>
+      <div style="font-size:12px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--a)':'var(--t2)'};${isToday?'background:rgba(0,89,255,.15);border-radius:6px;display:inline-block;padding:0 4px':''};">${d}</div>
     </div>`;
   }
   grid.innerHTML = html;
@@ -2792,7 +2792,7 @@ async function createCalendarEvent() {
         ends_at: endsAt,
         meet_url: url || null,
         ical_uid: uid,
-        color: '#e040fb'
+        color: '#0059FF'
       })
     });
     if (!saveR.ok) console.warn('calendar_events save failed:', await saveR.text());
@@ -2925,7 +2925,7 @@ function renderAdminNotifs() {
     // Content already contains client name in bold from DB trigger
     // Show type icon as avatar placeholder
     const iconBg = {
-      message: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+      message: 'linear-gradient(135deg,#041A53,#03318a)',
       doc:     'linear-gradient(135deg,#0ea5e9,#0284c7)',
       post:    'linear-gradient(135deg,var(--a),var(--b))',
       meeting: 'linear-gradient(135deg,#10b981,#059669)',
@@ -2939,7 +2939,7 @@ function renderAdminNotifs() {
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap">
             <span style="font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 8px;border-radius:100px">${meta.label}</span>
-            ${unread?`<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(224,64,251,.6)"></span>`:''}
+            ${unread?`<span style="width:7px;height:7px;border-radius:50%;background:var(--a);flex-shrink:0;box-shadow:0 0 6px rgba(0,89,255,.6)"></span>`:''}
           </div>
           <div style="font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.content||'—'}</div>
           <div style="display:flex;align-items:center;gap:10px">
@@ -3044,7 +3044,7 @@ function execCmd(cmd, val) {
 function insertLink() {
   const url = prompt('Wpisz URL:'); if (!url) return;
   const text = window.getSelection()?.toString()||url;
-  execCmd('insertHTML',`<a href="${esc(url)}" style="color:#e040fb">${esc(text)}</a>`);
+  execCmd('insertHTML',`<a href="${esc(url)}" style="color:#0059FF">${esc(text)}</a>`);
 }
 function insertEditorImage() {
   const inp = document.createElement('input');
@@ -3308,7 +3308,7 @@ async function loadLeads() {
   el.innerHTML = leads.map(l => `
     <div class="card" style="margin-bottom:10px;padding:16px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:${l.message?'12px':'0'}">
-        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#c0392b);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${l.type==='agency'?'🏢':'👤'}</div>
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0059FF,#0047cc);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${l.type==='agency'?'🏢':'👤'}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700">${esc(l.name)} ${l.company?`<span style="font-weight:400;color:var(--t3)">· ${esc(l.company)}</span>`:''}</div>
           <div style="font-size:12px;color:var(--a);margin-top:1px"><a href="mailto:${esc(l.email)}" style="color:inherit">${esc(l.email)}</a></div>
@@ -3445,7 +3445,7 @@ async function loadAdmins(){
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span style="font-size:13px;font-weight:700">${esc(a.display_name||a.email)}</span>
-            ${a.admin_role ? `<span style="font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
+            ${a.admin_role ? `<span style="font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(0,89,255,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
             ${online ? `<span style="font-size:10px;font-weight:600;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);padding:1px 7px;border-radius:100px">Online</span>` : ''}
           </div>
           <div style="font-size:11px;color:var(--t3);margin-top:1px">${esc(a.email)}${a.username?' · @'+esc(a.username):''}</div>
@@ -3588,7 +3588,7 @@ async function openAssignAdminToClientModal() {
         <div style="min-width:0">
           <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px">
             ${esc(a.display_name||a.email)}
-            ${a.admin_role?`<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>`:''}
+            ${a.admin_role?`<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(0,89,255,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>`:''}
           </div>
           <div style="font-size:11px;color:var(--t3)">${esc(a.email)}</div>
         </div>
@@ -3818,7 +3818,7 @@ async function openNoteEditor(noteId) {
   });
 
   // Pin button state
-  pinBtn.style.color = _currentNotePinned ? '#e040fb' : 'var(--t3)';
+  pinBtn.style.color = _currentNotePinned ? '#0059FF' : 'var(--t3)';
   pinBtn.innerHTML   = _currentNotePinned
     ? '<i class="ri-pushpin-fill"></i>' : '<i class="ri-pushpin-line"></i>';
 
@@ -3853,7 +3853,7 @@ function setNoteColor(dotEl) {
 function pinCurrentNote() {
   _currentNotePinned = !_currentNotePinned;
   const btn = document.getElementById('note-pin-btn');
-  btn.style.color  = _currentNotePinned ? '#e040fb' : 'var(--t3)';
+  btn.style.color  = _currentNotePinned ? '#0059FF' : 'var(--t3)';
   btn.innerHTML    = _currentNotePinned
     ? '<i class="ri-pushpin-fill"></i>' : '<i class="ri-pushpin-line"></i>';
 }
@@ -3996,7 +3996,7 @@ async function loadAdminChats() {
       ${_acListInited ? '' : 'class="ac-list-item"'}
       style="padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s,transform .1s;background:${isActive?'var(--bg3)':'transparent'};${_acListInited ? '' : `animation-delay:${idx*40}ms`}"
       onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${isActive?'var(--bg3)':'transparent'}'">
-      <div style="width:38px;height:38px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
+      <div style="width:38px;height:38px;border-radius:10px;background:${chat.type==='general'?'linear-gradient(135deg,#0059FF,#041A53)':'var(--bg3)'};border:${chat.type!=='general'?'1.5px solid var(--border2)':'none'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${icon}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:${unread?'700':'600'};color:${unread?'var(--t1)':'var(--t2)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.name)}</div>
         <div style="font-size:11px;color:var(--t3)">${lastTime || memberCount+' uczestnik'+(memberCount===1?'':'ów')}</div>
@@ -4142,12 +4142,12 @@ async function renderAdminMsgs(chatId) {
     const name = m.sender?.display_name || '?';
     const role = m.sender?.admin_role;
     const nameHtml = !mine
-      ? `${esc(name)}${role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600;margin-left:5px">${esc(role)}</span>` : ''}`
+      ? `${esc(name)}${role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(0,89,255,.15);color:var(--a);font-weight:600;margin-left:5px">${esc(role)}</span>` : ''}`
       : '';
     const av   = m.sender?.avatar_url;
     const avHtml = av
       ? `<img src="${esc(av)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e040fb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials(name)||'?'}</div>`;
+      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0059FF,#041A53);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials(name)||'?'}</div>`;
     let body = '';
     if (m.file_url && m.mime_type?.startsWith('image/')) {
       body = `<img src="${esc(m.file_url)}" style="max-width:220px;max-height:200px;border-radius:8px;display:block;cursor:pointer" onclick="openLightbox('img','${esc(m.file_url)}')">`;
@@ -4161,7 +4161,7 @@ async function renderAdminMsgs(chatId) {
       ${!mine ? avHtml : ''}
       <div style="max-width:65%;min-width:0">
         ${!mine ? `<div style="font-size:10px;color:var(--t3);margin-bottom:3px">${nameHtml}</div>` : ''}
-        <div style="padding:9px 12px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${mine?'linear-gradient(135deg,#e040fb,#7c3aed)':'var(--bg3)'};color:${mine?'#fff':'var(--t1)'};font-size:13px;line-height:1.55;word-break:break-word">${body}</div>
+        <div style="padding:9px 12px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${mine?'linear-gradient(135deg,#0059FF,#041A53)':'var(--bg3)'};color:${mine?'#fff':'var(--t1)'};font-size:13px;line-height:1.55;word-break:break-word">${body}</div>
         <div style="font-size:10px;color:var(--t3);margin-top:3px;${mine?'text-align:right':''}">${timeAgo(m.created_at)}</div>
       </div>
     </div>`;
@@ -4372,7 +4372,7 @@ async function openAssignAdminsToProjectModal() {
         <div style="min-width:0">
           <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px">
             ${esc(a.display_name||a.email)}
-            ${a.admin_role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(224,64,251,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
+            ${a.admin_role ? `<span style="font-size:9px;padding:1px 6px;border-radius:100px;background:rgba(0,89,255,.15);color:var(--a);font-weight:600">${esc(a.admin_role)}</span>` : ''}
           </div>
           <div style="font-size:11px;color:var(--t3)">${esc(a.email)}</div>
         </div>
