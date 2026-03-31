@@ -74,7 +74,7 @@
     <button class="menu-btn" onclick="openSidebar()"><i class="ri-menu-line"></i></button>
     <div><div class="topbar-title" id="pageTitle">Moje projekty</div><div class="topbar-sub" id="pageSub"></div></div>
     <!-- Onboarding button — shown in topbar instead of floating bottom-left -->
-    <div id="ob-float-btn" style="display:none;margin-left:auto;background:linear-gradient(135deg,var(--a),var(--b));border-radius:50px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 12px rgba(0,89,255,.35);align-items:center;gap:7px;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;white-space:nowrap" onclick="showOnboarding()">
+    <div id="ob-float-btn" style="display:none;margin-left:auto;background:linear-gradient(135deg,var(--a),var(--b));border-radius:50px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 12px rgba(0,89,255,.35);align-items:center;gap:7px;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;white-space:nowrap" onclick="_obDismissed=false;showOnboarding()">
       <span id="ob-float-icon">🚀</span>
       <span id="ob-float-text">Pierwsze kroki</span>
       <span id="ob-float-badge" style="background:rgba(255,255,255,.25);border-radius:100px;padding:1px 7px;font-size:11px;font-weight:700"></span>
@@ -1239,6 +1239,7 @@ const OB_ICONS = {
 };
 
 let _obSteps = [];
+let _obDismissed = false;
 
 async function loadOnboarding() {
   // Don't show if dismissed permanently (all done)
@@ -1330,6 +1331,7 @@ function renderOnboarding() {
 }
 
 function showOnboarding() {
+  if (_obDismissed) return; // never re-open after dismiss
   const ov = document.getElementById('onboarding-overlay');
   if (ov) { ov.style.display = 'flex'; renderOnboarding(); }
   const fb = document.getElementById('ob-float-btn');
@@ -1337,12 +1339,15 @@ function showOnboarding() {
 }
 
 async function dismissOnboarding() {
-  // Always hide immediately — no matter what
-  const ov = document.getElementById('onboarding-overlay');
-  if (ov) { ov.style.display = 'none'; ov.style.visibility = 'hidden'; }
+  // Set flag FIRST — prevents any re-open
+  _obDismissed = true;
 
+  // Hide overlay immediately
+  const ov = document.getElementById('onboarding-overlay');
+  if (ov) { ov.style.display = 'none'; }
+
+  // Save to localStorage so it doesn't auto-show on next reload
   try {
-    // Remember popup was closed — don't auto-show on next reload
     const uid = Auth?.userId || localStorage.getItem('bf_uid');
     if (uid) localStorage.setItem(`bf_ob_closed_${uid}`, '1');
 
@@ -1354,17 +1359,16 @@ async function dismissOnboarding() {
       const fb = document.getElementById('ob-float-btn');
       if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
     } else {
+      // Show float button (but popup stays closed)
       const fb = document.getElementById('ob-float-btn');
       if (fb) {
         fb._shouldShow = true;
         const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
         fb.style.display = onProjects ? 'flex' : 'none';
       }
-      renderOnboarding();
     }
   } catch(e) {
     console.warn('dismissOnboarding error (non-critical):', e);
-    // Popup is already hidden above — user experience is fine
   }
 }
 
