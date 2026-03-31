@@ -776,7 +776,9 @@ async function loadPastMeetings() {
          </div>`
       : `<div style="font-size:11px;color:var(--t3);font-style:italic;margin-top:4px">Brak notatki od administratora</div>`;
 
-    return `<div onclick="markMeetingRead('${e.id}','${esc(e.notes||'').replace(/'/g,'\\\'')}')"
+    const isJitsiPast = e.meet_url?.startsWith('jitsi://');
+    const jitsiRoomPast = isJitsiPast ? e.meet_url.replace('jitsi://','') : null;
+    return `<div onclick="markMeetingRead('${e.id}','${esc(e.notes||'').replace(/'/g,"\'")}')"
       style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .15s;background:${bgColor}"
       onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${bgColor}'">
       <div style="width:42px;height:42px;border-radius:50%;background:rgba(74,222,128,.12);border:2px solid ${notesNew?'rgba(74,222,128,.6)':'rgba(74,222,128,.3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">✅</div>
@@ -784,6 +786,7 @@ async function loadPastMeetings() {
         <div style="font-size:13px;font-weight:${notesNew?'700':'600'};margin-bottom:2px">${esc(e.title)}</div>
         <div style="font-size:11px;color:var(--t3);margin-bottom:2px">${dateStr} · ${timeStr}</div>
         ${notesHtml}
+        ${isJitsiPast ? `<button onclick="event.stopPropagation();openJitsiModal('${jitsiRoomPast}')" style="margin-top:8px;padding:6px 14px;background:rgba(0,89,255,.12);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">📹 Otwórz pokój wideo</button>` : ''}
       </div>
       <span style="font-size:10px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:2px">Zakończone</span>
     </div>`;
@@ -928,10 +931,17 @@ function showMeetingCard(sn) {
       </div>
     </div>
 
-    ${sn.meet_url ? `<a href="${esc(sn.meet_url)}" target="_blank" rel="noopener"
-      style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
-      🎥 Dołącz do spotkania
-    </a>` : ''}
+    ${sn.meet_url ? (sn.meet_url.startsWith('jitsi://')
+      ? `<button onclick="openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .2s"
+          onmouseenter="this.style.opacity='.88'" onmouseleave="this.style.opacity='1'">
+          📹 Dołącz do spotkania wideo
+        </button>`
+      : `<a href="${esc(sn.meet_url)}" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
+          🎥 Dołącz do spotkania
+        </a>`)
+      : ''}
   `;
 
   getNotifContainer().appendChild(card);
@@ -973,10 +983,17 @@ function toggleCalPicker(id) {
   event.stopPropagation();
 }
 
+function resolveJitsiUrl(meetUrl) {
+  if (!meetUrl) return '';
+  if (meetUrl.startsWith('jitsi://')) return 'https://meet.jit.si/' + meetUrl.replace('jitsi://','');
+  return meetUrl;
+}
+
 function addToAppleCal(id, title, startsAt, meetUrl) {
   const start = new Date(startsAt);
-  const end   = new Date(start.getTime() + 60*60*1000); // +1h default
+  const end   = new Date(start.getTime() + 60*60*1000);
   const fmt   = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const realUrl = resolveJitsiUrl(meetUrl);
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -986,8 +1003,8 @@ function addToAppleCal(id, title, startsAt, meetUrl) {
     `DTSTART:${fmt(start)}`,
     `DTEND:${fmt(end)}`,
     `SUMMARY:${title}`,
-    meetUrl ? `URL:${meetUrl}` : '',
-    meetUrl ? `DESCRIPTION:Link do spotkania: ${meetUrl}` : '',
+    realUrl ? `URL:${realUrl}` : '',
+    realUrl ? `DESCRIPTION:Link do spotkania: ${realUrl}` : 'DESCRIPTION:Spotkanie Barabash Flow',
     'END:VEVENT',
     'END:VCALENDAR'
   ].filter(Boolean).join('\r\n');
@@ -997,18 +1014,19 @@ function addToAppleCal(id, title, startsAt, meetUrl) {
   const a    = document.createElement('a');
   a.href = url; a.download = 'spotkanie.ics'; a.click();
   URL.revokeObjectURL(url);
-  document.getElementById('cal-picker-'+id).style.display = 'none';
+  document.getElementById('cal-picker-'+id)?.style && (document.getElementById('cal-picker-'+id).style.display = 'none');
 }
 
 function addToGoogleCal(title, startsAt, meetUrl) {
   const start = new Date(startsAt);
   const end   = new Date(start.getTime() + 60*60*1000);
   const fmt   = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z/,'Z');
+  const realUrl = resolveJitsiUrl(meetUrl);
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
     dates: `${fmt(start)}/${fmt(end)}`,
-    details: meetUrl ? `Link do spotkania: ${meetUrl}` : '',
+    details: realUrl ? `Link do spotkania: ${realUrl}` : 'Spotkanie Barabash Flow',
     sf: 'true'
   });
   window.open('https://calendar.google.com/calendar/render?' + params.toString(), '_blank');
@@ -1036,12 +1054,15 @@ function showMeetingWidget(sn, meetTime) {
     'transition:background .2s',
     'animation:popIn .35s cubic-bezier(.34,1.56,.64,1)'
   ].join(';');
+  const isJitsiMeet = sn.meet_url?.startsWith('jitsi://');
   widget.innerHTML = `
-    <span style="font-size:16px;flex-shrink:0">📅</span>
+    <span style="font-size:16px;flex-shrink:0">${isJitsiMeet ? '📹' : '📅'}</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
     </div>
+    ${isJitsiMeet ? `<button onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
+      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:600" title="Dołącz do wideo">▶</button>` : ''}
   `;
   widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(0,89,255,.15)');
   widget.addEventListener('mouseleave', ()=>widget.style.background='rgba(0,89,255,.08)');
@@ -1078,6 +1099,120 @@ function showMeetingWidget(sn, meetTime) {
 // Check on load and every 5 min
 checkScheduledNotifications();
 setInterval(checkScheduledNotifications, 5*60*1000);
+
+// ── JITSI MEET MODAL ──
+function openJitsiModal(roomName) {
+  let modal = document.getElementById('jitsi-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'jitsi-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:960px;background:#111;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:#0d0d1a;border-bottom:1px solid #222;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;background:linear-gradient(135deg,#0059FF,#003db5);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📹</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:#fff">Barabash Meet</div>
+              <div id="jitsi-modal-room" style="font-size:10px;color:#444;margin-top:1px;word-break:break-all;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit" title="Kopiuj link do spotkania">🔗 Kopiuj link</button>
+            <button onclick="closeJitsiModal()" style="background:rgba(255,255,255,.07);border:none;color:#777;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.07)';this.style.color='#777'">✕</button>
+          </div>
+        </div>
+        <div id="jitsi-modal-body" style="flex:1;position:relative;overflow:hidden">
+          <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#444;gap:14px;background:#111">
+            <div style="width:42px;height:42px;border:3px solid #222;border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#666;text-align:center">Ładowanie pokoju wideo...</div>
+              <div style="font-size:11px;color:#333;text-align:center;margin-top:4px">To może potrwać kilka sekund</div>
+            </div>
+          </div>
+          <div id="jitsi-container" style="width:100%;height:100%"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeJitsiModal(); });
+  }
+
+  document.getElementById('jitsi-modal-room').textContent = 'meet.jit.si/' + roomName;
+  modal.style.display = 'flex';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+  document.getElementById('jitsi-container').innerHTML = '';
+  modal._currentRoom = roomName;
+
+  function startJitsi() {
+    document.getElementById('jitsi-loading').style.display = 'none';
+    const container = document.getElementById('jitsi-container');
+    container.innerHTML = '';
+    new JitsiMeetExternalAPI('meet.jit.si', {
+      roomName,
+      parentNode: container,
+      width: '100%',
+      height: '100%',
+      userInfo: {
+        displayName: localStorage.getItem('bf_name') || 'Klient',
+        email: localStorage.getItem('bf_email') || ''
+      },
+      configOverwrite: {
+        startWithAudioMuted: true,
+        startWithVideoMuted: false,
+        disableDeepLinking: true,
+        prejoinPageEnabled: false,
+        enableWelcomePage: false,
+        requireDisplayName: false
+      },
+      interfaceConfigOverwrite: {
+        TOOLBAR_BUTTONS: ['microphone','camera','desktop','fullscreen','hangup','chat','tileview'],
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_BRAND_WATERMARK: false,
+        DEFAULT_BACKGROUND: '#0d0d1a',
+        MOBILE_APP_PROMO: false
+      }
+    });
+  }
+
+  if (window.JitsiMeetExternalAPI) {
+    startJitsi();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://meet.jit.si/external_api.js';
+    s.onload = startJitsi;
+    s.onerror = () => {
+      document.getElementById('jitsi-loading').innerHTML = `
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+          <div style="color:#f87171;font-weight:600;margin-bottom:8px">Nie można załadować wideo</div>
+          <div style="font-size:12px;color:#555;margin-bottom:16px">Sprawdź połączenie internetowe lub otwórz spotkanie w przeglądarce.</div>
+          <a href="https://meet.jit.si/${roomName}" target="_blank"
+            style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">
+            Otwórz w przeglądarce →
+          </a>
+        </div>`;
+    };
+    document.head.appendChild(s);
+  }
+}
+
+function closeJitsiModal() {
+  const modal = document.getElementById('jitsi-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  const container = document.getElementById('jitsi-container');
+  if (container) container.innerHTML = '';
+}
+
+function copyJitsiLink() {
+  const modal = document.getElementById('jitsi-modal');
+  if (!modal?._currentRoom) return;
+  const url = 'https://meet.jit.si/' + modal._currentRoom;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
+    if (btn) { btn.textContent = '✓ Skopiowano'; setTimeout(() => { btn.textContent = '🔗 Kopiuj link'; }, 2000); }
+  });
+}
 
 // ── UPDATE CLIENT AVATAR ──
 function updateClientAvatar(url){

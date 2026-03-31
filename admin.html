@@ -391,9 +391,37 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Link do spotkania *</label>
-            <input class="form-control" id="sn-meet-url" type="url" placeholder="https://meet.google.com/...">
+          <!-- Meet source toggle -->
+          <div class="form-group" id="sn-meet-source-group">
+            <label class="form-label">Platforma spotkania</label>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <label style="flex:1;cursor:pointer">
+                <input type="radio" name="sn-meet-src" value="external" checked onchange="snMeetSrcChange()" style="display:none">
+                <div id="sn-msrc-external" style="padding:10px 8px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer">
+                  🔗 Własny link<br><span style="font-weight:400;color:var(--t3);font-size:11px">Google Meet, Zoom…</span>
+                </div>
+              </label>
+              <label style="flex:1;cursor:pointer">
+                <input type="radio" name="sn-meet-src" value="jitsi" onchange="snMeetSrcChange()" style="display:none">
+                <div id="sn-msrc-jitsi" style="padding:10px 8px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer">
+                  📹 Barabash Meet<br><span style="font-weight:400;color:var(--t3);font-size:11px">Wbudowany czat wideo</span>
+                </div>
+              </label>
+            </div>
+            <div id="sn-external-wrap">
+              <input class="form-control" id="sn-meet-url" type="url" placeholder="https://meet.google.com/...">
+            </div>
+            <div id="sn-jitsi-wrap" style="display:none">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(0,89,255,.07);border:1px solid rgba(0,89,255,.2);border-radius:10px">
+                <div style="font-size:22px">📹</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">Wygenerowany pokój spotkań</div>
+                  <div id="sn-jitsi-room-preview" style="font-size:11px;color:var(--t3);word-break:break-all">Zostanie wygenerowany automatycznie</div>
+                </div>
+                <button type="button" onclick="previewJitsiRoom()" style="padding:6px 12px;background:var(--a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">Podgląd</button>
+              </div>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">💡 Klient otworzy wideo bezpośrednio w panelu. Ty też możesz dołączyć klikając przycisk przy spotkaniu w kalendarzu.</div>
+            </div>
           </div>
         </div>
         <div class="form-err" id="sn-err"></div>
@@ -2458,12 +2486,145 @@ async function convertOrder(){
 function snTypeChange() {
   const t = document.querySelector('input[name="sn-type"]:checked')?.value;
   document.getElementById('sn-meeting-fields').style.display = t==='meeting' ? 'block' : 'none';
+  document.getElementById('sn-meet-source-group').style.display = t==='meeting' ? 'block' : 'none';
   document.getElementById('sn-type-meeting').style.cssText = t==='meeting'
     ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
     : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
   document.getElementById('sn-type-text').style.cssText = t==='text'
     ? 'padding:12px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:13px;font-weight:600;transition:all .2s'
     : 'padding:12px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:13px;font-weight:600;transition:all .2s';
+}
+
+// ── MEET SOURCE TOGGLE ──
+function snMeetSrcChange() {
+  const src = document.querySelector('input[name="sn-meet-src"]:checked')?.value || 'external';
+  const isJitsi = src === 'jitsi';
+  document.getElementById('sn-external-wrap').style.display = isJitsi ? 'none' : 'block';
+  document.getElementById('sn-jitsi-wrap').style.display = isJitsi ? 'block' : 'none';
+  document.getElementById('sn-msrc-external').style.cssText = !isJitsi
+    ? 'padding:10px 8px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer'
+    : 'padding:10px 8px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer';
+  document.getElementById('sn-msrc-jitsi').style.cssText = isJitsi
+    ? 'padding:10px 8px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer'
+    : 'padding:10px 8px;border-radius:10px;border:2px solid var(--border2);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer';
+}
+
+// Generate a stable room name from clientId + date
+function genJitsiRoom(clientId, dt) {
+  const date = dt ? new Date(dt).toISOString().slice(0,10).replace(/-/g,'') : new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const uid8 = (clientId||'').replace(/-/g,'').slice(0,8);
+  const rand = Math.random().toString(36).slice(2,7);
+  return `bf-${uid8}-${date}-${rand}`;
+}
+
+let _jitsiPreviewRoom = null;
+
+function previewJitsiRoom() {
+  const clientId = document.getElementById('sn-client').value;
+  const dt = document.getElementById('sn-datetime').value;
+  if (!clientId || !dt) {
+    document.getElementById('sn-jitsi-room-preview').textContent = '⚠ Wybierz klienta i datę aby wygenerować pokój';
+    return;
+  }
+  if (!_jitsiPreviewRoom) _jitsiPreviewRoom = genJitsiRoom(clientId, dt);
+  const url = 'https://meet.jit.si/' + _jitsiPreviewRoom;
+  document.getElementById('sn-jitsi-room-preview').innerHTML = `<a href="${url}" target="_blank" style="color:var(--a)">${url}</a>`;
+  // Open Jitsi modal for admin preview
+  openJitsiModal(_jitsiPreviewRoom, 'Podgląd pokoju');
+}
+
+// ── JITSI MODAL ──
+function openJitsiModal(roomName, title) {
+  let modal = document.getElementById('jitsi-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'jitsi-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:900px;background:#111;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#1a1a2e;border-bottom:1px solid #333;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#0059FF,#0041b8);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px">📹</div>
+            <div>
+              <div id="jitsi-modal-title" style="font-weight:700;font-size:14px;color:#fff">Barabash Meet</div>
+              <div id="jitsi-modal-room" style="font-size:11px;color:#555;margin-top:1px"></div>
+            </div>
+          </div>
+          <button onclick="closeJitsiModal()" style="background:rgba(255,255,255,.08);border:none;color:#aaa;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseenter="this.style.background='rgba(255,0,0,.15)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.08)';this.style.color='#aaa'">✕</button>
+        </div>
+        <div id="jitsi-modal-body" style="flex:1;min-height:500px;position:relative">
+          <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#555;gap:12px">
+            <div style="width:40px;height:40px;border:3px solid #333;border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div>
+            <div style="font-size:14px">Ładowanie pokoju wideo...</div>
+          </div>
+          <div id="jitsi-container" style="width:100%;height:100%;min-height:500px"></div>
+        </div>
+        <div style="padding:10px 18px;background:#1a1a2e;border-top:1px solid #333;display:flex;align-items:center;justify-content:between;flex-shrink:0">
+          <div style="font-size:11px;color:#444;flex:1">Pokój: <span id="jitsi-room-link" style="color:#0059FF"></span></div>
+          <button onclick="copyJitsiLink()" style="padding:6px 14px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.3);color:#0059FF;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Kopiuj link</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) closeJitsiModal(); });
+  }
+
+  document.getElementById('jitsi-modal-title').textContent = title || 'Barabash Meet';
+  document.getElementById('jitsi-modal-room').textContent = roomName;
+  const url = 'https://meet.jit.si/' + roomName;
+  document.getElementById('jitsi-room-link').textContent = url;
+  modal.style.display = 'flex';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+  document.getElementById('jitsi-container').innerHTML = '';
+
+  // Load Jitsi API script if needed
+  function startJitsi() {
+    document.getElementById('jitsi-loading').style.display = 'none';
+    const container = document.getElementById('jitsi-container');
+    container.innerHTML = '';
+    new JitsiMeetExternalAPI('meet.jit.si', {
+      roomName,
+      parentNode: container,
+      width: '100%',
+      height: '100%',
+      userInfo: {
+        displayName: localStorage.getItem('bf_name') || 'Administrator',
+        email: localStorage.getItem('bf_email') || ''
+      },
+      configOverwrite: {
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
+        disableDeepLinking: true,
+        prejoinPageEnabled: false,
+        enableWelcomePage: false
+      },
+      interfaceConfigOverwrite: {
+        TOOLBAR_BUTTONS: ['microphone','camera','desktop','fullscreen','hangup','chat','tileview','settings'],
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_BRAND_WATERMARK: false,
+        DEFAULT_BACKGROUND: '#111116',
+        MOBILE_APP_PROMO: false
+      }
+    });
+  }
+
+  if (window.JitsiMeetExternalAPI) {
+    startJitsi();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://meet.jit.si/external_api.js';
+    s.onload = startJitsi;
+    document.head.appendChild(s);
+  }
+}
+
+function closeJitsiModal() {
+  const modal = document.getElementById('jitsi-modal');
+  if (modal) { modal.style.display = 'none'; document.getElementById('jitsi-container').innerHTML = ''; }
+}
+
+function copyJitsiLink() {
+  const link = document.getElementById('jitsi-room-link')?.textContent;
+  if (link) { navigator.clipboard.writeText(link); toast('Link skopiowany ✓'); }
 }
 
 async function loadNotifClientSelect() {
@@ -2490,11 +2651,18 @@ async function sendScheduledNotif() {
 
   if (type==='meeting') {
     const dt = document.getElementById('sn-datetime').value;
-    meetUrl   = document.getElementById('sn-meet-url').value.trim();
+    const meetSrc = document.querySelector('input[name="sn-meet-src"]:checked')?.value || 'external';
     durationMin = Number(document.getElementById('sn-duration').value);
-    if (!dt)      { errEl.textContent='Wybierz datę i godzinę'; return; }
-    if (!meetUrl) { errEl.textContent='Wpisz link do spotkania'; return; }
+    if (!dt) { errEl.textContent='Wybierz datę i godzinę'; return; }
     scheduledAt = new Date(dt).toISOString();
+    if (meetSrc === 'jitsi') {
+      // Generate Jitsi room — store as jitsi:// prefix so client.html knows to embed
+      if (!_jitsiPreviewRoom) _jitsiPreviewRoom = genJitsiRoom(userId, dt);
+      meetUrl = 'jitsi://' + _jitsiPreviewRoom;
+    } else {
+      meetUrl = document.getElementById('sn-meet-url').value.trim();
+      if (!meetUrl) { errEl.textContent='Wpisz link do spotkania'; return; }
+    }
   }
 
   const btn = document.getElementById('sn-btn');
@@ -2518,11 +2686,13 @@ async function sendScheduledNotif() {
       const client   = await dbGet('profiles',`?id=eq.${userId}&select=display_name,email`);
       const clientName = client[0]?.display_name||client[0]?.email||'Klient';
 
+      // Resolve jitsi:// to real URL for iCal
+      const calMeetUrl = meetUrl?.startsWith('jitsi://') ? 'https://meet.jit.si/' + meetUrl.replace('jitsi://','') : meetUrl;
       const calR = await edgeFn('apple-calendar',{
         action:'create', uid, ...ICLOUD_CFG,
         title:`${title} — ${clientName}`,
         description:msg||`Spotkanie z ${clientName}`,
-        meetUrl:meetUrl, startsAt, endsAt
+        meetUrl:calMeetUrl, startsAt, endsAt
       });
 
       // Save to calendar_events so client can see it in "Zakończone spotkania"
@@ -2629,7 +2799,10 @@ async function loadCalEvents() {
         <div style="font-size:13px;font-weight:600">${esc(e.title)}</div>
         <div style="font-size:11px;color:var(--t3);margin-top:2px">${start.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}${clientName?' · '+esc(clientName):''}</div>
       </div>
-      ${e.meet_url?`<a href="${esc(e.meet_url)}" target="_blank" class="btn btn-sm btn-outline" style="flex-shrink:0"><i class="ri-video-line"></i></a>`:''}
+      ${e.meet_url ? (e.meet_url.startsWith('jitsi://')
+        ? `<button class="btn btn-sm btn-primary" style="flex-shrink:0;gap:4px" onclick="openJitsiModal('${esc(e.meet_url.replace('jitsi://',''))}','${esc(e.title)}')"><i class="ri-video-on-line"></i> Dołącz</button>`
+        : `<a href="${esc(e.meet_url)}" target="_blank" class="btn btn-sm btn-outline" style="flex-shrink:0"><i class="ri-video-line"></i></a>`)
+        : ''}
       <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
     </div>`;
   }).join('') || emptyHTML('ri-calendar-line','Brak nadchodzących wydarzeń');
@@ -2652,6 +2825,9 @@ async function loadCalEvents() {
             ${e.notes?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:6px 8px;background:rgba(74,222,128,.07);border-radius:6px;border-left:2px solid #4ade80"><i class="ri-file-text-line"></i> ${esc(e.notes)}</div>`:''}
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
+            ${e.meet_url?.startsWith('jitsi://')
+              ? `<button class="btn btn-sm btn-primary" onclick="openJitsiModal('${e.meet_url.replace('jitsi://','')}')" style="font-size:11px;padding:4px 8px;gap:4px"><i class="ri-video-on-line"></i>Wideo</button>`
+              : e.meet_url ? `<a href="${esc(e.meet_url)}" target="_blank" class="btn btn-sm btn-outline" style="font-size:11px;padding:4px 8px"><i class="ri-video-line"></i></a>` : ''}
             <button class="btn btn-sm btn-outline" onclick="openMeetingNotesByBtn(this)" data-id="${e.id}" data-notes="${esc(e.notes||'').replace(/"/g,'&quot;')}" style="font-size:11px;padding:4px 8px"><i class="ri-edit-line"></i>${e.notes?'Edytuj':'Dodaj notatkę'}</button>
             <button class="btn-icon btn-icon-del" onclick="deleteCalEvent('${e.id}','${(e.ical_uid||e.id)}')" title="Usuń"><i class="ri-delete-bin-line"></i></button>
           </div>
