@@ -1337,29 +1337,34 @@ function showOnboarding() {
 }
 
 async function dismissOnboarding() {
+  // Always hide immediately — no matter what
   const ov = document.getElementById('onboarding-overlay');
-  if (ov) ov.style.display = 'none';
+  if (ov) { ov.style.display = 'none'; ov.style.visibility = 'hidden'; }
 
-  // Remember popup was closed — don't auto-show on next reload
-  localStorage.setItem(`bf_ob_closed_${Auth.userId}`, '1');
+  try {
+    // Remember popup was closed — don't auto-show on next reload
+    const uid = Auth?.userId || localStorage.getItem('bf_uid');
+    if (uid) localStorage.setItem(`bf_ob_closed_${uid}`, '1');
 
-  const allDone = _obSteps.every(s => s.completed_at);
-  if (allDone) {
-    // Mark permanently dismissed in DB
-    await fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
-      method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
-    });
-    const fb = document.getElementById('ob-float-btn');
-    if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
-  } else {
-    // Show float button only on projects page
-    const fb = document.getElementById('ob-float-btn');
-    if (fb) {
-      fb._shouldShow = true;
-      const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
-      fb.style.display = onProjects ? 'flex' : 'none';
+    const allDone = Array.isArray(_obSteps) && _obSteps.every(s => s.completed_at);
+    if (allDone && uid) {
+      await fetch(`${SB}/rest/v1/profiles?id=eq.${uid}`, {
+        method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
+      });
+      const fb = document.getElementById('ob-float-btn');
+      if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
+    } else {
+      const fb = document.getElementById('ob-float-btn');
+      if (fb) {
+        fb._shouldShow = true;
+        const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
+        fb.style.display = onProjects ? 'flex' : 'none';
+      }
+      renderOnboarding();
     }
-    renderOnboarding();
+  } catch(e) {
+    console.warn('dismissOnboarding error (non-critical):', e);
+    // Popup is already hidden above — user experience is fine
   }
 }
 
