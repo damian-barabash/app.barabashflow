@@ -622,7 +622,7 @@ async function loadNotifs() {
     }[n.type] || 'linear-gradient(135deg,var(--a),var(--b))';
     const bgColor = unread ? 'rgba(0,89,255,.03)' : 'transparent';
 
-    return `<div onclick="markNotifRead('${n.id}','${n.project_id||''}')"
+    return `<div onclick="markNotifRead('${n.id}','${n.project_id||''}','${n.type||''}')"
       style="padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;align-items:flex-start;gap:12px;opacity:${unread?'1':'0.6'};background:${bgColor}"
       onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='${bgColor}'">
       <div style="width:36px;height:36px;border-radius:50%;background:${iconBg};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${meta.icon}</div>
@@ -641,26 +641,21 @@ async function loadNotifs() {
   }).join('') || emptyHTML('ri-notification-off-line','Brak powiadomień');
 }
 
-async function markNotifRead(notifId, projectId) {
-  // Mark as read
+async function markNotifRead(notifId, projectId, notifType) {
   await fetch(`${SB}/rest/v1/notifications?id=eq.${notifId}`, {
     method:'PATCH', headers:hdr({Prefer:'return=minimal'}),
     body: JSON.stringify({is_read:true})
   });
-  // If has project — navigate to it
   if (projectId && projectId !== 'null' && projectId !== '') {
-    // Find project and open it
     const [proj] = await dbGet('projects', `?id=eq.${projectId}&select=*`);
     if (proj) {
-      PID = proj.id;
-      document.getElementById('pj-name').textContent = proj.name;
-      document.getElementById('pj-status-badge').textContent = {active:'AKTYWNY',completed:'ZAKOŃCZONY',paused:'WSTRZYMANY'}[proj.status]||proj.status.toUpperCase();
-      nav('project'); switchTab('chat');
-      completeOnboardingStep('Sprawdź swój projekt');
+      await openProject(proj.id, proj.name, proj.status);
+      if (notifType === 'doc') switchTab('docs');
+      else if (notifType === 'post') switchTab('posts');
+      else switchTab('chat');
       return;
     }
   }
-  // Just reload notifs to update read state
   loadNotifs();
 }
 
@@ -1090,36 +1085,14 @@ function showMeetingWidget(sn, meetTime) {
 checkScheduledNotifications();
 setInterval(checkScheduledNotifications, 5*60*1000);
 
-// ── JITSI MEET MODAL (global) ──
+// ── JITSI MEET MODAL ──
 function openJitsiModal(roomName) {
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'jitsi-modal';
     modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px';
-    modal.innerHTML = `
-      <div style="width:100%;max-width:960px;background:#111;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.8)">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:#0d0d1a;border-bottom:1px solid #222;flex-shrink:0">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;background:linear-gradient(135deg,#0059FF,#003db5);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">📹</div>
-            <div>
-              <div style="font-weight:700;font-size:14px;color:#fff">Barabash Meet</div>
-              <div id="jitsi-modal-room" style="font-size:10px;color:#444;margin-top:1px"></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔗 Kopiuj link</button>
-            <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.07);border:none;color:#777;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.07)';this.style.color='#777'">✕</button>
-          </div>
-        </div>
-        <div style="flex:1;position:relative;overflow:hidden">
-          <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#111">
-            <div style="width:42px;height:42px;border:3px solid #222;border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div>
-            <div style="font-size:14px;font-weight:600;color:#666">Ładowanie pokoju wideo...</div>
-          </div>
-          <div id="jitsi-container" style="width:100%;height:100%"></div>
-        </div>
-      </div>`;
+    modal.innerHTML = `<div style="width:100%;max-width:960px;background:#111;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.8)"><div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:#0d0d1a;border-bottom:1px solid #222;flex-shrink:0"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;background:linear-gradient(135deg,#0059FF,#003db5);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">📹</div><div><div style="font-weight:700;font-size:14px;color:#fff">Barabash Meet</div><div id="jitsi-modal-room" style="font-size:10px;color:#444;margin-top:1px"></div></div></div><div style="display:flex;align-items:center;gap:8px"><button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔗 Kopiuj link</button><button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.07);border:none;color:#777;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.07)';this.style.color='#777'">✕</button></div></div><div style="flex:1;position:relative;overflow:hidden"><div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#111"><div style="width:42px;height:42px;border:3px solid #222;border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:14px;font-weight:600;color:#666">Ładowanie pokoju wideo...</div></div><div id="jitsi-container" style="width:100%;height:100%"></div></div></div>`;
     document.body.appendChild(modal);
     modal.addEventListener('click', e => { if(e.target===modal) closeJitsiModal(); });
   }
@@ -1131,16 +1104,10 @@ function openJitsiModal(roomName) {
   function startJitsi() {
     document.getElementById('jitsi-loading').style.display = 'none';
     const c = document.getElementById('jitsi-container'); c.innerHTML='';
-    new JitsiMeetExternalAPI('meet.jit.si',{roomName,parentNode:c,width:'100%',height:'100%',
-      userInfo:{displayName:localStorage.getItem('bf_name')||'Klient',email:localStorage.getItem('bf_email')||''},
-      configOverwrite:{startWithAudioMuted:true,disableDeepLinking:true,prejoinPageEnabled:false,enableWelcomePage:false},
-      interfaceConfigOverwrite:{TOOLBAR_BUTTONS:['microphone','camera','desktop','fullscreen','hangup','chat','tileview'],SHOW_JITSI_WATERMARK:false,MOBILE_APP_PROMO:false}
-    });
+    new JitsiMeetExternalAPI('meet.jit.si',{roomName,parentNode:c,width:'100%',height:'100%',userInfo:{displayName:localStorage.getItem('bf_name')||'Klient',email:localStorage.getItem('bf_email')||''},configOverwrite:{startWithAudioMuted:true,disableDeepLinking:true,prejoinPageEnabled:false,enableWelcomePage:false},interfaceConfigOverwrite:{TOOLBAR_BUTTONS:['microphone','camera','desktop','fullscreen','hangup','chat','tileview'],SHOW_JITSI_WATERMARK:false,MOBILE_APP_PROMO:false}});
   }
   if(window.JitsiMeetExternalAPI) startJitsi();
-  else{const s=document.createElement('script');s.src='https://meet.jit.si/external_api.js';s.onload=startJitsi;
-    s.onerror=()=>{document.getElementById('jitsi-loading').innerHTML=`<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie można załadować wideo</div><a href="https://meet.jit.si/${roomName}" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Otwórz w przeglądarce →</a></div>`;};
-    document.head.appendChild(s);}
+  else{const s=document.createElement('script');s.src='https://meet.jit.si/external_api.js';s.onload=startJitsi;s.onerror=()=>{document.getElementById('jitsi-loading').innerHTML='<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie można załadować wideo</div></div>';};document.head.appendChild(s);}
 }
 function closeJitsiModal(){const m=document.getElementById('jitsi-modal');if(m){m.style.display='none';document.getElementById('jitsi-container').innerHTML='';}}
 function copyJitsiLink(){const m=document.getElementById('jitsi-modal');if(!m?._currentRoom)return;navigator.clipboard.writeText('https://meet.jit.si/'+m._currentRoom).then(()=>{const b=document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');if(b){const o=b.textContent;b.textContent='✓ Skopiowano';setTimeout(()=>b.textContent=o,2000);}});}
@@ -1465,7 +1432,6 @@ loadOnboarding();
 loadPastMeetingsBadge();
 
 // ── EXPORT ALL FUNCTIONS TO GLOBAL SCOPE ──
-// All functions are defined inside IIFE — export them so onclick handlers can reach them
 window.nav = nav;
 window.switchTab = switchTab;
 window.openProject = openProject;
