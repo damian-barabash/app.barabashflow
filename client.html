@@ -1051,7 +1051,7 @@ function showMeetingWidget(sn, meetTime) {
       <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
     </div>
-    ${isJitsiMeet ? `<button type="button" onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
+    ${isJitsiMeet ? `<button type="button" onclick="openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
       style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">▶</button>` : ''}
   `;
   widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(0,89,255,.15)');
@@ -1090,7 +1090,7 @@ function showMeetingWidget(sn, meetTime) {
 checkScheduledNotifications();
 setInterval(checkScheduledNotifications, 5*60*1000);
 
-// ── JITSI MEET MODAL ──
+// ── JITSI MEET MODAL (global) ──
 function openJitsiModal(roomName) {
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
@@ -1142,11 +1142,8 @@ function openJitsiModal(roomName) {
     s.onerror=()=>{document.getElementById('jitsi-loading').innerHTML=`<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie można załadować wideo</div><a href="https://meet.jit.si/${roomName}" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Otwórz w przeglądarce →</a></div>`;};
     document.head.appendChild(s);}
 }
-window.openJitsiModal = openJitsiModal;
 function closeJitsiModal(){const m=document.getElementById('jitsi-modal');if(m){m.style.display='none';document.getElementById('jitsi-container').innerHTML='';}}
-window.closeJitsiModal = closeJitsiModal;
 function copyJitsiLink(){const m=document.getElementById('jitsi-modal');if(!m?._currentRoom)return;navigator.clipboard.writeText('https://meet.jit.si/'+m._currentRoom).then(()=>{const b=document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');if(b){const o=b.textContent;b.textContent='✓ Skopiowano';setTimeout(()=>b.textContent=o,2000);}});}
-window.copyJitsiLink = copyJitsiLink;
 
 // ── UPDATE CLIENT AVATAR ──
 function updateClientAvatar(url){
@@ -1312,12 +1309,6 @@ async function completeOnboardingStep(stepName) {
   }
 }
 
-// Export onboarding functions to global scope (they're inside IIFE)
-window.showOnboarding = showOnboarding;
-window.dismissOnboarding = dismissOnboarding;
-window.renderOnboarding = renderOnboarding;
-window.completeOnboardingStep = completeOnboardingStep;
-
 // ── CLIENT STAGES (read-only) ──
 async function loadClientStages() {
   const stages = await dbGet('project_stages', `?project_id=eq.${PID}&select=*&order=position.asc`);
@@ -1472,6 +1463,49 @@ startPresenceHeartbeat();
 loadClientAvatar();
 loadOnboarding();
 loadPastMeetingsBadge();
+
+// ── EXPORT ALL FUNCTIONS TO GLOBAL SCOPE ──
+// All functions are defined inside IIFE — export them so onclick handlers can reach them
+window.nav = nav;
+window.switchTab = switchTab;
+window.openProject = openProject;
+window.loadProjects = loadProjects;
+window.initChatUI = initChatUI;
+window.cancelChatFile = cancelChatFile;
+window.loadChat = loadChat;
+window.sendMsg = sendMsg;
+window.loadPosts = loadPosts;
+window.addComment = addComment;
+window.clientAddDoc = clientAddDoc;
+window.clientFilterDocs = clientFilterDocs;
+window.loadDocs = loadDocs;
+window.markInvoicePaid = markInvoicePaid;
+window.loadNotifs = loadNotifs;
+window.markNotifRead = markNotifRead;
+window.markAllRead = markAllRead;
+window.updateNotifBadge = updateNotifBadge;
+window.checkScheduledNotifications = checkScheduledNotifications;
+window.loadPastMeetingsBadge = loadPastMeetingsBadge;
+window.loadPastMeetings = loadPastMeetings;
+window.markMeetingRead = markMeetingRead;
+window.markAllMeetingsRead = markAllMeetingsRead;
+window.toggleCalPicker = toggleCalPicker;
+window.addToAppleCal = addToAppleCal;
+window.addToGoogleCal = addToGoogleCal;
+window.loadOnboarding = loadOnboarding;
+window.renderOnboarding = renderOnboarding;
+window.showOnboarding = showOnboarding;
+window.dismissOnboarding = dismissOnboarding;
+window.completeOnboardingStep = completeOnboardingStep;
+window.loadClientStages = loadClientStages;
+window.loadClientTasks = loadClientTasks;
+window.completeClientTask = completeClientTask;
+window.setRating = setRating;
+window.dismissFeedback = dismissFeedback;
+window.submitFeedback = submitFeedback;
+window.changeOwnPassword = changeOwnPassword;
+window.updateClientAvatar = updateClientAvatar;
+window.loadClientAvatar = loadClientAvatar;
 })(); // close auth init IIFE
 
 // Restore last view on reload
