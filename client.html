@@ -224,7 +224,7 @@
 
 <!-- ONBOARDING CHECKLIST -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:6000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
-  <div id="onboarding-card" style="background:#1a1a1f;border:1px solid #2a2a35;border-radius:22px;padding:28px;max-width:420px;width:100%;position:relative;animation:popIn .35s cubic-bezier(.34,1.2,.64,1)">
+  <div id="onboarding-card" style="background:#1a1a1f;border:1px solid #2a2a35;border-radius:22px;padding:28px;max-width:420px;width:100%;position:relative">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🚀</div>
       <div>
@@ -1183,6 +1183,7 @@ const OB_ICONS = {
 };
 
 let _obSteps = [];
+let _obOpen  = false; // true while overlay is visible
 
 async function loadOnboarding() {
   // Don't show if dismissed permanently (all done)
@@ -1274,6 +1275,7 @@ function renderOnboarding() {
 }
 
 function showOnboarding() {
+  _obOpen = true;
   const ov = document.getElementById('onboarding-overlay');
   if (ov) { ov.style.display = 'flex'; renderOnboarding(); }
   const fb = document.getElementById('ob-float-btn');
@@ -1281,6 +1283,8 @@ function showOnboarding() {
 }
 
 async function dismissOnboarding() {
+  // Hide immediately — set flag first so nothing can re-open it
+  _obOpen = false;
   const ov = document.getElementById('onboarding-overlay');
   if (ov) ov.style.display = 'none';
 
@@ -1296,15 +1300,13 @@ async function dismissOnboarding() {
     const fb = document.getElementById('ob-float-btn');
     if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
   } else {
-    // Show float button only on projects page
+    // Show float button only on projects page (no renderOnboarding — avoids re-triggering animation)
     const fb = document.getElementById('ob-float-btn');
     if (fb) {
       fb._shouldShow = true;
       const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
       fb.style.display = onProjects ? 'flex' : 'none';
     }
-    // NOTE: do NOT call renderOnboarding() here — it rewrites innerHTML
-    // which re-triggers popIn animation and can visually re-show the card
   }
 }
 
@@ -1316,9 +1318,9 @@ async function completeOnboardingStep(stepName) {
     method: 'PATCH', headers: hdr(), body: JSON.stringify({completed_at: new Date().toISOString()})
   });
   step.completed_at = new Date().toISOString();
-  renderOnboarding();
-  // Check if all done
-  if (_obSteps.every(s => s.completed_at)) {
+  if (_obOpen) renderOnboarding();
+  // Check if all done — only show completion if overlay was already open
+  if (_obOpen && _obSteps.every(s => s.completed_at)) {
     showOnboarding(); // show completion screen
   }
 }
