@@ -1142,8 +1142,11 @@ function openJitsiModal(roomName) {
     s.onerror=()=>{document.getElementById('jitsi-loading').innerHTML=`<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie można załadować wideo</div><a href="https://meet.jit.si/${roomName}" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Otwórz w przeglądarce →</a></div>`;};
     document.head.appendChild(s);}
 }
+window.openJitsiModal = openJitsiModal;
 function closeJitsiModal(){const m=document.getElementById('jitsi-modal');if(m){m.style.display='none';document.getElementById('jitsi-container').innerHTML='';}}
+window.closeJitsiModal = closeJitsiModal;
 function copyJitsiLink(){const m=document.getElementById('jitsi-modal');if(!m?._currentRoom)return;navigator.clipboard.writeText('https://meet.jit.si/'+m._currentRoom).then(()=>{const b=document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');if(b){const o=b.textContent;b.textContent='✓ Skopiowano';setTimeout(()=>b.textContent=o,2000);}});}
+window.copyJitsiLink = copyJitsiLink;
 
 // ── UPDATE CLIENT AVATAR ──
 function updateClientAvatar(url){
@@ -1172,10 +1175,7 @@ const OB_ICONS = {
 let _obSteps = [];
 
 async function loadOnboarding() {
-  // Check localStorage first — fast path, no DB call needed
-  if (localStorage.getItem(`bf_ob_closed_${Auth.userId}`)) return;
-
-  // Don't show if dismissed in DB
+  // Don't show if dismissed permanently (all done)
   const [profile] = await dbGet('profiles', `?id=eq.${Auth.userId}&select=onboarding_dismissed`);
   if (profile?.onboarding_dismissed) return;
 
@@ -1271,22 +1271,29 @@ function showOnboarding() {
 }
 
 async function dismissOnboarding() {
-  // Hide immediately
   const ov = document.getElementById('onboarding-overlay');
   if (ov) ov.style.display = 'none';
 
-  // Save to localStorage AND to DB so it never auto-shows again
+  // Remember popup was closed — don't auto-show on next reload
   localStorage.setItem(`bf_ob_closed_${Auth.userId}`, '1');
-  fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
-    method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
-  }).catch(() => {});
 
-  // Show float button so user can reopen manually
-  const fb = document.getElementById('ob-float-btn');
-  if (fb) {
-    fb._shouldShow = true;
-    const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
-    fb.style.display = onProjects ? 'flex' : 'none';
+  const allDone = _obSteps.every(s => s.completed_at);
+  if (allDone) {
+    // Mark permanently dismissed in DB
+    await fetch(`${SB}/rest/v1/profiles?id=eq.${Auth.userId}`, {
+      method: 'PATCH', headers: hdr(), body: JSON.stringify({onboarding_dismissed: true})
+    });
+    const fb = document.getElementById('ob-float-btn');
+    if (fb) { fb._shouldShow = false; fb.style.display = 'none'; }
+  } else {
+    // Show float button only on projects page
+    const fb = document.getElementById('ob-float-btn');
+    if (fb) {
+      fb._shouldShow = true;
+      const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
+      fb.style.display = onProjects ? 'flex' : 'none';
+    }
+    renderOnboarding();
   }
 }
 
@@ -1304,6 +1311,12 @@ async function completeOnboardingStep(stepName) {
     showOnboarding(); // show completion screen
   }
 }
+
+// Export onboarding functions to global scope (they're inside IIFE)
+window.showOnboarding = showOnboarding;
+window.dismissOnboarding = dismissOnboarding;
+window.renderOnboarding = renderOnboarding;
+window.completeOnboardingStep = completeOnboardingStep;
 
 // ── CLIENT STAGES (read-only) ──
 async function loadClientStages() {
