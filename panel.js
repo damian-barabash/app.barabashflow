@@ -653,6 +653,7 @@ function runPreloader() {
     if (w >= 100) {
       clearInterval(iv);
       setTimeout(() => {
+        pre.style.pointerEvents = 'none'; // immediately stop blocking clicks
         pre.style.opacity = '0';
         pre.style.transform = 'scale(1.02)';
         pre.style.transition = 'opacity .5s ease, transform .5s ease, visibility .5s';
