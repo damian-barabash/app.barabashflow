@@ -231,7 +231,7 @@
         <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:700">Pierwsze kroki</div>
         <div style="font-size:12px;color:var(--t3);margin-top:2px">Wykonaj te kroki żeby zacząć</div>
       </div>
-      <button onclick="dismissOnboarding()" style="margin-left:auto;background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s" title="Zamknij">×</button>
+      <button type="button" onclick="dismissOnboarding()" style="margin-left:auto;background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s" title="Zamknij">×</button>
     </div>
     <!-- Progress bar -->
     <div style="background:var(--bg3);border-radius:100px;height:6px;margin-bottom:18px;overflow:hidden">
@@ -243,7 +243,7 @@
       <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">Wszystko gotowe!</div>
       <div style="font-size:13px;color:var(--t3)">Jesteś w pełni skonfigurowany. Miłej współpracy!</div>
     </div>
-    <button onclick="dismissOnboarding()" style="width:100%;margin-top:16px;padding:11px;background:transparent;border:1.5px solid var(--border2);border-radius:100px;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s">Przypomnij później</button>
+    <button type="button" onclick="dismissOnboarding()" style="width:100%;margin-top:16px;padding:11px;background:transparent;border:1.5px solid var(--border2);border-radius:100px;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s">Przypomnij później</button>
   </div>
 </div>
 
@@ -929,9 +929,8 @@ function showMeetingCard(sn) {
     </div>
 
     ${sn.meet_url ? (sn.meet_url.startsWith('jitsi://')
-      ? `<button onclick="openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
-          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit"
-          onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+      ? `<button type="button" onclick="openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">
           📹 Dołącz do spotkania wideo
         </button>`
       : `<a href="${esc(sn.meet_url)}" target="_blank" rel="noopener"
@@ -980,17 +979,12 @@ function toggleCalPicker(id) {
   event.stopPropagation();
 }
 
-function resolveJitsiUrl(meetUrl) {
-  if (!meetUrl) return '';
-  if (meetUrl.startsWith('jitsi://')) return 'https://meet.jit.si/' + meetUrl.replace('jitsi://','');
-  return meetUrl;
-}
+function resolveJitsiUrl(u) { return u?.startsWith('jitsi://') ? 'https://meet.jit.si/'+u.replace('jitsi://','') : (u||''); }
 
 function addToAppleCal(id, title, startsAt, meetUrl) {
   const start = new Date(startsAt);
   const end   = new Date(start.getTime() + 60*60*1000); // +1h default
   const fmt   = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
-  const realUrl = resolveJitsiUrl(meetUrl);
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -1000,8 +994,8 @@ function addToAppleCal(id, title, startsAt, meetUrl) {
     `DTSTART:${fmt(start)}`,
     `DTEND:${fmt(end)}`,
     `SUMMARY:${title}`,
-    realUrl ? `URL:${realUrl}` : '',
-    realUrl ? `DESCRIPTION:Link do spotkania: ${realUrl}` : '',
+    resolveJitsiUrl(meetUrl) ? `URL:${resolveJitsiUrl(meetUrl)}` : '',
+    resolveJitsiUrl(meetUrl) ? `DESCRIPTION:Link do spotkania: ${resolveJitsiUrl(meetUrl)}` : '',
     'END:VEVENT',
     'END:VCALENDAR'
   ].filter(Boolean).join('\r\n');
@@ -1057,8 +1051,8 @@ function showMeetingWidget(sn, meetTime) {
       <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
     </div>
-    ${isJitsiMeet ? `<button onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
-      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600" title="Dołącz do wideo">▶</button>` : ''}
+    ${isJitsiMeet ? `<button type="button" onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
+      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">▶</button>` : ''}
   `;
   widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(0,89,255,.15)');
   widget.addEventListener('mouseleave', ()=>widget.style.background='rgba(0,89,255,.08)');
@@ -1114,14 +1108,14 @@ function openJitsiModal(roomName) {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <button onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔗 Kopiuj link</button>
-            <button onclick="closeJitsiModal()" style="background:rgba(255,255,255,.07);border:none;color:#777;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.07)';this.style.color='#777'">✕</button>
+            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.15);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔗 Kopiuj link</button>
+            <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.07);border:none;color:#777;cursor:pointer;font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.07)';this.style.color='#777'">✕</button>
           </div>
         </div>
-        <div id="jitsi-modal-body" style="flex:1;position:relative;overflow:hidden">
-          <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#444;gap:14px;background:#111">
+        <div style="flex:1;position:relative;overflow:hidden">
+          <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#111">
             <div style="width:42px;height:42px;border:3px solid #222;border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div>
-            <div style="font-size:14px;font-weight:600;color:#666;text-align:center">Ładowanie pokoju wideo...</div>
+            <div style="font-size:14px;font-weight:600;color:#666">Ładowanie pokoju wideo...</div>
           </div>
           <div id="jitsi-container" style="width:100%;height:100%"></div>
         </div>
@@ -1134,44 +1128,33 @@ function openJitsiModal(roomName) {
   document.getElementById('jitsi-loading').style.display = 'flex';
   document.getElementById('jitsi-container').innerHTML = '';
   modal._currentRoom = roomName;
-
   function startJitsi() {
     document.getElementById('jitsi-loading').style.display = 'none';
-    const container = document.getElementById('jitsi-container');
-    container.innerHTML = '';
+    const c = document.getElementById('jitsi-container'); c.innerHTML = '';
     new JitsiMeetExternalAPI('meet.jit.si', {
-      roomName, parentNode: container, width: '100%', height: '100%',
-      userInfo: { displayName: localStorage.getItem('bf_name') || 'Klient', email: localStorage.getItem('bf_email') || '' },
-      configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: false, disableDeepLinking: true, prejoinPageEnabled: false, enableWelcomePage: false },
-      interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone','camera','desktop','fullscreen','hangup','chat','tileview'], SHOW_JITSI_WATERMARK: false, SHOW_BRAND_WATERMARK: false, MOBILE_APP_PROMO: false }
+      roomName, parentNode: c, width:'100%', height:'100%',
+      userInfo:{ displayName: localStorage.getItem('bf_name')||'Klient', email: localStorage.getItem('bf_email')||'' },
+      configOverwrite:{ startWithAudioMuted:true, disableDeepLinking:true, prejoinPageEnabled:false, enableWelcomePage:false },
+      interfaceConfigOverwrite:{ TOOLBAR_BUTTONS:['microphone','camera','desktop','fullscreen','hangup','chat','tileview'], SHOW_JITSI_WATERMARK:false, MOBILE_APP_PROMO:false }
     });
   }
-  if (window.JitsiMeetExternalAPI) { startJitsi(); }
+  if (window.JitsiMeetExternalAPI) startJitsi();
   else {
-    const s = document.createElement('script');
-    s.src = 'https://meet.jit.si/external_api.js';
-    s.onload = startJitsi;
-    s.onerror = () => {
-      document.getElementById('jitsi-loading').innerHTML = `<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:8px">Nie można załadować wideo</div><a href="https://meet.jit.si/${roomName}" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otwórz w przeglądarce →</a></div>`;
-    };
+    const s = document.createElement('script'); s.src='https://meet.jit.si/external_api.js'; s.onload=startJitsi;
+    s.onerror = () => { document.getElementById('jitsi-loading').innerHTML = `<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie można załadować wideo</div><a href="https://meet.jit.si/${roomName}" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Otwórz w przeglądarce →</a></div>`; };
     document.head.appendChild(s);
   }
 }
-
 function closeJitsiModal() {
-  const modal = document.getElementById('jitsi-modal');
-  if (!modal) return;
-  modal.style.display = 'none';
-  const container = document.getElementById('jitsi-container');
-  if (container) container.innerHTML = '';
+  const m = document.getElementById('jitsi-modal');
+  if (m) { m.style.display='none'; document.getElementById('jitsi-container').innerHTML=''; }
 }
-
 function copyJitsiLink() {
-  const modal = document.getElementById('jitsi-modal');
-  if (!modal?._currentRoom) return;
-  navigator.clipboard.writeText('https://meet.jit.si/' + modal._currentRoom).then(() => {
-    const btn = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
-    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Skopiowano'; setTimeout(() => btn.textContent = orig, 2000); }
+  const m = document.getElementById('jitsi-modal');
+  if (!m?._currentRoom) return;
+  navigator.clipboard.writeText('https://meet.jit.si/'+m._currentRoom).then(()=>{
+    const b = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
+    if (b) { const o=b.textContent; b.textContent='✓ Skopiowano'; setTimeout(()=>b.textContent=o,2000); }
   });
 }
 
@@ -1320,7 +1303,8 @@ async function dismissOnboarding() {
       const onProjects = document.getElementById('v-projects')?.style.display !== 'none';
       fb.style.display = onProjects ? 'flex' : 'none';
     }
-    renderOnboarding();
+    // NOTE: do NOT call renderOnboarding() here — it rewrites innerHTML
+    // which re-triggers popIn animation and can visually re-show the card
   }
 }
 
