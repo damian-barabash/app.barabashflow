@@ -926,11 +926,11 @@ function showMeetingCard(sn) {
     ${sn.meet_url ? (sn.meet_url.startsWith('jitsi://')
       ? `<button type="button" onclick="openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
           style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">
-          📹 Dołącz do spotkania wideo
+          Dolacz do spotkania wideo
         </button>`
       : `<a href="${esc(sn.meet_url)}" target="_blank" rel="noopener"
           style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:linear-gradient(135deg,#0059FF,#0047cc);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
-          🎥 Dołącz do spotkania
+          Dolacz do spotkania
         </a>`)
       : ''}
   `;
@@ -974,7 +974,7 @@ function toggleCalPicker(id) {
   event.stopPropagation();
 }
 
-function resolveJitsiUrl(u){return u?.startsWith('jitsi://')?'https://jitsi.riot.im/'+u.replace('jitsi://',''):(u||'');}
+function resolveJitsiUrl(u){return u?.startsWith('jitsi://')?'https://meet.jit.si/'+u.replace('jitsi://',''):(u||'');}
 
 function addToAppleCal(id, title, startsAt, meetUrl) {
   const start = new Date(startsAt);
@@ -1047,7 +1047,7 @@ function showMeetingWidget(sn, meetTime) {
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
     </div>
     ${isJitsiMeet ? `<button type="button" onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
-      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">▶</button>` : ''}
+      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Play</button>` : ''}
   `;
   widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(0,89,255,.15)');
   widget.addEventListener('mouseleave', ()=>widget.style.background='rgba(0,89,255,.08)');
@@ -1493,21 +1493,8 @@ setInterval(async () => {
 // ── JITSI MEET MODAL ──
 function openJitsiModal(roomName, titleOverride) {
   const name = localStorage.getItem('bf_name') || 'Uczestnik';
-  const server = 'jitsi.riot.im';
-  const config = [
-    'config.prejoinPageEnabled=false',
-    'config.startWithAudioMuted=false',
-    'config.startWithVideoMuted=false',
-    'config.disableDeepLinking=true',
-    'config.enableWelcomePage=false',
-    'config.requireDisplayName=false',
-    'config.defaultLocalDisplayName=' + encodeURIComponent(name),
-    'interfaceConfig.SHOW_JITSI_WATERMARK=false',
-    'interfaceConfig.SHOW_BRAND_WATERMARK=false',
-    'interfaceConfig.SHOW_POWERED_BY=false',
-    'interfaceConfig.MOBILE_APP_PROMO=false',
-  ].join('&');
-  const meetUrl = 'https://' + server + '/' + roomName + '#' + config;
+  const email = localStorage.getItem('bf_email') || '';
+  const server = 'meet.jit.si';
 
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
@@ -1525,20 +1512,17 @@ function openJitsiModal(roomName, titleOverride) {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <div id="jitsi-live-dot" style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.5);display:none"></div>
-            <button type="button" id="jitsi-newtab-btn" onclick="openJitsiNewTab()" style="padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#ccc;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;display:none">↗ Otwórz w nowej karcie</button>
-            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.12);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔗 Kopiuj link</button>
-            <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;cursor:pointer;font-size:16px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">\u2715</button>
+            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.12);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Kopiuj link</button>
+            <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;cursor:pointer;font-size:16px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">X</button>
           </div>
         </div>
-        <div style="flex:1;position:relative;overflow:hidden">
+        <div id="jitsi-modal-body" style="flex:1;position:relative;overflow:hidden">
           <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0d0d14;z-index:2">
             <img src="/Logo/logo.png" onerror="this.src='assets/images/logo.png'" style="height:52px;border-radius:12px;opacity:.9" alt="Barabash Flow">
             <div style="width:40px;height:40px;border:3px solid rgba(0,89,255,.15);border-top-color:#0059FF;border-radius:50%;animation:spin .7s linear infinite"></div>
-            <div style="font-size:13px;color:#666;text-align:center">\u0141\u0105czenie z pokojem wideo...<br><span style="font-size:11px;color:#444">Mo\u017ce potrwa\u0107 kilka sekund</span></div>
-            <button type="button" id="jitsi-fallback-btn" onclick="openJitsiNewTab()" style="display:none;margin-top:8px;padding:10px 24px;background:#0059FF;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">\u21972 Otw\u00f3rz w nowej karcie</button>
+            <div style="font-size:13px;color:#666">Laczenie z pokojem wideo...</div>
           </div>
-          <iframe id="jitsi-iframe" allow="camera;microphone;display-capture;fullscreen;clipboard-read;clipboard-write" allowfullscreen style="width:100%;height:100%;border:none;display:block"></iframe>
+          <div id="jitsi-api-container" style="width:100%;height:100%"></div>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -1550,56 +1534,94 @@ function openJitsiModal(roomName, titleOverride) {
   if (titleEl) titleEl.textContent = titleOverride || 'Barabash Meet';
   if (roomEl)  roomEl.textContent  = server + '/' + roomName;
   modal.style.display = 'flex';
-  modal._currentRoom  = roomName;
-  modal._meetUrl      = meetUrl;
+  modal._currentRoom = roomName;
+  modal._server = server;
 
-  const iframe  = document.getElementById('jitsi-iframe');
-  const loading = document.getElementById('jitsi-loading');
-  const liveDot = document.getElementById('jitsi-live-dot');
-  const fbBtn   = document.getElementById('jitsi-fallback-btn');
-  const ntBtn   = document.getElementById('jitsi-newtab-btn');
+  const container = document.getElementById('jitsi-api-container');
+  const loading   = document.getElementById('jitsi-loading');
+  if (loading)   { loading.style.display='flex'; loading.style.zIndex='2'; }
+  if (container) container.innerHTML = '';
 
-  if (loading) { loading.style.display='flex'; loading.style.zIndex='2'; }
-  if (liveDot) liveDot.style.display='none';
-  if (ntBtn)   ntBtn.style.display='none';
-  if (fbBtn)   fbBtn.style.display='none';
-  if (iframe)  iframe.src='';
+  if (modal._jitsiApi) {
+    try { modal._jitsiApi.dispose(); } catch(e) {}
+    modal._jitsiApi = null;
+  }
 
-  const fbTimer = setTimeout(() => { if(fbBtn) fbBtn.style.display='block'; }, 8000);
+  function initJitsi() {
+    if (loading) loading.style.display = 'none';
+    if (!container) return;
 
-  setTimeout(() => {
-    if (!iframe) return;
-    iframe.onload = () => {
-      clearTimeout(fbTimer);
-      setTimeout(() => {
-        if (loading) loading.style.display='none';
-        if (liveDot) liveDot.style.display='block';
-        if (ntBtn)   ntBtn.style.display='block';
-      }, 1500);
+    const api = new JitsiMeetExternalAPI(server, {
+      roomName,
+      parentNode: container,
+      width: '100%',
+      height: '100%',
+      userInfo: { displayName: name, email },
+      configOverwrite: {
+        prejoinPageEnabled: false,
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
+        disableDeepLinking: true,
+        enableWelcomePage: false,
+        requireDisplayName: false,
+        defaultLocalDisplayName: name,
+        lobby: { enabled: false },
+      },
+      interfaceConfigOverwrite: {
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_BRAND_WATERMARK: false,
+        SHOW_POWERED_BY: false,
+        MOBILE_APP_PROMO: false,
+        TOOLBAR_BUTTONS: ['microphone','camera','desktop','fullscreen','hangup','chat','tileview'],
+        DEFAULT_BACKGROUND: '#0d0d14',
+        HIDE_INVITE_MORE_HEADER: true,
+      }
+    });
+
+    modal._jitsiApi = api;
+
+    api.addEventListener('videoConferenceJoined', () => {
+      api.executeCommand('displayName', name);
+    });
+
+    api.addEventListener('readyToClose', () => { closeJitsiModal(); });
+    api.addEventListener('videoConferenceLeft', () => { closeJitsiModal(); });
+  }
+
+  if (window.JitsiMeetExternalAPI) {
+    initJitsi();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://meet.jit.si/external_api.js';
+    s.onload = initJitsi;
+    s.onerror = () => {
+      if (loading) {
+        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">Error</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://meet.jit.si/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
+      }
     };
-    iframe.src = meetUrl;
-  }, 100);
-}
-
-function openJitsiNewTab() {
-  const m = document.getElementById('jitsi-modal');
-  if (m?._meetUrl) window.open(m._meetUrl, '_blank');
+    document.head.appendChild(s);
+  }
 }
 
 function closeJitsiModal() {
   const m = document.getElementById('jitsi-modal');
   if (!m) return;
-  m.style.display='none';
-  const iframe = document.getElementById('jitsi-iframe');
-  if (iframe) iframe.src='';
+  if (m._jitsiApi) {
+    try { m._jitsiApi.dispose(); } catch(e) {}
+    m._jitsiApi = null;
+  }
+  m.style.display = 'none';
+  const c = document.getElementById('jitsi-api-container');
+  if (c) c.innerHTML = '';
 }
 
 function copyJitsiLink() {
   const m = document.getElementById('jitsi-modal');
-  if (!m?._meetUrl) return;
-  navigator.clipboard.writeText(m._meetUrl).then(() => {
+  if (!m || !m._currentRoom || !m._server) return;
+  const url = 'https://' + m._server + '/' + m._currentRoom;
+  navigator.clipboard.writeText(url).then(() => {
     const b = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
-    if(b){const o=b.textContent;b.textContent='\u2713 Skopiowano';setTimeout(()=>b.textContent=o,2000);}
+    if (b) { const o = b.textContent; b.textContent = 'Skopiowano'; setTimeout(() => b.textContent = o, 2000); }
   });
 }
 
