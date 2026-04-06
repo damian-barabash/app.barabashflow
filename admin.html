@@ -397,7 +397,7 @@
               <label style="flex:1;cursor:pointer">
                 <input type="radio" name="sn-meet-src" value="external" checked onchange="snMeetSrcChange()" style="display:none">
                 <div id="sn-msrc-external" style="padding:10px 8px;border-radius:10px;border:2px solid var(--a);background:rgba(0,89,255,.08);text-align:center;font-size:12px;font-weight:600;transition:all .2s;cursor:pointer">
-                  Własny link<br><span style="font-weight:400;color:var(--t3);font-size:11px">Google Meet, Zoom</span>
+                  Wasny link<br><span style="font-weight:400;color:var(--t3);font-size:11px">Google Meet, Zoom</span>
                 </div>
               </label>
               <label style="flex:1;cursor:pointer">
@@ -414,10 +414,10 @@
               <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(0,89,255,.07);border:1px solid rgba(0,89,255,.2);border-radius:10px">
                 <div style="font-size:22px">📹</div>
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">Wygenerowany pokój spotkań</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">Wygenerowany pokoj spotkan</div>
                   <div id="sn-jitsi-room-preview" style="font-size:11px;color:var(--t3);word-break:break-all">Zostanie wygenerowany automatycznie</div>
                 </div>
-                <button type="button" onclick="previewJitsiRoom()" style="padding:6px 12px;background:var(--a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">Podgląd</button>
+                <button type="button" onclick="previewJitsiRoom()" style="padding:6px 12px;background:var(--a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">Podglad</button>
               </div>
             </div>
           </div>
@@ -2517,7 +2517,7 @@ function previewJitsiRoom() {
   const dt = document.getElementById('sn-datetime').value;
   if (!clientId || !dt) { document.getElementById('sn-jitsi-room-preview').textContent = 'Wybierz klienta i date'; return; }
   if (!_jitsiPreviewRoom) _jitsiPreviewRoom = genJitsiRoom(clientId, dt);
-  document.getElementById('sn-jitsi-room-preview').textContent = 'meet.jit.si/' + _jitsiPreviewRoom;
+  document.getElementById('sn-jitsi-room-preview').textContent = _jitsiPreviewRoom;
   openJitsiModal(_jitsiPreviewRoom, 'Podglad pokoju');
 }
 async function loadNotifClientSelect() {
@@ -2582,7 +2582,7 @@ async function sendScheduledNotif() {
         action:'create', uid, ...ICLOUD_CFG,
         title:`${title} — ${clientName}`,
         description:msg||`Spotkanie z ${clientName}`,
-        meetUrl:meetUrl?.startsWith('jitsi://')?'https://meet.jit.si/'+meetUrl.replace('jitsi://',''):meetUrl, startsAt, endsAt
+        meetUrl:meetUrl?.startsWith('jitsi://')?'https://jitsi.riot.im/'+meetUrl.replace('jitsi://',''):meetUrl, startsAt, endsAt
       });
 
       // Save to calendar_events so client can see it in "Zakończone spotkania"
@@ -4519,11 +4519,11 @@ setInterval(()=>{
   if (last && safe.includes(last) && last !== 'dashboard') nav(last);
 })();
 
-// ── JITSI MEET MODAL ──
+// ── JITSI MEET MODAL (jitsi.riot.im — no moderator required) ──
 function openJitsiModal(roomName, titleOverride) {
-  const name = localStorage.getItem('bf_name') || 'Uczestnik';
+  const name  = localStorage.getItem('bf_name')  || 'Uczestnik';
   const email = localStorage.getItem('bf_email') || '';
-  const server = 'meet.jit.si';
+  const server = 'jitsi.riot.im';
 
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
@@ -4561,7 +4561,7 @@ function openJitsiModal(roomName, titleOverride) {
   const titleEl = document.getElementById('jitsi-modal-title');
   const roomEl  = document.getElementById('jitsi-modal-room');
   if (titleEl) titleEl.textContent = titleOverride || 'Barabash Meet';
-  if (roomEl)  roomEl.textContent  = server + '/' + roomName;
+  if (roomEl)  roomEl.textContent  = roomName;
   modal.style.display = 'flex';
   modal._currentRoom = roomName;
   modal._server = server;
@@ -4594,7 +4594,6 @@ function openJitsiModal(roomName, titleOverride) {
         enableWelcomePage: false,
         requireDisplayName: false,
         defaultLocalDisplayName: name,
-        lobby: { enabled: false },
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
@@ -4612,7 +4611,6 @@ function openJitsiModal(roomName, titleOverride) {
     api.addEventListener('videoConferenceJoined', () => {
       api.executeCommand('displayName', name);
     });
-
     api.addEventListener('readyToClose', () => { closeJitsiModal(); });
     api.addEventListener('videoConferenceLeft', () => { closeJitsiModal(); });
   }
@@ -4621,11 +4619,11 @@ function openJitsiModal(roomName, titleOverride) {
     initJitsi();
   } else {
     const s = document.createElement('script');
-    s.src = 'https://meet.jit.si/external_api.js';
+    s.src = 'https://' + server + '/external_api.js';
     s.onload = initJitsi;
     s.onerror = () => {
       if (loading) {
-        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">Error</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://meet.jit.si/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
+        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
       }
     };
     document.head.appendChild(s);

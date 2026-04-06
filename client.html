@@ -974,7 +974,7 @@ function toggleCalPicker(id) {
   event.stopPropagation();
 }
 
-function resolveJitsiUrl(u){return u?.startsWith('jitsi://')?'https://meet.jit.si/'+u.replace('jitsi://',''):(u||'');}
+function resolveJitsiUrl(u){return u?.startsWith('jitsi://')?'https://jitsi.riot.im/'+u.replace('jitsi://',''):(u||'');}
 
 function addToAppleCal(id, title, startsAt, meetUrl) {
   const start = new Date(startsAt);
@@ -1047,7 +1047,7 @@ function showMeetingWidget(sn, meetTime) {
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
     </div>
     ${isJitsiMeet ? `<button type="button" onclick="event.stopPropagation();openJitsiModal('${sn.meet_url.replace('jitsi://','')}')"
-      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Play</button>` : ''}
+      style="padding:4px 8px;background:rgba(0,89,255,.3);border:none;color:#fff;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">&#9654;</button>` : ''}
   `;
   widget.addEventListener('mouseenter', ()=>widget.style.background='rgba(0,89,255,.15)');
   widget.addEventListener('mouseleave', ()=>widget.style.background='rgba(0,89,255,.08)');
@@ -1490,11 +1490,11 @@ setInterval(async () => {
   }
 }, 30000);
 
-// ── JITSI MEET MODAL ──
+// ── JITSI MEET MODAL (jitsi.riot.im — no moderator required) ──
 function openJitsiModal(roomName, titleOverride) {
-  const name = localStorage.getItem('bf_name') || 'Uczestnik';
+  const name  = localStorage.getItem('bf_name')  || 'Uczestnik';
   const email = localStorage.getItem('bf_email') || '';
-  const server = 'meet.jit.si';
+  const server = 'jitsi.riot.im';
 
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
@@ -1532,7 +1532,7 @@ function openJitsiModal(roomName, titleOverride) {
   const titleEl = document.getElementById('jitsi-modal-title');
   const roomEl  = document.getElementById('jitsi-modal-room');
   if (titleEl) titleEl.textContent = titleOverride || 'Barabash Meet';
-  if (roomEl)  roomEl.textContent  = server + '/' + roomName;
+  if (roomEl)  roomEl.textContent  = roomName;
   modal.style.display = 'flex';
   modal._currentRoom = roomName;
   modal._server = server;
@@ -1565,7 +1565,6 @@ function openJitsiModal(roomName, titleOverride) {
         enableWelcomePage: false,
         requireDisplayName: false,
         defaultLocalDisplayName: name,
-        lobby: { enabled: false },
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
@@ -1583,7 +1582,6 @@ function openJitsiModal(roomName, titleOverride) {
     api.addEventListener('videoConferenceJoined', () => {
       api.executeCommand('displayName', name);
     });
-
     api.addEventListener('readyToClose', () => { closeJitsiModal(); });
     api.addEventListener('videoConferenceLeft', () => { closeJitsiModal(); });
   }
@@ -1592,11 +1590,11 @@ function openJitsiModal(roomName, titleOverride) {
     initJitsi();
   } else {
     const s = document.createElement('script');
-    s.src = 'https://meet.jit.si/external_api.js';
+    s.src = 'https://' + server + '/external_api.js';
     s.onload = initJitsi;
     s.onerror = () => {
       if (loading) {
-        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">Error</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://meet.jit.si/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
+        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
       }
     };
     document.head.appendChild(s);
