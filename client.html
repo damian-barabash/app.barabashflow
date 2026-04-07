@@ -323,6 +323,15 @@ function switchTab(tab) {
 
 // ── PROJECTS ──
 async function loadProjects() {
+  const grid = document.getElementById('proj-grid');
+  if (grid) grid.innerHTML = [1,2,3].map(() => `
+    <div class="proj-card" style="pointer-events:none">
+      <div class="proj-icon"><div class="skeleton" style="width:36px;height:36px;border-radius:10px"></div></div>
+      <div class="proj-info">
+        <div class="skeleton skeleton-line w70" style="margin-bottom:8px"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+    </div>`).join('');
   const projs = await dbGet('projects', `?client_id=eq.${Auth.userId}&select=*&order=updated_at.desc`);
   document.getElementById('proj-grid').innerHTML = projs.map(p => `
     <div class="proj-card" onclick="openProject('${p.id}','${esc(p.name)}','${p.status}')">
@@ -599,6 +608,15 @@ async function markInvoicePaid(docId) {
 
 // ── NOTIFICATIONS ──
 async function loadNotifs() {
+  const notifList = document.getElementById('notif-list');
+  if (notifList) notifList.innerHTML = [1,2,3,4].map(() => `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+      <div class="skeleton" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div class="skeleton skeleton-line w70" style="margin-bottom:8px"></div>
+        <div class="skeleton skeleton-line w45"></div>
+      </div>
+    </div>`).join('');
   const notifs = await dbGet('notifications', `?user_id=eq.${Auth.userId}&select=*,project:projects(name)&order=created_at.desc&limit=50`);
   updateNotifBadge(notifs);
 
@@ -734,7 +752,15 @@ async function loadPastMeetingsBadge() {
 
 async function loadPastMeetings() {
   const el = document.getElementById('past-meetings-list');
-  el.innerHTML = '<div style="padding:20px;text-align:center"><span class="spin"><i class="ri-loader-4-line" style="font-size:20px;color:var(--a)"></i></span></div>';
+  el.innerHTML = [1,2,3].map(() => `
+    <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+      <div class="skeleton" style="width:42px;height:42px;border-radius:50%;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div class="skeleton skeleton-line w70" style="margin-bottom:8px"></div>
+        <div class="skeleton skeleton-line w45" style="margin-bottom:6px"></div>
+        <div class="skeleton skeleton-line w55"></div>
+      </div>
+    </div>`).join('');
 
   const now = new Date().toISOString();
   const [pastByClient, readRecords] = await Promise.all([
@@ -1041,7 +1067,7 @@ function showMeetingWidget(sn, meetTime) {
   ].join(';');
   const isJitsiMeet = sn.meet_url?.startsWith('jitsi://');
   widget.innerHTML = `
-    <span style="font-size:16px;flex-shrink:0">${isJitsiMeet ? '📹' : '📅'}</span>
+    <span style="font-size:16px;flex-shrink:0">${isJitsiMeet ? '&#128249;' : '&#128197;'}</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn.title)}</div>
       <div id="widget-time-${sn.id}" style="font-size:10px;color:#0059FF;margin-top:1px"></div>
@@ -1083,7 +1109,7 @@ function showMeetingWidget(sn, meetTime) {
 
 // Check on load and every 5 min
 checkScheduledNotifications();
-setInterval(checkScheduledNotifications, 5*60*1000);
+setInterval(checkScheduledNotifications, 30*1000); // check every 30s for meeting popups
 
 // ── UPDATE CLIENT AVATAR ──
 function updateClientAvatar(url){
@@ -1455,14 +1481,14 @@ window.loadClientAvatar=loadClientAvatar;
   const lastPstatus= localStorage.getItem('bf_cl_pstatus');
 
   if (lastView === 'project' && lastPid && lastPname) {
-    // Restore project view
     await openProject(lastPid, lastPname, lastPstatus || 'active');
   } else if (lastView === 'notifications') {
     nav('notifications');
   } else if (lastView === 'past-meetings') {
     nav('past-meetings');
   } else {
-    loadProjects();
+    // Always show projects on fresh login
+    nav('projects');
   }
 })();
 
@@ -1485,10 +1511,12 @@ setInterval(async () => {
         actionLabel: 'Zobacz powiadomienia',
         onAction: () => nav('notifications')
       });
+      // Immediately check for meeting popups when new notification arrives
+      checkScheduledNotifications();
     }
     _lastNotifId = n[0].id;
   }
-}, 30000);
+}, 15000); // poll every 15s
 
 // ── JITSI MEET MODAL (jitsi.riot.im — no moderator required) ──
 function openJitsiModal(roomName, titleOverride) {
@@ -1511,10 +1539,7 @@ function openJitsiModal(roomName, titleOverride) {
               <div id="jitsi-modal-room" style="font-size:10px;color:#555;margin-top:1px"></div>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.12);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Kopiuj link</button>
-            <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;cursor:pointer;font-size:16px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">X</button>
-          </div>
+          <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;cursor:pointer;font-size:16px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">X</button>
         </div>
         <div id="jitsi-modal-body" style="flex:1;position:relative;overflow:hidden">
           <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0d0d14;z-index:2">
@@ -1550,12 +1575,8 @@ function openJitsiModal(roomName, titleOverride) {
   function initJitsi() {
     if (loading) loading.style.display = 'none';
     if (!container) return;
-
     const api = new JitsiMeetExternalAPI(server, {
-      roomName,
-      parentNode: container,
-      width: '100%',
-      height: '100%',
+      roomName, parentNode: container, width: '100%', height: '100%',
       userInfo: { displayName: name, email },
       configOverwrite: {
         prejoinPageEnabled: false,
@@ -1576,12 +1597,8 @@ function openJitsiModal(roomName, titleOverride) {
         HIDE_INVITE_MORE_HEADER: true,
       }
     });
-
     modal._jitsiApi = api;
-
-    api.addEventListener('videoConferenceJoined', () => {
-      api.executeCommand('displayName', name);
-    });
+    api.addEventListener('videoConferenceJoined', () => { api.executeCommand('displayName', name); });
     api.addEventListener('readyToClose', () => { closeJitsiModal(); });
     api.addEventListener('videoConferenceLeft', () => { closeJitsiModal(); });
   }
@@ -1593,9 +1610,7 @@ function openJitsiModal(roomName, titleOverride) {
     s.src = 'https://' + server + '/external_api.js';
     s.onload = initJitsi;
     s.onerror = () => {
-      if (loading) {
-        loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
-      }
+      if (loading) loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">Error</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
     };
     document.head.appendChild(s);
   }
@@ -1604,23 +1619,10 @@ function openJitsiModal(roomName, titleOverride) {
 function closeJitsiModal() {
   const m = document.getElementById('jitsi-modal');
   if (!m) return;
-  if (m._jitsiApi) {
-    try { m._jitsiApi.dispose(); } catch(e) {}
-    m._jitsiApi = null;
-  }
+  if (m._jitsiApi) { try { m._jitsiApi.dispose(); } catch(e) {} m._jitsiApi = null; }
   m.style.display = 'none';
   const c = document.getElementById('jitsi-api-container');
   if (c) c.innerHTML = '';
-}
-
-function copyJitsiLink() {
-  const m = document.getElementById('jitsi-modal');
-  if (!m || !m._currentRoom || !m._server) return;
-  const url = 'https://' + m._server + '/' + m._currentRoom;
-  navigator.clipboard.writeText(url).then(() => {
-    const b = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
-    if (b) { const o = b.textContent; b.textContent = 'Skopiowano'; setTimeout(() => b.textContent = o, 2000); }
-  });
 }
 
 </script>
