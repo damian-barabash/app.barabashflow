@@ -1109,7 +1109,7 @@ function showMeetingWidget(sn, meetTime) {
 
 // Check on load and every 5 min
 checkScheduledNotifications();
-setInterval(checkScheduledNotifications, 30*1000); // check every 30s for meeting popups
+setInterval(checkScheduledNotifications, 30*1000);
 
 // ── UPDATE CLIENT AVATAR ──
 function updateClientAvatar(url){
@@ -1430,6 +1430,51 @@ loadClientAvatar();
 loadOnboarding();
 loadPastMeetingsBadge();
 
+// Restore last view — runs inside IIFE so all functions are available
+(async () => {
+  const lastView    = localStorage.getItem('bf_cl_view');
+  const lastPid     = localStorage.getItem('bf_cl_pid');
+  const lastPname   = localStorage.getItem('bf_cl_pname');
+  const lastPstatus = localStorage.getItem('bf_cl_pstatus');
+
+  if (lastView === 'project' && lastPid && lastPname) {
+    await openProject(lastPid, lastPname, lastPstatus || 'active');
+  } else if (lastView === 'notifications') {
+    nav('notifications');
+  } else if (lastView === 'past-meetings') {
+    nav('past-meetings');
+  } else {
+    nav('projects');
+  }
+})();
+
+// Notifications — initial badge
+(async () => {
+  const n = await dbGet('notifications', `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
+  updateNotifBadge(n);
+})();
+
+// Notifications — poll every 15s
+setInterval(async () => {
+  const n = await dbGet('notifications',
+    `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id,content,type,project_id&order=created_at.desc`);
+  updateNotifBadge(n);
+  if (n.length && n[0].id !== _lastNotifId) {
+    if (_lastNotifId) {
+      showPopup({
+        title: 'Barabash Flow',
+        text:  n[0].content.replace(/<[^>]+>/g,''),
+        icon:  LOGO_URL,
+        actionLabel: 'Zobacz powiadomienia',
+        onAction: () => nav('notifications')
+      });
+      checkScheduledNotifications();
+    }
+    _lastNotifId = n[0].id;
+  }
+}, 15000);
+
+
 // ── EXPORT TO GLOBAL SCOPE ──
 window.nav=nav;
 window.switchTab=switchTab;
@@ -1473,57 +1518,12 @@ window.updateClientAvatar=updateClientAvatar;
 window.loadClientAvatar=loadClientAvatar;
 })(); // close auth init IIFE
 
-// Restore last view on reload
-(async () => {
-  const lastView   = localStorage.getItem('bf_cl_view');
-  const lastPid    = localStorage.getItem('bf_cl_pid');
-  const lastPname  = localStorage.getItem('bf_cl_pname');
-  const lastPstatus= localStorage.getItem('bf_cl_pstatus');
 
-  if (lastView === 'project' && lastPid && lastPname) {
-    await openProject(lastPid, lastPname, lastPstatus || 'active');
-  } else if (lastView === 'notifications') {
-    nav('notifications');
-  } else if (lastView === 'past-meetings') {
-    nav('past-meetings');
-  } else {
-    // Always show projects on fresh login
-    nav('projects');
-  }
-})();
-
-
-(async () => {
-  const n = await dbGet('notifications', `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id`);
-  updateNotifBadge(n);
-})();
-
-setInterval(async () => {
-  const n = await dbGet('notifications',
-    `?user_id=eq.${Auth.userId}&is_read=eq.false&select=id,content,type,project_id&order=created_at.desc`);
-  updateNotifBadge(n);
-  if (n.length && n[0].id !== _lastNotifId) {
-    if (_lastNotifId) {
-      showPopup({
-        title: 'Barabash Flow',
-        text:  n[0].content.replace(/<[^>]+>/g,''),
-        icon:  LOGO_URL,
-        actionLabel: 'Zobacz powiadomienia',
-        onAction: () => nav('notifications')
-      });
-      // Immediately check for meeting popups when new notification arrives
-      checkScheduledNotifications();
-    }
-    _lastNotifId = n[0].id;
-  }
-}, 15000); // poll every 15s
-
-// ── JITSI MEET MODAL (jitsi.riot.im — no moderator required) ──
+// ── JITSI MEET MODAL ──
 function openJitsiModal(roomName, titleOverride) {
   const name  = localStorage.getItem('bf_name')  || 'Uczestnik';
   const email = localStorage.getItem('bf_email') || '';
   const server = 'jitsi.riot.im';
-
   let modal = document.getElementById('jitsi-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -1553,7 +1553,6 @@ function openJitsiModal(roomName, titleOverride) {
     document.body.appendChild(modal);
     modal.addEventListener('click', e => { if(e.target===modal) closeJitsiModal(); });
   }
-
   const titleEl = document.getElementById('jitsi-modal-title');
   const roomEl  = document.getElementById('jitsi-modal-room');
   if (titleEl) titleEl.textContent = titleOverride || 'Barabash Meet';
@@ -1561,61 +1560,34 @@ function openJitsiModal(roomName, titleOverride) {
   modal.style.display = 'flex';
   modal._currentRoom = roomName;
   modal._server = server;
-
   const container = document.getElementById('jitsi-api-container');
   const loading   = document.getElementById('jitsi-loading');
   if (loading)   { loading.style.display='flex'; loading.style.zIndex='2'; }
   if (container) container.innerHTML = '';
-
-  if (modal._jitsiApi) {
-    try { modal._jitsiApi.dispose(); } catch(e) {}
-    modal._jitsiApi = null;
-  }
-
+  if (modal._jitsiApi) { try { modal._jitsiApi.dispose(); } catch(e) {} modal._jitsiApi = null; }
   function initJitsi() {
     if (loading) loading.style.display = 'none';
     if (!container) return;
     const api = new JitsiMeetExternalAPI(server, {
       roomName, parentNode: container, width: '100%', height: '100%',
       userInfo: { displayName: name, email },
-      configOverwrite: {
-        prejoinPageEnabled: false,
-        startWithAudioMuted: false,
-        startWithVideoMuted: false,
-        disableDeepLinking: true,
-        enableWelcomePage: false,
-        requireDisplayName: false,
-        defaultLocalDisplayName: name,
-      },
-      interfaceConfigOverwrite: {
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_BRAND_WATERMARK: false,
-        SHOW_POWERED_BY: false,
-        MOBILE_APP_PROMO: false,
-        TOOLBAR_BUTTONS: ['microphone','camera','desktop','fullscreen','hangup','chat','tileview'],
-        DEFAULT_BACKGROUND: '#0d0d14',
-        HIDE_INVITE_MORE_HEADER: true,
-      }
+      configOverwrite: { prejoinPageEnabled:false, startWithAudioMuted:false, startWithVideoMuted:false, disableDeepLinking:true, enableWelcomePage:false, requireDisplayName:false, defaultLocalDisplayName:name },
+      interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK:false, SHOW_BRAND_WATERMARK:false, SHOW_POWERED_BY:false, MOBILE_APP_PROMO:false, TOOLBAR_BUTTONS:['microphone','camera','desktop','fullscreen','hangup','chat','tileview'], DEFAULT_BACKGROUND:'#0d0d14', HIDE_INVITE_MORE_HEADER:true }
     });
     modal._jitsiApi = api;
     api.addEventListener('videoConferenceJoined', () => { api.executeCommand('displayName', name); });
     api.addEventListener('readyToClose', () => { closeJitsiModal(); });
     api.addEventListener('videoConferenceLeft', () => { closeJitsiModal(); });
   }
-
-  if (window.JitsiMeetExternalAPI) {
-    initJitsi();
-  } else {
+  if (window.JitsiMeetExternalAPI) { initJitsi(); }
+  else {
     const s = document.createElement('script');
     s.src = 'https://' + server + '/external_api.js';
     s.onload = initJitsi;
-    s.onerror = () => {
-      if (loading) loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">Error</div><div style="color:#f87171;font-weight:600;margin-bottom:12px">Nie mozna zaladowac wideo</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>';
-    };
+    s.onerror = () => { if(loading) loading.innerHTML = '<div style="text-align:center"><div style="color:#f87171;font-weight:600;margin-bottom:12px">Blad polaczenia</div><a href="https://' + server + '/' + roomName + '" target="_blank" style="padding:10px 20px;background:#0059FF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">Otworz w przegladarce</a></div>'; };
     document.head.appendChild(s);
   }
 }
-
 function closeJitsiModal() {
   const m = document.getElementById('jitsi-modal');
   if (!m) return;
