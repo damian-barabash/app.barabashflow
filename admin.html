@@ -4541,7 +4541,6 @@ function openJitsiModal(roomName, titleOverride) {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <button type="button" onclick="copyJitsiLink()" style="padding:6px 12px;background:rgba(0,89,255,.12);border:1px solid rgba(0,89,255,.25);color:#0059FF;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Kopiuj link</button>
             <button type="button" onclick="closeJitsiModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;cursor:pointer;font-size:16px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:inherit" onmouseenter="this.style.background='rgba(248,113,113,.2)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">X</button>
           </div>
         </div>
@@ -4642,15 +4641,6 @@ function closeJitsiModal() {
   if (c) c.innerHTML = '';
 }
 
-function copyJitsiLink() {
-  const m = document.getElementById('jitsi-modal');
-  if (!m || !m._currentRoom || !m._server) return;
-  const url = 'https://' + m._server + '/' + m._currentRoom;
-  navigator.clipboard.writeText(url).then(() => {
-    const b = document.querySelector('#jitsi-modal button[onclick="copyJitsiLink()"]');
-    if (b) { const o = b.textContent; b.textContent = 'Skopiowano'; setTimeout(() => b.textContent = o, 2000); }
-  });
-}
 
 </script>
 </body>
