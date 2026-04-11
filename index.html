@@ -83,10 +83,9 @@ h1{font-family:var(--heading);font-size:clamp(36px,4.5vw,62px);font-weight:900;l
 
 /* HERO VISUAL — RIGHT SIDE */
 .hero-visual{position:relative;opacity:0;animation:fup .9s .2s ease forwards}
-.mockup-wrapper{position:relative}
-.mockup-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse,rgba(0,89,255,.15),transparent 60%);pointer-events:none;animation:fo 8s ease-in-out infinite alternate}
-.mockup-frame{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04);transform:perspective(1400px) rotateY(-12deg) rotateX(4deg) rotateZ(1.5deg);transition:transform .6s cubic-bezier(.16,1,.3,1)}
-.mockup-frame:hover{transform:perspective(1400px) rotateY(-5deg) rotateX(1deg) rotateZ(.5deg)}
+#hero-3d-wrap{display:flex;flex-direction:column;align-items:center}
+#laptop-canvas{width:100%;max-width:560px;height:360px;display:block;cursor:grab}
+#laptop-canvas:active{cursor:grabbing}
 .m-bar{height:38px;background:var(--bg3);display:flex;align-items:center;padding:0 14px;gap:6px;border-bottom:1px solid var(--border)}
 .m-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .m-url{flex:1;background:var(--bg4);border-radius:6px;height:20px;margin:0 10px;display:flex;align-items:center;padding:0 10px}
@@ -143,7 +142,7 @@ h1{font-family:var(--heading);font-size:clamp(36px,4.5vw,62px);font-weight:900;l
 .problem-list{display:flex;flex-direction:column;gap:16px}
 .prob-item{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;transition:all .3s}
 .prob-item:hover{border-color:rgba(248,113,113,.2)}
-.prob-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.prob-icon{flex-shrink:0;margin-top:1px;color:var(--a);display:flex;align-items:center}
 .prob-text{font-size:14px;color:var(--t2);line-height:1.6}
 .prob-text strong{color:var(--text);display:block;font-weight:600;margin-bottom:2px}
 .solution-card{background:linear-gradient(145deg,rgba(0,89,255,.06),rgba(4,26,83,.03));border:1px solid rgba(0,89,255,.2);border-radius:24px;padding:36px;position:relative;overflow:hidden}
@@ -175,7 +174,7 @@ h1{font-family:var(--heading);font-size:clamp(36px,4.5vw,62px);font-weight:900;l
 .fc:hover::before,.fc:hover::after{opacity:1}
 .fc-hot{background:linear-gradient(150deg,rgba(0,89,255,.07),rgba(4,26,83,.03));border-color:rgba(0,89,255,.2)}
 .fc-hot::after{opacity:1}
-.fc-ico{width:46px;height:46px;border-radius:12px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px}
+.fc-ico{width:46px;height:46px;border-radius:12px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--a)}
 .fc-title{font-family:var(--heading);font-size:15px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
 .fc-desc{font-size:13px;color:var(--t2);line-height:1.7}
 
@@ -376,6 +375,15 @@ h2{font-family:var(--heading);font-size:clamp(30px,3.8vw,50px);font-weight:900;l
 h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sub{font-size:16px;color:var(--t2);line-height:1.8;font-weight:300}
 
+
+/* Icon styles */
+.fc-ico svg,.prob-icon svg,.marquee-ico svg,.dfl-ico svg{display:block;flex-shrink:0}
+.fc-ico{color:var(--a)}
+.prob-icon{color:var(--t2);width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.marquee-ico{display:flex;align-items:center;justify-content:center;color:var(--t3)}
+.dfl-ico svg{stroke:var(--a)}
+.mprivacy svg{vertical-align:middle}
+
 /* ──── REVEAL ANIMATIONS ──── */
 .rv{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
 .rv.in{opacity:1;transform:none}
@@ -508,44 +516,17 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
         </div>
       </div>
 
-      <!-- RIGHT — MOCKUP -->
-      <div class="hero-visual">
-        <div class="mockup-wrapper">
-          <div class="mockup-glow"></div>
-          <div class="mockup-frame">
-            <div class="m-bar">
-              <div class="m-dot" style="background:#ff5f57"></div>
-              <div class="m-dot" style="background:#febc2e"></div>
-              <div class="m-dot" style="background:#28c840"></div>
-              <div class="m-url"><span class="m-url-text">app.barabashflow.pl/panel</span></div>
-            </div>
-            <div class="m-body">
-              <div class="m-sb">
-                <div class="m-brand">Barabash <em>Flow</em></div>
-                <div class="m-nav on"><div class="m-nav-i"></div>Projekty</div>
-                <div class="m-nav"><div class="m-nav-i"></div>Czat</div>
-                <div class="m-nav"><div class="m-nav-i"></div>Dokumenty</div>
-                <div class="m-nav"><div class="m-nav-i"></div>Kalendarz</div>
-                <div class="m-nav"><div class="m-nav-i"></div>Wideo</div>
-              </div>
-              <div class="m-main">
-                <div class="m-cards">
-                  <div class="m-card"><div class="m-card-n">3</div><div class="m-card-l">Projekty</div></div>
-                  <div class="m-card"><div class="m-card-n">14</div><div class="m-card-l">Pliki</div></div>
-                  <div class="m-card"><div class="m-card-n">2</div><div class="m-card-l">Spotkania</div></div>
-                </div>
-                <div class="m-chat-box">
-                  <div class="m-row"><div class="m-ava" style="background:linear-gradient(135deg,var(--a),var(--b))">D</div><div class="m-bub">Cześć! Wysyłam pierwszą wersję w piątek 🚀</div></div>
-                  <div class="m-row r"><div class="m-ava" style="background:linear-gradient(135deg,#03318a,#041A53)">A</div><div class="m-bub">Super, nie mogę się doczekać!</div></div>
-                  <div class="m-row"><div class="m-ava" style="background:linear-gradient(135deg,var(--a),var(--b))">D</div><div class="m-bub">Zaplanowałem też spotkanie 📅</div></div>
-                  <div class="m-typing-row"><span></span><span></span><span></span></div>
-                </div>
-              </div>
-            </div>
+      <!-- RIGHT — 3D LAPTOP -->
+      <div class="hero-visual" id="hero-3d-wrap">
+        <canvas id="laptop-canvas"></canvas>
+        <div class="float-cards" style="position:relative;z-index:2">
+          <div class="float-card">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0059FF" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <div><div style="font-size:11px;font-weight:700">Projekt dodany</div><div style="font-size:10px;color:var(--t3)">przez Dmytrii Barabash</div></div>
           </div>
-          <div class="float-cards">
-            <div class="float-card"><span style="font-size:13px">✨</span><div><div style="font-size:11px;font-weight:700">Projekt dodany</div><div style="font-size:10px;color:var(--t3)">przez Dmytrii Barabash</div></div></div>
-            <div class="float-card"><div class="fc-dot" style="background:var(--green)"></div><span style="color:var(--green);font-size:11px;font-weight:600">Klient online teraz</span></div>
+          <div class="float-card">
+            <div class="fc-dot" style="background:var(--green)"></div>
+            <span style="color:var(--green);font-size:11px;font-weight:600">Klient online teraz</span>
           </div>
         </div>
       </div>
@@ -556,27 +537,27 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
 <!-- MARQUEE -->
 <div class="marquee-strip">
   <div class="marquee-track" id="marquee">
-    <div class="marquee-item"><span class="marquee-ico">💬</span><span class="marquee-text">Czat na żywo</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🎥</span><span class="marquee-text">Wideorozmowy w panelu</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📁</span><span class="marquee-text">Projekty i materiały</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📅</span><span class="marquee-text">Apple Calendar sync</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🔔</span><span class="marquee-text">Inteligentne powiadomienia</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📂</span><span class="marquee-text">Dokumenty i faktury</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📊</span><span class="marquee-text">Etapy projektu</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">✅</span><span class="marquee-text">Zadania i checklisty</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">⭐</span><span class="marquee-text">Feedback po projekcie</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🔐</span><span class="marquee-text">Własna domena</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="marquee-text">Czat na żywo</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="marquee-text">Wideorozmowy w panelu</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="marquee-text">Projekty i materiały</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="marquee-text">Apple Calendar sync</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="marquee-text">Inteligentne powiadomienia</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="marquee-text">Dokumenty i faktury</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="marquee-text">Etapy projektu</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="marquee-text">Zadania i checklisty</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="marquee-text">Feedback po projekcie</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="marquee-text">Własna domena</span></div><div class="marquee-sep"></div>
     <!-- duplicate for infinite loop -->
-    <div class="marquee-item"><span class="marquee-ico">💬</span><span class="marquee-text">Czat na żywo</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🎥</span><span class="marquee-text">Wideorozmowy w panelu</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📁</span><span class="marquee-text">Projekty i materiały</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📅</span><span class="marquee-text">Apple Calendar sync</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🔔</span><span class="marquee-text">Inteligentne powiadomienia</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📂</span><span class="marquee-text">Dokumenty i faktury</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">📊</span><span class="marquee-text">Etapy projektu</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">✅</span><span class="marquee-text">Zadania i checklisty</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">⭐</span><span class="marquee-text">Feedback po projekcie</span></div><div class="marquee-sep"></div>
-    <div class="marquee-item"><span class="marquee-ico">🔐</span><span class="marquee-text">Własna domena</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="marquee-text">Czat na żywo</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="marquee-text">Wideorozmowy w panelu</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="marquee-text">Projekty i materiały</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="marquee-text">Apple Calendar sync</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="marquee-text">Inteligentne powiadomienia</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="marquee-text">Dokumenty i faktury</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="marquee-text">Etapy projektu</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="marquee-text">Zadania i checklisty</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="marquee-text">Feedback po projekcie</span></div><div class="marquee-sep"></div>
+    <div class="marquee-item"><span class="marquee-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="marquee-text">Własna domena</span></div><div class="marquee-sep"></div>
   </div>
 </div>
 
@@ -590,19 +571,19 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
         <p class="sub" style="margin-bottom:32px">Maile, WhatsApp, Dysk Google, Zoom — każde narzędzie osobno. Klient się gubi, Ty tracisz czas. A profesjonalne wrażenie? Zapomnij.</p>
         <div class="problem-list">
           <div class="prob-item rv d1">
-            <div class="prob-icon">📧</div>
+            <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
             <div class="prob-text"><strong>Maile z pytaniem "co z projektem?"</strong>Klient nie ma gdzie sprawdzić statusu, więc pisze. Kilka razy dziennie.</div>
           </div>
           <div class="prob-item rv d2">
-            <div class="prob-icon">📱</div>
+            <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.7h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17.18z"/></svg></div>
             <div class="prob-text"><strong>WhatsApp zmieszany z życiem prywatnym</strong>Wiadomości od klientów obok zdjęć rodziny. Brak historii, brak porządku.</div>
           </div>
           <div class="prob-item rv d3">
-            <div class="prob-icon">📂</div>
+            <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
             <div class="prob-text"><strong>Pliki zgubione w mailach i Dysku</strong>Faktura sprzed 3 miesięcy? Szukaj w 4 folderach i 200 mailach.</div>
           </div>
           <div class="prob-item rv d4">
-            <div class="prob-icon">🔗</div>
+            <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
             <div class="prob-text"><strong>Linki do Meet kopiowane ręcznie</strong>Za każdym razem inny link, za każdym razem nowe zamieszanie.</div>
           </div>
         </div>
@@ -613,12 +594,12 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
           <div class="solution-title">Jeden portal.<br>Wszystko w jednym miejscu.</div>
           <div class="solution-desc">Barabash Flow daje każdemu klientowi dedykowany panel — zamiast chaosu narzędzi, jedno profesjonalne środowisko pod Twoją domeną.</div>
           <div class="solution-feats">
-            <div class="sf"><div class="sf-check">✓</div>Klient sam sprawdza status projektu</div>
-            <div class="sf"><div class="sf-check">✓</div>Czat, wideo i dokumenty w jednym oknie</div>
-            <div class="sf"><div class="sf-check">✓</div>Faktury i pliki posegregowane przy projekcie</div>
-            <div class="sf"><div class="sf-check">✓</div>Wideo jednym klikiem, bez zewnętrznych aplikacji</div>
-            <div class="sf"><div class="sf-check">✓</div>Profesjonalny branding pod Twoją domeną</div>
-            <div class="sf"><div class="sf-check">✓</div>Pełna historia projektu na zawsze</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Klient sam sprawdza status projektu</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Czat, wideo i dokumenty w jednym oknie</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Faktury i pliki posegregowane przy projekcie</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Wideo jednym klikiem, bez zewnętrznych aplikacji</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Profesjonalny branding pod Twoją domeną</div>
+            <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Pełna historia projektu na zawsze</div>
           </div>
         </div>
       </div>
@@ -648,32 +629,32 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
     </div>
     <div class="feat-grid">
       <div class="fc fc-hot rv d1">
-        <div class="fc-ico">💬</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
         <div class="fc-title">Czat z plikami i linkami</div>
         <div class="fc-desc">Komunikacja w czasie rzeczywistym. Zdjęcia, PDF-y, dokumenty — bezpośrednio w czacie. Wskaźnik pisania jak w Messengerze, historia na zawsze.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico">🎥</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
         <div class="fc-title">Wideorozmowy w panelu</div>
         <div class="fc-desc">Połączenie wideo bezpośrednio w panelu — bez linków Google Meet, bez wychodzenia do innych aplikacji. Zaplanuj i klikaj.</div>
       </div>
       <div class="fc rv d3">
-        <div class="fc-ico">📁</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
         <div class="fc-title">Projekty i materiały</div>
         <div class="fc-desc">Każdy projekt ma swoją przestrzeń. Posty, linki, pliki, etapy. Klient na bieżąco widzi postęp bez pytania "co słychać".</div>
       </div>
       <div class="fc rv d1">
-        <div class="fc-ico">📅</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="fc-title">Kalendarz + Apple Calendar</div>
         <div class="fc-desc">Zaplanuj spotkanie w panelu — automatycznie pojawia się w Twoim Apple Calendar. Klient dostaje popup z odliczaniem do spotkania.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico">🔔</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
         <div class="fc-title">Inteligentne powiadomienia</div>
         <div class="fc-desc">Klient nie sprawdza panelu? Dostaje popup w oknie. Nie ma go na stronie? Dostaje maila. System throttlingu — zero spamu.</div>
       </div>
       <div class="fc rv d3">
-        <div class="fc-ico">📂</div>
+        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
         <div class="fc-title">Dokumenty i faktury</div>
         <div class="fc-desc">Wgrywaj faktury, umowy i projekty. Klient widzi wszystko posegregowane przy swoim projekcie — bez szukania w mailach.</div>
       </div>
@@ -686,10 +667,10 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
         <div class="big-feat-title">Komunikacja jak<br>w najlepszych aplikacjach.</div>
         <div class="big-feat-desc">Twój klient wysyła wiadomość — widzisz ją od razu. Bez maili, bez WhatsApp, bez chaosu. Wskaźnik pisania, podgląd plików inline, historia zawsze dostępna.</div>
         <div class="solution-feats">
-          <div class="sf"><div class="sf-check">✓</div>Wskaźnik pisania w czasie rzeczywistym</div>
-          <div class="sf"><div class="sf-check">✓</div>Zdjęcia, PDF-y i pliki bezpośrednio w czacie</div>
-          <div class="sf"><div class="sf-check">✓</div>Wewnętrzny czat między administratorami</div>
-          <div class="sf"><div class="sf-check">✓</div>Status online klienta widoczny dla admina</div>
+          <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Wskaźnik pisania w czasie rzeczywistym</div>
+          <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Zdjęcia, PDF-y i pliki bezpośrednio w czacie</div>
+          <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Wewnętrzny czat między administratorami</div>
+          <div class="sf"><div class="sf-check" style="font-size:12px;font-weight:700;color:var(--a)">✓</div>Status online klienta widoczny dla admina</div>
         </div>
       </div>
       <div class="chat-demo">
@@ -806,27 +787,27 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
           <h3>Panel administratora<br>w pełnej kontroli</h3>
           <p>Widzisz wszystkich klientów, kto jest online, kto czeka na odpowiedź. Zarządzaj wieloma adminami z różnymi rolami — każdy widzi tylko to co ma widzieć.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico">👑</div>Główny i zwykli administratorzy</div>
-            <div class="dfl"><div class="dfl-ico">🟢</div>Status online klientów w czasie rzeczywistym</div>
-            <div class="dfl"><div class="dfl-ico">💬</div>Wewnętrzny czat między adminami</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>Główny i zwykli administratorzy</div>
+            <div class="dfl"><div class="dfl-ico" style="color:var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Status online klientów w czasie rzeczywistym</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>Wewnętrzny czat między adminami</div>
           </div>
         </div>
         <div id="demo-text-video" class="demo-text-block" style="display:none">
           <h3>Wideorozmowy<br>bez opuszczania panelu</h3>
           <p>Klient klika jeden przycisk i od razu jesteście w rozmowie wideo. Bez Meet, bez Zoom, bez kopiowania linków.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico">🎥</div>HD wideo bezpośrednio w panelu</div>
-            <div class="dfl"><div class="dfl-ico">📅</div>Planowanie przez kalendarz</div>
-            <div class="dfl"><div class="dfl-ico">🔔</div>Popup powiadomienie przed spotkaniem</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>HD wideo bezpośrednio w panelu</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>Planowanie przez kalendarz</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>Popup powiadomienie przed spotkaniem</div>
           </div>
         </div>
         <div id="demo-text-docs" class="demo-text-block" style="display:none">
           <h3>Dokumenty i faktury<br>zawsze pod ręką</h3>
           <p>Wrzuć wiele plików jednocześnie — faktury, projekty, umowy. Klient widzi wszystko posegregowane przy projekcie.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico">📤</div>Upload wielu plików naraz</div>
-            <div class="dfl"><div class="dfl-ico">🧾</div>Faktury z numerem i terminem</div>
-            <div class="dfl"><div class="dfl-ico">📥</div>Klient też może uploadować pliki</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>Upload wielu plików naraz</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>Faktury z numerem i terminem</div>
+            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>Klient też może uploadować pliki</div>
           </div>
         </div>
       </div>
@@ -1028,7 +1009,7 @@ h2 .g{background:linear-gradient(135deg,var(--a),#7c3aed);-webkit-background-cli
       <div class="fg"><label class="fl2">Co chcesz osiągnąć? (opcjonalnie)</label><textarea class="fi2 fta" id="fm" placeholder="np. Mam 10 klientów i chcę dać im profesjonalny panel..."></textarea></div>
       <div class="ferr" id="ferr"></div>
       <button class="sbtn" id="sbtn" onclick="submitForm()">Wyślij zgłoszenie →</button>
-      <div class="mprivacy">🔒 Twoje dane są bezpieczne. Bez spamu. Kontakt w ciągu 24h.</div>
+      <div class="mprivacy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Twoje dane są bezpieczne. Bez spamu. Kontakt w ciągu 24h.</div>
     </div>
     <div id="msuccess" class="msuccess" style="display:none">
       <span class="msuccess-ico">🎉</span>
@@ -1142,6 +1123,385 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>
     i++;
   }
   setInterval(addMsg,3500);
+})();
+</script>
+
+<!-- THREE.JS 3D LAPTOP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('laptop-canvas');
+  if (!canvas || window.innerWidth < 960) return;
+
+  // ── SCENE SETUP ──
+  const W = canvas.clientWidth  || 560;
+  const H = canvas.clientHeight || 360;
+  canvas.width  = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(devicePixelRatio);
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, W/H, 0.1, 100);
+  camera.position.set(0, 1.2, 6.5);
+  camera.lookAt(0, 0, 0);
+
+  // ── LIGHTS ──
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+  dir.position.set(4, 8, 6);
+  dir.castShadow = true;
+  scene.add(dir);
+  const fill = new THREE.DirectionalLight(0x0059ff, 0.3);
+  fill.position.set(-4, 2, -4);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x7c3aed, 0.2);
+  rim.position.set(0, -3, -5);
+  scene.add(rim);
+
+  // ── MATERIALS ──
+  const bodyMat = new THREE.MeshStandardMaterial({color:0x1a1a2e,roughness:.35,metalness:.85});
+  const screenRingMat = new THREE.MeshStandardMaterial({color:0x141420,roughness:.4,metalness:.9});
+  const hingeMat = new THREE.MeshStandardMaterial({color:0x0059ff,roughness:.3,metalness:.95,emissive:0x001133,emissiveIntensity:.3});
+  const keyboardMat = new THREE.MeshStandardMaterial({color:0x141420,roughness:.6,metalness:.5});
+  const trackpadMat = new THREE.MeshStandardMaterial({color:0x1a1a2e,roughness:.3,metalness:.7});
+  const logoGlowMat = new THREE.MeshStandardMaterial({color:0x0059ff,emissive:0x0059ff,emissiveIntensity:.8,roughness:.1,metalness:.2});
+
+  // ── DRAW SCREEN TEXTURE (платформа) ──
+  function makeScreenTexture(slide) {
+    const tc = document.createElement('canvas');
+    tc.width = 1024; tc.height = 640;
+    const ctx = tc.getContext('2d');
+
+    // BG
+    ctx.fillStyle = '#09090c';
+    ctx.fillRect(0,0,1024,640);
+
+    // Sidebar
+    ctx.fillStyle = '#111116';
+    ctx.fillRect(0,0,200,640);
+    ctx.fillStyle = '#1a1a22';
+    ctx.fillRect(200,0,2,640);
+
+    // Brand
+    ctx.fillStyle = '#eeeef5';
+    ctx.font = 'bold 16px "Arial"';
+    ctx.fillText('Barabash', 18, 40);
+    ctx.fillStyle = '#0059FF';
+    ctx.fillText('Flow', 104, 40);
+
+    // Nav items
+    const navItems = ['Projekty','Czat','Dokumenty','Kalendarz','Wideo'];
+    navItems.forEach((item, i) => {
+      const y = 80 + i*44;
+      if (i === slide % navItems.length) {
+        ctx.fillStyle = 'rgba(0,89,255,.15)';
+        ctx.roundRect ? ctx.roundRect(10,y-10,178,34,8) : ctx.fillRect(10,y-10,178,34);
+        ctx.fill();
+        ctx.fillStyle = '#0059FF';
+      } else {
+        ctx.fillStyle = '#50505f';
+      }
+      ctx.font = '13px Arial';
+      ctx.fillText(item, 32, y+8);
+    });
+
+    // Main content area
+    const slides = [
+      // Slide 0 — Projects
+      () => {
+        ctx.fillStyle = '#eeeef5';
+        ctx.font = 'bold 22px Arial';
+        ctx.fillText('Moje projekty', 228, 50);
+
+        const projects = [
+          ['Projekt Alfa','#4ade80','AKTYWNY'],
+          ['Redesign strony','#0059FF','AKTYWNY'],
+          ['App mobilna','#fbbf24','WSTRZYMANY'],
+        ];
+        projects.forEach(([name,color,status],i)=>{
+          const y = 80 + i*90;
+          ctx.fillStyle = '#111116';
+          ctx.beginPath();
+          ctx.roundRect ? ctx.roundRect(218,y,776,74,12) : ctx.fillRect(218,y,776,74);
+          ctx.fill();
+          ctx.strokeStyle = '#1e1e28';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(250,y+37,12,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#eeeef5';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(name, 274, y+37+5);
+          ctx.fillStyle = color+'44';
+          ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(850,y+22,100,22,100); else ctx.fillRect(850,y+22,100,22); ctx.fill();
+          ctx.fillStyle = color;
+          ctx.font = 'bold 10px Arial';
+          ctx.fillText(status, 865, y+37);
+        });
+
+        // Stats
+        ctx.fillStyle = '#16161e';
+        const stats = [['3','Projekty','#0059FF'],['14','Pliki','#7c3aed'],['2','Spotkania','#4ade80']];
+        stats.forEach(([n,l,c],i)=>{
+          const x = 218 + i*264; const y2 = 360;
+          ctx.fillStyle = '#16161e';
+          ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(x,y2,244,100,14); else ctx.fillRect(x,y2,244,100); ctx.fill();
+          ctx.strokeStyle='#1e1e28'; ctx.lineWidth=1; ctx.stroke();
+          ctx.fillStyle=c; ctx.font='bold 32px Arial'; ctx.fillText(n,x+24,y2+62);
+          ctx.fillStyle='#50505f'; ctx.font='12px Arial'; ctx.fillText(l,x+24,y2+85);
+        });
+      },
+      // Slide 1 — Chat
+      () => {
+        ctx.fillStyle = '#eeeef5';
+        ctx.font = 'bold 22px Arial';
+        ctx.fillText('Projekt Alfa — Czat', 228, 50);
+
+        // Chat bubble
+        const msgs = [
+          {text:'Cześć! Projekt idzie świetnie 🚀',isAdmin:false},
+          {text:'Super, kiedy pierwsza wersja?',isAdmin:true},
+          {text:'W piątek! Wrzucam plik PDF 📄',isAdmin:false},
+          {text:'Idealnie, czekam niecierpliwie!',isAdmin:true},
+          {text:'Na środę zaplanowałem też spotkanie wideo 📅',isAdmin:false},
+        ];
+        msgs.forEach((m,i)=>{
+          const y = 80 + i*94;
+          if(m.isAdmin){
+            ctx.fillStyle='linear-gradient'; 
+            const grad=ctx.createLinearGradient(900,0,700,0);
+            grad.addColorStop(0,'#0059FF'); grad.addColorStop(1,'#041A53');
+            ctx.fillStyle=grad;
+            ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(700,y,274,76,12); else ctx.fillRect(700,y,274,76); ctx.fill();
+            ctx.fillStyle='#fff';
+            wrapText(ctx,m.text,716,y+28,240,18);
+          } else {
+            ctx.fillStyle='#16161e';
+            ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(228,y,300,76,12); else ctx.fillRect(228,y,300,76); ctx.fill();
+            ctx.fillStyle='#eeeef5';
+            wrapText(ctx,m.text,244,y+28,268,18);
+          }
+        });
+      },
+      // Slide 2 — Notifications
+      () => {
+        ctx.fillStyle = '#eeeef5';
+        ctx.font = 'bold 22px Arial';
+        ctx.fillText('Powiadomienia', 228, 50);
+
+        const notifs = [
+          ['💬','Nowa wiadomość od Dmytrii','Projekt Alfa · przed chwilą',true],
+          ['📄','Nowy dokument: Faktura FV/003','Projekt Alfa · 2h temu',false],
+          ['📅','Spotkanie jutro o 10:00','Projekt Alfa · wczoraj',false],
+        ];
+        notifs.forEach(([ico,title,meta,unread],i)=>{
+          const y = 72 + i*108;
+          ctx.fillStyle = unread ? '#0f0f18' : '#111116';
+          ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(218,y,776,90,14); else ctx.fillRect(218,y,776,90); ctx.fill();
+          if(unread){ctx.strokeStyle='rgba(0,89,255,.3)'; ctx.lineWidth=1; ctx.stroke();}
+          ctx.font='24px Arial'; ctx.fillText(ico,242,y+50);
+          ctx.fillStyle='#eeeef5'; ctx.font='bold 14px Arial'; ctx.fillText(title,286,y+38);
+          ctx.fillStyle='#50505f'; ctx.font='11px Arial'; ctx.fillText(meta,286,y+62);
+          if(unread){ctx.fillStyle='#0059FF'; ctx.beginPath(); ctx.arc(970,y+30,6,0,Math.PI*2); ctx.fill();}
+        });
+      }
+    ];
+
+    slides[slide % 3]();
+
+    // Status bar bottom
+    ctx.fillStyle = '#0a0a10';
+    ctx.fillRect(0,595,1024,45);
+    ctx.fillStyle = '#4ade80';
+    ctx.beginPath(); ctx.arc(220,617,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#50505f';
+    ctx.font = '11px Arial';
+    ctx.fillText('Dmytrii Barabash · Administrator', 232, 622);
+
+    return new THREE.CanvasTexture(tc);
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+    const words = text.split(' ');
+    let line = '';
+    for(let w of words){
+      const test = line + w + ' ';
+      if(ctx.measureText(test).width > maxWidth && line){
+        ctx.fillText(line, x, y); line = w + ' '; y += lineHeight;
+      } else { line = test; }
+    }
+    ctx.fillText(line, x, y);
+  }
+
+  // ── BUILD LAPTOP ──
+  const laptop = new THREE.Group();
+  scene.add(laptop);
+
+  // BASE (bottom)
+  const baseGeo = new THREE.BoxGeometry(3.6, 0.08, 2.4, 1, 1, 1);
+  const base = new THREE.Mesh(baseGeo, bodyMat);
+  base.position.set(0, 0, 0);
+  laptop.add(base);
+
+  // Rounded corners bevel via cylinder under base
+  const cornerR = 0.12;
+  for(let x of [-1.68, 1.68]) for(let z of [-1.08, 1.08]){
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(cornerR,cornerR,.08,16), bodyMat);
+    c.position.set(x,0,z);
+    laptop.add(c);
+  }
+
+  // KEYBOARD area
+  const kbGeo = new THREE.BoxGeometry(3.2, 0.005, 1.9);
+  const kb = new THREE.Mesh(kbGeo, keyboardMat);
+  kb.position.set(0, 0.043, 0.15);
+  laptop.add(kb);
+
+  // Key rows (decorative)
+  for(let row=0; row<4; row++){
+    for(let col=0; col<13; col++){
+      const key = new THREE.Mesh(
+        new THREE.BoxGeometry(.18,.012,.17),
+        new THREE.MeshStandardMaterial({color:0x1e1e2e,roughness:.7,metalness:.3})
+      );
+      key.position.set(-1.35+col*.225, .05, -.72+row*.22);
+      laptop.add(key);
+    }
+  }
+
+  // Trackpad
+  const tp = new THREE.Mesh(new THREE.BoxGeometry(.9,.006,.55), trackpadMat);
+  tp.position.set(0, .05, .8);
+  laptop.add(tp);
+
+  // HINGE
+  const hingeGeo = new THREE.CylinderGeometry(.045,.045,3.2,20);
+  const hinge = new THREE.Mesh(hingeGeo, hingeMat);
+  hinge.rotation.z = Math.PI/2;
+  hinge.position.set(0, .05, -1.18);
+  laptop.add(hinge);
+
+  // LID GROUP — pivots around hinge
+  const lid = new THREE.Group();
+  lid.position.set(0, .05, -1.18);
+  laptop.add(lid);
+
+  // Lid body
+  const lidBody = new THREE.Mesh(
+    new THREE.BoxGeometry(3.6, 0.065, 2.4),
+    bodyMat
+  );
+  lidBody.position.set(0, 1.2, 1.18); // relative to lid pivot
+  lid.add(lidBody);
+
+  // Screen bezel
+  const bezel = new THREE.Mesh(
+    new THREE.BoxGeometry(3.3, 0.01, 2.05),
+    screenRingMat
+  );
+  bezel.position.set(0, 1.235, 1.18);
+  lid.add(bezel);
+
+  // Screen plane with texture
+  let currentSlide = 0;
+  const screenGeo = new THREE.PlaneGeometry(3.0, 1.85);
+  const screenMat = new THREE.MeshBasicMaterial({map: makeScreenTexture(0)});
+  const screen = new THREE.Mesh(screenGeo, screenMat);
+  screen.position.set(0, 1.24, 1.17);
+  lid.add(screen);
+
+  // Logo glow on back of lid
+  const logoCircle = new THREE.Mesh(
+    new THREE.CircleGeometry(.18, 32),
+    logoGlowMat
+  );
+  logoCircle.position.set(0, 1.2, 2.37);
+  logoCircle.rotation.y = Math.PI;
+  lid.add(logoCircle);
+
+  // Initial lid rotation (open ~110 deg)
+  lid.rotation.x = -1.9;
+
+  // ── SCROLL ANIMATION ──
+  let targetRotY = -.3;
+  let targetRotX = -1.9;
+  let currentRotY = -.3;
+  let currentRotX = -1.9;
+  let targetCamZ = 6.5;
+  let currentCamZ = 6.5;
+  let lastSlide = 0;
+  let slideTimer = 0;
+
+  function onScroll(){
+    const scrollY = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    const p = Math.min(scrollY / maxScroll, 1);
+
+    // Rotate laptop on scroll
+    targetRotY = -.3 + p * Math.PI * 1.4;
+    targetRotX = -1.9 + p * .4;
+    targetCamZ = 6.5 - p * 1.5;
+
+    // Change slide
+    const newSlide = Math.floor(p * 4) % 3;
+    if(newSlide !== lastSlide){
+      lastSlide = newSlide;
+      screenMat.map = makeScreenTexture(newSlide);
+      screenMat.needsUpdate = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+
+  // Mouse interaction
+  let mouseX = 0, mouseY = 0;
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = ((e.clientX - rect.left) / rect.width  - .5) * 2;
+    mouseY = ((e.clientY - rect.top)  / rect.height - .5) * 2;
+  });
+
+  // Animate
+  let t = 0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t += .008;
+
+    // Smooth lerp
+    currentRotY += (targetRotY - currentRotY) * .06;
+    currentRotX += (targetRotX - currentRotX) * .06;
+    currentCamZ += (targetCamZ - currentCamZ) * .04;
+
+    laptop.rotation.y = currentRotY + mouseX * .12;
+    lid.rotation.x = currentRotX - mouseY * .04;
+
+    // Subtle float
+    laptop.position.y = Math.sin(t) * .04;
+
+    camera.position.z = currentCamZ;
+
+    // Logo glow pulse
+    logoGlowMat.emissiveIntensity = .5 + Math.sin(t*3) * .3;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Resize
+  window.addEventListener('resize', () => {
+    if(window.innerWidth < 960){ renderer.domElement.style.display='none'; return; }
+    renderer.domElement.style.display='block';
+    const nW = canvas.clientWidth;
+    const nH = canvas.clientHeight;
+    renderer.setSize(nW, nH);
+    camera.aspect = nW/nH;
+    camera.updateProjectionMatrix();
+  });
+
 })();
 </script>
 </body>
