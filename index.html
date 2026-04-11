@@ -48,6 +48,23 @@ body{background:var(--bg);color:var(--text);font-family:'Archivo',sans-serif;lin
 #lang-transition{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;display:none}
 #lang-transition canvas{position:absolute;inset:0;width:100%;height:100%}
 
+/* ── LANG SWITCHER ── */
+.lang-switcher{position:relative}
+.lang-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);transition:all .2s;font-family:'Archivo',sans-serif;white-space:nowrap}
+.lang-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.lang-flag{width:20px;height:14px;border-radius:2px;overflow:hidden;display:inline-flex;flex-shrink:0}
+.lang-flag svg{width:100%;height:100%;display:block}
+.lang-arrow{font-size:9px;opacity:.5;transition:transform .2s;margin-left:1px}
+.lang-dropdown{position:absolute;top:calc(100% + 10px);right:0;min-width:158px;background:rgba(12,12,18,.97);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px;opacity:0;transform:translateY(-6px) scale(.96);pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;backdrop-filter:blur(24px)}
+.lang-switcher.open .lang-dropdown{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.lang-switcher.open .lang-arrow{transform:rotate(180deg)}
+.lang-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:background .15s,color .15s;user-select:none}
+.lang-opt:hover{background:rgba(0,89,255,.12);color:var(--text)}
+.lang-opt.active{color:var(--a);background:rgba(0,89,255,.1);font-weight:600}
+/* ── FUNNEL OVERLAY ── */
+#langOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;display:none}
+#langOverlay canvas{position:absolute;inset:0;width:100%;height:100%}
+
 /* ── INTERACTIVE BACKGROUND ── */
 #bg-canvas{
   position:fixed;inset:0;width:100%;height:100%;
@@ -395,7 +412,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <body>
 
 <canvas id="bg-canvas"></canvas>
-<div id="lang-transition"><canvas></canvas></div>
+<div id="langOverlay" style="position:fixed;inset:0;z-index:99999;pointer-events:none;display:none"><canvas></canvas></div>
+
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
@@ -411,29 +429,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <a href="#funkcje" data-i18n="nav_features">Funkcje</a>
         <a href="#jak-dziala" data-i18n="nav_how">Jak działa</a>
         <a href="#cennik" data-i18n="nav_pricing">Cennik</a>
-      </div>
-      <div class="lang-switcher" id="langSwitcher">
-        <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()">
-          <span class="lang-flag" id="currentFlag"></span>
-          <span id="currentLangCode">PL</span>
-          <span class="lang-arrow">▾</span>
-        </button>
-        <div class="lang-dropdown" id="langDropdown">
-          <div class="lang-option" onclick="setLang('pl')">
-            <span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg></span> Polski
-          </div>
-          <div class="lang-option" onclick="setLang('en')">
-            <span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#012169"/><path d="M0 0l20 13M20 0L0 13" stroke="#fff" stroke-width="2.6"/><path d="M0 0l20 13M20 0L0 13" stroke="#c8102e" stroke-width="1.6"/><path d="M10 0v13M0 6.5h20" stroke="#fff" stroke-width="4"/><path d="M10 0v13M0 6.5h20" stroke="#c8102e" stroke-width="2.5"/></svg></span> English
-          </div>
-          <div class="lang-option" onclick="setLang('uk')">
-            <span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#005bbb"/><rect y="6.5" width="20" height="6.5" fill="#ffd500"/></svg></span> Українська
-          </div>
-          <div class="lang-option" onclick="setLang('ru')">
-            <span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#cf101a"/><rect y="3.9" width="20" height="5.2" fill="#007c00"/><rect width="2.6" height="13" fill="#007c00"/><rect width="2.6" height="2.6" fill="#cf101a"/><rect y="5.2" width="2.6" height="2.6" fill="#cf101a"/><rect y="10.4" width="2.6" height="2.6" fill="#cf101a"/></svg></span> Русский
-          </div>
-        </div>
-      </div>
-      <button class="nav-cta" onclick="openModal()"><span data-i18n="nav_cta">Chcę wypróbować</span></button>
+      </div><button class="nav-cta" onclick="openModal()"><span data-i18n="nav_cta">Chcę wypróbować</span></button>
     </div>
   </div>
 </nav>
@@ -577,9 +573,9 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <section class="section" id="funkcje">
   <div class="container">
     <div class="rv" style="max-width:600px">
-      <div class="stag">Funkcje</div>
-      <h2>Wszystko w jednym miejscu —<br><span class="g">czat, projekty, dokumenty</span></h2>
-      <p class="sub">Jeden portal klienta zastępuje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoją domeną w ciągu 24 godzin.</p>
+      <div class="stag" data-i18n="sec_features_tag">Funkcje</div>
+      <h2 data-i18n="features_h2">Wszystko w jednym miejscu —<br><span class="g">czat, projekty, dokumenty</span></h2>
+      <p class="sub" data-i18n="features_sub">Jeden portal klienta zastępuje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoją domeną w ciągu 24 godzin.</p>
     </div>
     <div class="feat-grid">
       <div class="fc fc-hot rv d1">
@@ -636,8 +632,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <section class="demo-section" id="demo">
   <div class="container">
     <div class="rv" style="max-width:600px">
-      <div class="stag">Podgląd</div>
-      <h2>Zobaczm jak to <span class="g">wygląda w akcji</span></h2>
+      <div class="stag" data-i18n="sec_demo_tag">Podgląd</div>
+      <h2 data-i18n="demo_h2">Zobaczm jak to <span class="g">wygląda w akcji</span></h2>
       <p class="sub">Przełączaj widoki i odkryj co Twoi klienci i Ty będziecie widzieć na co dzień.</p>
     </div>
     <div class="demo-grid rv">
@@ -812,9 +808,9 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <section class="section how-section" id="jak-dziala">
   <div class="container">
     <div class="rv" style="text-align:center;max-width:520px;margin:0 auto">
-      <div class="stag">Jak to działa</div>
-      <h2>Twój panel klienta gotowy<br><span class="g">w 4 prostych krokach</span></h2>
-      <p class="sub">Od pierwszego kontaktu do działającego panelu klienta — w mniej niż godzinę.</p>
+      <div class="stag" data-i18n="sec_how_tag">Jak to działa</div>
+      <h2 data-i18n="how_h2">Twój panel klienta gotowy<br><span class="g">w 4 prostych krokach</span></h2>
+      <p class="sub" data-i18n="how_sub">Od pierwszego kontaktu do działającego panelu klienta — w mniej niż godzinę.</p>
     </div>
     <div class="how-grid">
       <div class="hs rv d1">
@@ -846,7 +842,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
   <div class="container">
     <div class="rv" style="text-align:center;max-width:520px;margin:0 auto">
       <div class="stag">Dlaczego Barabash Flow</div>
-      <h2>Zastąp 5 narzędzi<br><span class="g">jednym portalem klienta</span></h2>
+      <h2 data-i18n="compare_h2">Zastąp 5 narzędzi<br><span class="g">jednym portalem klienta</span></h2>
       <p class="sub">Jedno narzędzie zamiast pięciu. Profesjonalne wrażenie od pierwszego kontaktu.</p>
     </div>
     <div class="compare-wrap rv">
@@ -882,8 +878,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <section class="section" id="cennik">
   <div class="container">
     <div class="rv" style="text-align:center;max-width:520px;margin:0 auto">
-      <div class="stag">Cennik</div>
-      <h2>Cennik bez ukrytych opłat —<br><span class="g">płacisz za narzędzie, nie obrót</span></h2>
+      <div class="stag" data-i18n="sec_pricing_tag">Cennik</div>
+      <h2 data-i18n="pricing_h2">Cennik bez ukrytych opłat —<br><span class="g">płacisz za narzędzie, nie obrót</span></h2>
       <p class="sub">Bez ukrytych opłat. Bez prowizji od projektów. Płacisz za narzędzie, nie od obrotu.</p>
     </div>
     <div class="price-grid">
@@ -989,8 +985,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 <section class="section" style="background:var(--bg2);border-top:1px solid var(--border)">
   <div class="container">
     <div class="rv" style="text-align:center;max-width:480px;margin:0 auto">
-      <div class="stag">Opinie</div>
-      <h2>Co mówią agencje<br><span class="g">korzystające z Barabash Flow</span></h2>
+      <div class="stag" data-i18n="sec_reviews_tag">Opinie</div>
+      <h2 data-i18n="reviews_h2">Co mówią agencje<br><span class="g">korzystające z Barabash Flow</span></h2>
     </div>
     <div class="tg">
       <div class="tc rv d1">
@@ -1033,7 +1029,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div class="cta-trust">
         <div class="ct-item"><span data-i18n="trust1">Pierwsze 30 dni gratis</span></div>
         <div class="ct-item"><span data-i18n="trust2">Bez karty kredytowej</span></div>
-        <div class="ct-item">Instalacja w ciągu 24h</div>
+        <div class="ct-item" data-i18n="trust3">Instalacja w 24h</div>
         <div class="ct-item"><span data-i18n="trust4">Wsparcie 1:1</span></div>
       </div>
     </div>
@@ -1396,197 +1392,171 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>
 </script>
 
 
+
+
+
 <script>
-// ── LANGUAGE SYSTEM ──
-const TRANSLATIONS = {"pl": {"nav_features": "Funkcje", "nav_how": "Jak działa", "nav_pricing": "Cennik", "nav_cta": "Chcę wypróbować", "h1": "Profesjonalny <span class=\"h1-grad\">portal klienta</span> dla agencji i freelancerów", "hero_p": "Daj klientom dedykowany panel z czatem, projektami, dokumentami i wideorozmowami — wszystko pod Twoją domeną. Koniec z mailami, WhatsApp i rozproszeniem. Pierwsze 30 dni bezpłatnie.", "btn_try": "Wypróbuj za darmo — 30 dni gratis →", "btn_how": "▶ Jak to działa", "proof": "<strong>Pierwsi użytkownicy</strong> już korzystają z panelu", "stats_s1": "% mniej maili<br>z pytaniami od klientów", "stats_s2": "minuty do onboardingu<br>nowego klienta", "stats_s3": "godziny na dobę<br>klient ma dostęp do panelu", "stats_s4": "miejsce dla czatu,<br>projektów i dokumentów", "features_tag": "Funkcje", "features_h2": "Wszystko w jednym miejscu —<br><span class=\"g\">czat, projekty, dokumenty</span>", "features_sub": "Jeden portal klienta zastępuje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoją domeną w ciągu 24 godzin.", "how_tag": "Jak to działa", "how_h2": "Twój panel klienta gotowy<br><span class=\"g\">w 4 prostych krokach</span>", "how_sub": "Od pierwszego kontaktu do działającego panelu klienta — w mniej niż godzinę.", "pricing_tag": "Cennik", "pricing_h2": "Cennik bez ukrytych opłat —<br><span class=\"g\">płacisz za narzędzie, nie obrót</span>", "pricing_sub": "Bez ukrytych opłat. Bez prowizji od projektów.", "cta_h": "Zacznij w 24 godziny —<br><span class=\"g\">pierwsze 30 dni za darmo</span>", "cta_sub": "Dołącz do pierwszych użytkowników Barabash Flow. Pierwsze 30 dni całkowicie bezpłatnie, bez karty kredytowej.", "cta_btn": "Wypróbuj za darmo →", "trust1": "Pierwsze 30 dni gratis", "trust2": "Bez karty kredytowej", "trust3": "Instalacja w 24h", "trust4": "Wsparcie 1:1", "modal_title": "Chcę wypróbować 🚀", "modal_sub": "Skontaktuję się z Tobą i razem ustawimy panel. Pierwsze 30 dni bezpłatnie.", "compare_bad": "❌ Bez Barabash Flow", "compare_good": "✓ Z Barabash Flow"}, "en": {"nav_features": "Features", "nav_how": "How it works", "nav_pricing": "Pricing", "nav_cta": "Try for free", "h1": "Professional <span class=\"h1-grad\">client portal</span> for agencies and freelancers", "hero_p": "Give your clients a dedicated portal with live chat, projects, documents and video calls — all under your domain. No more email chaos, WhatsApp and scattered tools. First 30 days free.", "btn_try": "Try free — 30 days gratis →", "btn_how": "▶ How it works", "proof": "<strong>First users</strong> are already using the platform", "stats_s1": "% fewer emails<br>from clients asking for updates", "stats_s2": "minutes to onboard<br>a new client", "stats_s3": "hours a day<br>client has portal access", "stats_s4": "place for chat,<br>projects and documents", "features_tag": "Features", "features_h2": "Everything in one place —<br><span class=\"g\">chat, projects, documents</span>", "features_sub": "One client portal replaces emails, WhatsApp, Google Drive and Trello. Set up under your domain within 24 hours.", "how_tag": "How it works", "how_h2": "Your client portal ready<br><span class=\"g\">in 4 simple steps</span>", "how_sub": "From first contact to a working client portal — in less than an hour.", "pricing_tag": "Pricing", "pricing_h2": "Transparent pricing —<br><span class=\"g\">pay for the tool, not the revenue</span>", "pricing_sub": "No hidden fees. No commissions on projects.", "cta_h": "Start in 24 hours —<br><span class=\"g\">first 30 days free</span>", "cta_sub": "Join the first users of Barabash Flow. First 30 days completely free, no credit card required.", "cta_btn": "Try for free →", "trust1": "First 30 days free", "trust2": "No credit card", "trust3": "Setup in 24h", "trust4": "1:1 support", "modal_title": "I want to try it 🚀", "modal_sub": "I will contact you and we will set up the panel together. First 30 days free.", "compare_bad": "❌ Without Barabash Flow", "compare_good": "✓ With Barabash Flow"}, "uk": {"nav_features": "Функції", "nav_how": "Як це працює", "nav_pricing": "Ціни", "nav_cta": "Спробувати безкоштовно", "h1": "Професійний <span class=\"h1-grad\">портал клієнта</span> для агенцій і фрілансерів", "hero_p": "Дайте клієнтам окремий портал із чатом, проєктами, документами та відеодзвінками — все під вашим доменом. Кінець хаосу з листами та WhatsApp. Перші 30 днів безкоштовно.", "btn_try": "Спробуй безкоштовно — 30 днів →", "btn_how": "▶ Як це працює", "proof": "<strong>Перші користувачі</strong> вже використовують платформу", "stats_s1": "% менше листів<br>із запитаннями від клієнтів", "stats_s2": "хвилини на онбординг<br>нового клієнта", "stats_s3": "години на добу<br>клієнт має доступ до порталу", "stats_s4": "місце для чату,<br>проєктів і документів", "features_tag": "Функції", "features_h2": "Все в одному місці —<br><span class=\"g\">чат, проєкти, документи</span>", "features_sub": "Один портал клієнта замінює листи, WhatsApp, Google Drive і Trello. Налаштований під ваш домен за 24 години.", "how_tag": "Як це працює", "how_h2": "Ваш портал клієнта готовий<br><span class=\"g\">у 4 простих кроки</span>", "how_sub": "Від першого контакту до готового порталу — менше ніж за годину.", "pricing_tag": "Ціни", "pricing_h2": "Прозорі ціни —<br><span class=\"g\">платите за інструмент, не з обороту</span>", "pricing_sub": "Без прихованих платежів. Без комісій з проєктів.", "cta_h": "Почніть за 24 години —<br><span class=\"g\">перші 30 днів безкоштовно</span>", "cta_sub": "Приєднуйтесь до перших користувачів Barabash Flow. Перші 30 днів повністю безкоштовно, без картки.", "cta_btn": "Спробувати безкоштовно →", "trust1": "Перші 30 днів безкоштовно", "trust2": "Без картки", "trust3": "Налаштування за 24 год", "trust4": "Підтримка 1:1", "modal_title": "Хочу спробувати 🚀", "modal_sub": "Зв'яжусь із вами і разом налаштуємо портал. Перші 30 днів безкоштовно.", "compare_bad": "❌ Без Barabash Flow", "compare_good": "✓ З Barabash Flow"}, "ru": {"nav_features": "Функции", "nav_how": "Как работает", "nav_pricing": "Тарифы", "nav_cta": "Попробовать бесплатно", "h1": "Профессиональный <span class=\"h1-grad\">портал клиента</span> для агентств и фрилансеров", "hero_p": "Дайте клиентам отдельный портал с чатом, проектами, документами и видеозвонками — всё под вашим доменом. Конец хаосу с письмами и WhatsApp. Первые 30 дней бесплатно.", "btn_try": "Попробовать бесплатно — 30 дней →", "btn_how": "▶ Как это работает", "proof": "<strong>Первые пользователи</strong> уже используют платформу", "stats_s1": "% меньше писем<br>с вопросами от клиентов", "stats_s2": "минуты на онбординг<br>нового клиента", "stats_s3": "часа в сутки<br>клиент имеет доступ к порталу", "stats_s4": "место для чата,<br>проектов и документов", "features_tag": "Функции", "features_h2": "Всё в одном месте —<br><span class=\"g\">чат, проекты, документы</span>", "features_sub": "Один портал клиента заменяет письма, WhatsApp, Google Drive и Trello. Настроен под ваш домен за 24 часа.", "how_tag": "Как работает", "how_h2": "Ваш портал клиента готов<br><span class=\"g\">за 4 простых шага</span>", "how_sub": "От первого контакта до рабочего портала — менее чем за час.", "pricing_tag": "Тарифы", "pricing_h2": "Прозрачные тарифы —<br><span class=\"g\">платите за инструмент, не с оборота</span>", "pricing_sub": "Без скрытых платежей. Без комиссий с проектов.", "cta_h": "Начните за 24 часа —<br><span class=\"g\">первые 30 дней бесплатно</span>", "cta_sub": "Присоединяйтесь к первым пользователям Barabash Flow. Первые 30 дней полностью бесплатно, без карты.", "cta_btn": "Попробовать бесплатно →", "trust1": "Первые 30 дней бесплатно", "trust2": "Без карты", "trust3": "Настройка за 24 ч", "trust4": "Поддержка 1:1", "modal_title": "Хочу попробовать 🚀", "modal_sub": "Свяжусь с вами и вместе настроим портал. Первые 30 дней бесплатно.", "compare_bad": "❌ Без Barabash Flow", "compare_good": "✓ С Barabash Flow"}};
+/* ── BARABASH FLOW: LANGUAGE SYSTEM ── */
+var BF_TR = {"pl": {"nav_features": "Funkcje", "nav_how": "Jak dzia&#322;a", "nav_pricing": "Cennik", "nav_cta": "Chc&#281; wypr&#xF3;bowa&#263;", "h1": "Profesjonalny <span class=\"h1-grad\">portal klienta</span> dla agencji i freelancer&#xF3;w", "hero_p": "Daj klientom dedykowany panel z czatem, projektami, dokumentami i wideorozmowami &#8212; wszystko pod Twoj&#261; domen&#261;. Koniec z mailami, WhatsApp i rozproszeniem. Pierwsze 30 dni bezp&#322;atnie.", "btn_try": "Wypr&#xF3;buj za darmo &#8212; 30 dni gratis &#8594;", "btn_how": "&#9658; Jak to dzia&#322;a", "proof": "<strong>Pierwsi u&#380;ytkownicy</strong> ju&#380; korzystaj&#261; z panelu", "stats_s1": "% mniej maili<br>z pytaniami od klient&#xF3;w", "stats_s2": "minuty do onboardingu<br>nowego klienta", "stats_s3": "godziny na dob&#281;<br>klient ma dost&#281;p do panelu", "stats_s4": "miejsce dla czatu,<br>projekt&#xF3;w i dokument&#xF3;w", "sec_features_tag": "Funkcje", "features_h2": "Wszystko w jednym miejscu &#8212;<br><span class=\"g\">czat, projekty, dokumenty</span>", "features_sub": "Jeden portal klienta zast&#281;puje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoj&#261; domen&#261; w ci&#261;gu 24 godzin.", "sec_how_tag": "Jak to dzia&#322;a", "how_h2": "Tw&#xF3;j panel klienta gotowy<br><span class=\"g\">w 4 prostych krokach</span>", "how_sub": "Od pierwszego kontaktu do dzia&#322;aj&#261;cego panelu klienta &#8212; w mniej ni&#380; godzin&#281;.", "compare_h2": "Zast&#261;p 5 narz&#281;dzi<br><span class=\"g\">jednym portalem klienta</span>", "sec_pricing_tag": "Cennik", "pricing_h2": "Cennik bez ukrytych op&#322;at &#8212;<br><span class=\"g\">p&#322;acisz za narz&#281;dzie, nie obr&#xF3;t</span>", "pricing_sub": "Bez ukrytych op&#322;at. Bez prowizji od projekt&#xF3;w.", "sec_reviews_tag": "Opinie", "reviews_h2": "Co m&#xF3;wi&#261; agencje<br><span class=\"g\">korzystaj&#261;ce z Barabash Flow</span>", "sec_demo_tag": "Podgl&#261;d", "demo_h2": "Zobaczm jak to <span class=\"g\">wygl&#261;da w akcji</span>", "cta_h": "Zacznij w 24 godziny &#8212;<br><span class=\"g\">pierwsze 30 dni za darmo</span>", "cta_sub": "Do&#322;&#261;cz do pierwszych u&#380;ytkownik&#xF3;w Barabash Flow. Pierwsze 30 dni ca&#322;kowicie bezp&#322;atnie, bez karty kredytowej.", "cta_btn": "Wypr&#xF3;buj za darmo &#8594;", "trust1": "Pierwsze 30 dni gratis", "trust2": "Bez karty kredytowej", "trust3": "Instalacja w 24h", "trust4": "Wsparcie 1:1", "compare_bad": "&#10060; Bez Barabash Flow", "compare_good": "&#10003; Z Barabash Flow", "modal_title": "Chc&#281; wypr&#xF3;bowa&#263; &#128640;", "modal_sub": "Skontaktuj&#281; si&#281; z Tob&#261; i razem ustawimy panel. Pierwsze 30 dni bezp&#322;atnie."}, "en": {"nav_features": "Features", "nav_how": "How it works", "nav_pricing": "Pricing", "nav_cta": "Try for free", "h1": "Professional <span class=\"h1-grad\">client portal</span> for agencies and freelancers", "hero_p": "Give clients a dedicated portal with live chat, projects, documents and video calls &mdash; all under your domain. No more email chaos and scattered tools. First 30 days free.", "btn_try": "Try free &mdash; 30 days gratis &rarr;", "btn_how": "&#9658; How it works", "proof": "<strong>First users</strong> are already using the platform", "stats_s1": "% fewer emails<br>asking for project updates", "stats_s2": "minutes to onboard<br>a new client", "stats_s3": "hours a day<br>clients have portal access", "stats_s4": "place for chat,<br>projects and documents", "sec_features_tag": "Features", "features_h2": "Everything in one place &mdash;<br><span class=\"g\">chat, projects, documents</span>", "features_sub": "One client portal replaces emails, WhatsApp, Google Drive and Trello. Set up under your domain within 24 hours.", "sec_how_tag": "How it works", "how_h2": "Your client portal ready<br><span class=\"g\">in 4 simple steps</span>", "how_sub": "From first contact to a working client portal &mdash; in less than an hour.", "compare_h2": "Replace 5 tools<br><span class=\"g\">with one client portal</span>", "sec_pricing_tag": "Pricing", "pricing_h2": "Transparent pricing &mdash;<br><span class=\"g\">pay for the tool, not the revenue</span>", "pricing_sub": "No hidden fees. No commissions on projects.", "sec_reviews_tag": "Reviews", "reviews_h2": "What agencies say<br><span class=\"g\">about Barabash Flow</span>", "sec_demo_tag": "Preview", "demo_h2": "See how it <span class=\"g\">looks in action</span>", "cta_h": "Start in 24 hours &mdash;<br><span class=\"g\">first 30 days free</span>", "cta_sub": "Join the first users of Barabash Flow. First 30 days completely free, no credit card required.", "cta_btn": "Try for free &rarr;", "trust1": "First 30 days free", "trust2": "No credit card", "trust3": "Setup in 24h", "trust4": "1:1 support", "compare_bad": "&#10060; Without Barabash Flow", "compare_good": "&#10003; With Barabash Flow", "modal_title": "I want to try it &#128640;", "modal_sub": "I will contact you and we will set up the portal together. First 30 days free."}, "uk": {"nav_features": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1110;&#1111;", "nav_how": "&#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "nav_pricing": "&#1062;&#1110;&#1085;&#1080;", "nav_cta": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;", "h1": "&#1055;&#1088;&#1086;&#1092;&#1077;&#1089;&#1110;&#1081;&#1085;&#1080;&#1081; <span class=\"h1-grad\">&#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;</span> &#1076;&#1083;&#1103; &#1072;&#1075;&#1077;&#1085;&#1094;&#1110;&#1081; &#1110; &#1092;&#1088;&#1110;&#1083;&#1072;&#1085;&#1089;&#1077;&#1088;&#1110;&#1074;", "hero_p": "&#1044;&#1072;&#1081;&#1090;&#1077; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;&#1084; &#1086;&#1082;&#1088;&#1077;&#1084;&#1080;&#1081; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1110;&#1079; &#1095;&#1072;&#1090;&#1086;&#1084;, &#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1072;&#1084;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1072;&#1084;&#1080; &#1090;&#1072; &#1074;&#1110;&#1076;&#1077;&#1086;&#1076;&#1079;&#1074;&#1110;&#1085;&#1082;&#1072;&#1084;&#1080; &#8212; &#1074;&#1089;&#1077; &#1087;&#1110;&#1076; &#1074;&#1072;&#1096;&#1080;&#1084; &#1076;&#1086;&#1084;&#1077;&#1085;&#1086;&#1084;. &#1050;&#1110;&#1085;&#1077;&#1094;&#1100; &#1093;&#1072;&#1086;&#1089;&#1091; &#1079; &#1083;&#1080;&#1089;&#1090;&#1072;&#1084;&#1080; &#1090;&#1072; WhatsApp. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;.", "btn_try": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1081; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086; &#8212; 30 &#1076;&#1085;&#1110;&#1074; &#8594;", "btn_how": "&#9658; &#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "proof": "<strong>&#1055;&#1077;&#1088;&#1096;&#1110; &#1082;&#1086;&#1088;&#1080;&#1089;&#1090;&#1091;&#1074;&#1072;&#1095;&#1110;</strong> &#1074;&#1078;&#1077; &#1074;&#1080;&#1082;&#1086;&#1088;&#1080;&#1089;&#1090;&#1086;&#1074;&#1091;&#1102;&#1090;&#1100; &#1087;&#1083;&#1072;&#1090;&#1092;&#1086;&#1088;&#1084;&#1091;", "stats_s1": "% &#1084;&#1077;&#1085;&#1096;&#1077; &#1083;&#1080;&#1089;&#1090;&#1110;&#1074;<br>&#1110;&#1079; &#1079;&#1072;&#1087;&#1080;&#1090;&#1072;&#1085;&#1085;&#1103;&#1084;&#1080; &#1074;&#1110;&#1076; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1110;&#1074;", "stats_s2": "&#1093;&#1074;&#1080;&#1083;&#1080;&#1085;&#1080; &#1085;&#1072; &#1086;&#1085;&#1073;&#1086;&#1088;&#1076;&#1080;&#1085;&#1075;<br>&#1085;&#1086;&#1074;&#1086;&#1075;&#1086; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;", "stats_s3": "&#1075;&#1086;&#1076;&#1080;&#1085;&#1080; &#1085;&#1072; &#1076;&#1086;&#1073;&#1091;<br>&#1082;&#1083;&#1110;&#1108;&#1085;&#1090; &#1084;&#1072;&#1108; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087; &#1076;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091;", "stats_s4": "&#1084;&#1110;&#1089;&#1094;&#1077; &#1076;&#1083;&#1103; &#1095;&#1072;&#1090;&#1091;,<br>&#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1110;&#1074; &#1110; &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1110;&#1074;", "sec_features_tag": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1110;&#1111;", "features_h2": "&#1042;&#1089;&#1077; &#1074; &#1086;&#1076;&#1085;&#1086;&#1084;&#1091; &#1084;&#1110;&#1089;&#1094;&#1110; &#8212;<br><span class=\"g\">&#1095;&#1072;&#1090;, &#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1080;</span>", "features_sub": "&#1054;&#1076;&#1080;&#1085; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1079;&#1072;&#1084;&#1110;&#1085;&#1102;&#1108; &#1083;&#1080;&#1089;&#1090;&#1080;, WhatsApp, Google Drive &#1110; Trello. &#1053;&#1072;&#1083;&#1072;&#1096;&#1090;&#1086;&#1074;&#1072;&#1085;&#1080;&#1081; &#1079;&#1072; 24 &#1075;&#1086;&#1076;&#1080;&#1085;&#1080;.", "sec_how_tag": "&#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "how_h2": "&#1042;&#1072;&#1096; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1075;&#1086;&#1090;&#1086;&#1074;&#1080;&#1081;<br><span class=\"g\">&#1091; 4 &#1087;&#1088;&#1086;&#1089;&#1090;&#1080;&#1093; &#1082;&#1088;&#1086;&#1082;&#1080;</span>", "how_sub": "&#1042;&#1110;&#1076; &#1087;&#1077;&#1088;&#1096;&#1086;&#1075;&#1086; &#1082;&#1086;&#1085;&#1090;&#1072;&#1082;&#1090;&#1091; &#1076;&#1086; &#1075;&#1086;&#1090;&#1086;&#1074;&#1086;&#1075;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091; &#8212; &#1084;&#1077;&#1085;&#1096;&#1077; &#1085;&#1110;&#1078; &#1079;&#1072; &#1075;&#1086;&#1076;&#1080;&#1085;&#1091;.", "compare_h2": "&#1047;&#1072;&#1084;&#1110;&#1085;&#1080;&#1090;&#1100; 5 &#1110;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;&#1110;&#1074;<br><span class=\"g\">&#1086;&#1076;&#1085;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1086;&#1084; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;</span>", "sec_pricing_tag": "&#1062;&#1110;&#1085;&#1080;", "pricing_h2": "&#1055;&#1088;&#1086;&#1079;&#1086;&#1088;&#1110; &#1094;&#1110;&#1085;&#1080; &#8212;<br><span class=\"g\">&#1087;&#1083;&#1072;&#1090;&#1080;&#1090;&#1077; &#1079;&#1072; &#1110;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;</span>", "pricing_sub": "&#1073;&#1077;&#1079; &#1087;&#1088;&#1080;&#1093;&#1086;&#1074;&#1072;&#1085;&#1080;&#1093; &#1087;&#1083;&#1072;&#1090;&#1077;&#1078;&#1110;&#1074;. &#1073;&#1077;&#1079; &#1082;&#1086;&#1084;&#1110;&#1089;&#1110;&#1081;.", "sec_reviews_tag": "&#1042;&#1110;&#1076;&#1075;&#1091;&#1082;&#1080;", "reviews_h2": "&#1065;&#1086; &#1082;&#1072;&#1078;&#1091;&#1090;&#1100; &#1072;&#1075;&#1077;&#1085;&#1094;&#1110;&#1111;<br><span class=\"g\">&#1087;&#1088;&#1086; Barabash Flow</span>", "sec_demo_tag": "&#1055;&#1077;&#1088;&#1077;&#1075;&#1083;&#1103;&#1076;", "demo_h2": "&#1055;&#1086;&#1073;&#1072;&#1095;&#1090;&#1077; <span class=\"g\">&#1103;&#1082; &#1094;&#1077; &#1074;&#1080;&#1075;&#1083;&#1103;&#1076;&#1072;&#1108;</span>", "cta_h": "&#1055;&#1086;&#1095;&#1085;&#1110;&#1090;&#1100; &#1079;&#1072; 24 &#1075;&#1086;&#1076;&#1080;&#1085;&#1080; &#8212;<br><span class=\"g\">&#1087;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;</span>", "cta_sub": "&#1055;&#1088;&#1080;&#1108;&#1076;&#1085;&#1091;&#1081;&#1090;&#1077;&#1089;&#1100; &#1076;&#1086; Barabash Flow. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1087;&#1086;&#1074;&#1085;&#1110;&#1089;&#1090;&#1102; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;.", "cta_btn": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086; &#8594;", "trust1": "&#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;", "trust2": "&#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1082;&#1080;", "trust3": "&#1053;&#1072;&#1083;&#1072;&#1096;&#1090;&#1091;&#1074;&#1072;&#1085;&#1085;&#1103; &#1079;&#1072; 24 &#1075;&#1086;&#1076;", "trust4": "&#1055;&#1110;&#1076;&#1090;&#1088;&#1080;&#1084;&#1082;&#1072; 1:1", "compare_bad": "&#10060; &#1073;&#1077;&#1079; Barabash Flow", "compare_good": "&#10003; &#1079; Barabash Flow", "modal_title": "&#1061;&#1086;&#1095;&#1091; &#1089;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#128640;", "modal_sub": "&#1047;&#1074;'&#1103;&#1078;&#1091;&#1089;&#1100; &#1079; &#1074;&#1072;&#1084;&#1080; &#1110; &#1088;&#1072;&#1079;&#1086;&#1084; &#1085;&#1072;&#1083;&#1072;&#1096;&#1090;&#1091;&#1108;&#1084;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;."}, "ru": {"nav_features": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;", "nav_how": "&#1050;&#1072;&#1082; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "nav_pricing": "&#1058;&#1072;&#1088;&#1080;&#1092;&#1099;", "nav_cta": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;", "h1": "&#1055;&#1088;&#1086;&#1092;&#1077;&#1089;&#1089;&#1080;&#1086;&#1085;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081; <span class=\"h1-grad\">&#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;</span> &#1076;&#1083;&#1103; &#1072;&#1075;&#1077;&#1085;&#1090;&#1089;&#1090;&#1074; &#1080; &#1092;&#1088;&#1080;&#1083;&#1072;&#1085;&#1089;&#1077;&#1088;&#1086;&#1074;", "hero_p": "&#1044;&#1072;&#1081;&#1090;&#1077; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;&#1084; &#1086;&#1090;&#1076;&#1077;&#1083;&#1100;&#1085;&#1099;&#1081; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1089; &#1095;&#1072;&#1090;&#1086;&#1084;, &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1072;&#1084;&#1080; &#1080; &#1074;&#1080;&#1076;&#1077;&#1086;&#1079;&#1074;&#1086;&#1085;&#1082;&#1072;&#1084;&#1080; &#8212; &#1074;&#1089;&#1105; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080;&#1084; &#1076;&#1086;&#1084;&#1077;&#1085;&#1086;&#1084;. &#1050;&#1086;&#1085;&#1077;&#1094; &#1093;&#1072;&#1086;&#1089;&#1091; &#1089; &#1087;&#1080;&#1089;&#1100;&#1084;&#1072;&#1084;&#1080; &#1080; WhatsApp. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;.", "btn_try": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086; &#8212; 30 &#1076;&#1085;&#1077;&#1081; &#8594;", "btn_how": "&#9658; &#1050;&#1072;&#1082; &#1101;&#1090;&#1086; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "proof": "<strong>&#1055;&#1077;&#1088;&#1074;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;</strong> &#1091;&#1078;&#1077; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1102;&#1090; &#1087;&#1083;&#1072;&#1090;&#1092;&#1086;&#1088;&#1084;&#1091;", "stats_s1": "% &#1084;&#1077;&#1085;&#1100;&#1096;&#1077; &#1087;&#1080;&#1089;&#1077;&#1084;<br>&#1089; &#1074;&#1086;&#1087;&#1088;&#1086;&#1089;&#1072;&#1084;&#1080; &#1086;&#1090; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1086;&#1074;", "stats_s2": "&#1084;&#1080;&#1085;&#1091;&#1090;&#1099; &#1085;&#1072; &#1086;&#1085;&#1073;&#1086;&#1088;&#1076;&#1080;&#1085;&#1075;<br>&#1085;&#1086;&#1074;&#1086;&#1075;&#1086; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;", "stats_s3": "&#1095;&#1072;&#1089;&#1072; &#1074; &#1089;&#1091;&#1090;&#1082;&#1080;<br>&#1082;&#1083;&#1080;&#1077;&#1085;&#1090; &#1080;&#1084;&#1077;&#1077;&#1090; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087; &#1082; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091;", "stats_s4": "&#1084;&#1077;&#1089;&#1090;&#1086; &#1076;&#1083;&#1103; &#1095;&#1072;&#1090;&#1072;,<br>&#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1086;&#1074; &#1080; &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1086;&#1074;", "sec_features_tag": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;", "features_h2": "&#1042;&#1089;&#1105; &#1074; &#1086;&#1076;&#1085;&#1086;&#1084; &#1084;&#1077;&#1089;&#1090;&#1077; &#8212;<br><span class=\"g\">&#1095;&#1072;&#1090;, &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1099;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1099;</span>", "features_sub": "&#1054;&#1076;&#1080;&#1085; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1079;&#1072;&#1084;&#1077;&#1085;&#1103;&#1077;&#1090; &#1087;&#1080;&#1089;&#1100;&#1084;&#1072;, WhatsApp, Google Drive &#1080; Trello. &#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1077;&#1085; &#1079;&#1072; 24 &#1095;&#1072;&#1089;&#1072;.", "sec_how_tag": "&#1050;&#1072;&#1082; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "how_h2": "&#1042;&#1072;&#1096; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1075;&#1086;&#1090;&#1086;&#1074;<br><span class=\"g\">&#1079;&#1072; 4 &#1087;&#1088;&#1086;&#1089;&#1090;&#1099;&#1093; &#1096;&#1072;&#1075;&#1072;</span>", "how_sub": "&#1054;&#1090; &#1087;&#1077;&#1088;&#1074;&#1086;&#1075;&#1086; &#1082;&#1086;&#1085;&#1090;&#1072;&#1082;&#1090;&#1072; &#1076;&#1086; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1102;&#1097;&#1077;&#1075;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1072; &#8212; &#1084;&#1077;&#1085;&#1077;&#1077; &#1095;&#1072;&#1089;&#1072;.", "compare_h2": "&#1047;&#1072;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100; 5 &#1080;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;&#1086;&#1074;<br><span class=\"g\">&#1086;&#1076;&#1085;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1086;&#1084;</span>", "sec_pricing_tag": "&#1058;&#1072;&#1088;&#1080;&#1092;&#1099;", "pricing_h2": "&#1055;&#1088;&#1086;&#1079;&#1088;&#1072;&#1095;&#1085;&#1099;&#1077; &#1090;&#1072;&#1088;&#1080;&#1092;&#1099; &#8212;<br><span class=\"g\">&#1087;&#1083;&#1072;&#1090;&#1080;&#1090;&#1077; &#1079;&#1072; &#1080;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;</span>", "pricing_sub": "&#1073;&#1077;&#1079; &#1089;&#1082;&#1088;&#1099;&#1090;&#1099;&#1093; &#1087;&#1083;&#1072;&#1090;&#1077;&#1078;&#1077;&#1081;. &#1073;&#1077;&#1079; &#1082;&#1086;&#1084;&#1080;&#1089;&#1089;&#1080;&#1081;.", "sec_reviews_tag": "&#1054;&#1090;&#1079;&#1099;&#1074;&#1099;", "reviews_h2": "&#1063;&#1090;&#1086; &#1075;&#1086;&#1074;&#1086;&#1088;&#1103;&#1090; &#1072;&#1075;&#1077;&#1085;&#1090;&#1089;&#1090;&#1074;&#1072;<br><span class=\"g\">&#1086; Barabash Flow</span>", "sec_demo_tag": "&#1055;&#1088;&#1077;&#1074;&#1100;&#1102;", "demo_h2": "&#1055;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1080;&#1090;&#1077; <span class=\"g\">&#1082;&#1072;&#1082; &#1101;&#1090;&#1086; &#1074;&#1099;&#1075;&#1083;&#1103;&#1076;&#1080;&#1090;</span>", "cta_h": "&#1053;&#1072;&#1095;&#1085;&#1080;&#1090;&#1077; &#1079;&#1072; 24 &#1095;&#1072;&#1089;&#1072; &#8212;<br><span class=\"g\">&#1087;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;</span>", "cta_sub": "&#1055;&#1088;&#1080;&#1089;&#1086;&#1077;&#1076;&#1080;&#1085;&#1103;&#1081;&#1090;&#1077;&#1089;&#1100; &#1082; Barabash Flow. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;, &#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1099;.", "cta_btn": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086; &#8594;", "trust1": "&#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;", "trust2": "&#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1099;", "trust3": "&#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1072; &#1079;&#1072; 24 &#1095;", "trust4": "&#1055;&#1086;&#1076;&#1076;&#1077;&#1088;&#1078;&#1082;&#1072; 1:1", "compare_bad": "&#10060; &#1073;&#1077;&#1079; Barabash Flow", "compare_good": "&#10003; &#1089; Barabash Flow", "modal_title": "&#1061;&#1086;&#1095;&#1091; &#1087;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#128640;", "modal_sub": "&#1057;&#1074;&#1103;&#1078;&#1091;&#1089;&#1100; &#1089; &#1074;&#1072;&#1084;&#1080; &#1080; &#1074;&#1084;&#1077;&#1089;&#1090;&#1077; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;."}};
+var BF_FLAGS = {"pl": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"6.5\" fill=\"#fff\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#dc143c\"/></svg>", "en": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"13\" fill=\"#012169\"/><path d=\"M0 0l20 13M20 0L0 13\" stroke=\"#fff\" stroke-width=\"2.6\"/><path d=\"M0 0l20 13M20 0L0 13\" stroke=\"#c8102e\" stroke-width=\"1.6\"/><path d=\"M10 0v13M0 6.5h20\" stroke=\"#fff\" stroke-width=\"4\"/><path d=\"M10 0v13M0 6.5h20\" stroke=\"#c8102e\" stroke-width=\"2.5\"/></svg>", "uk": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"6.5\" fill=\"#005bbb\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#ffd500\"/></svg>", "ru": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"13\" fill=\"#cf101a\"/><rect y=\"4\" width=\"20\" height=\"5\" fill=\"#007c00\"/><rect width=\"3\" height=\"13\" fill=\"#007c00\"/><rect width=\"3\" height=\"2.6\" fill=\"#cf101a\"/><rect y=\"5.2\" width=\"3\" height=\"2.6\" fill=\"#cf101a\"/><rect y=\"10.4\" width=\"3\" height=\"2.6\" fill=\"#cf101a\"/></svg>"};
+var BF_CODES = {pl:'PL',en:'EN',uk:'UK',ru:'RU'};
+var BF_LANG = 'pl';
 
-const FLAG_SVGS = {
-  pl: `<svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg>`,
-  en: `<svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#012169"/><path d="M0 0l20 13M20 0L0 13" stroke="#fff" stroke-width="2.6"/><path d="M0 0l20 13M20 0L0 13" stroke="#c8102e" stroke-width="1.6"/><path d="M10 0v13M0 6.5h20" stroke="#fff" stroke-width="4"/><path d="M10 0v13M0 6.5h20" stroke="#c8102e" stroke-width="2.5"/></svg>`,
-  uk: `<svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#005bbb"/><rect y="6.5" width="20" height="6.5" fill="#ffd500"/></svg>`,
-  ru: `<svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#cf101a"/><rect y="3.9" width="20" height="5.2" fill="#007c00"/><rect width="2.6" height="13" fill="#007c00"/><rect width="2.6" height="2.6" fill="#cf101a"/><rect y="5.2" width="2.6" height="2.6" fill="#cf101a"/><rect y="10.4" width="2.6" height="2.6" fill="#cf101a"/></svg>`,
-};
-const LANG_NAMES = {pl:'PL', en:'EN', uk:'UK', ru:'RU'};
-
-let currentLang = localStorage.getItem('bf_lang') || 'pl';
-
-function toggleLangMenu() {
-  const sw = document.getElementById('langSwitcher');
-  const btn = document.getElementById('langBtn');
-  const isOpen = sw.classList.toggle('open');
-  btn.classList.toggle('open', isOpen);
-  if (isOpen) {
-    document.addEventListener('click', closeLangMenu, {once:true});
+function bfToggleLang(e) {
+  e.stopPropagation();
+  var sw = document.getElementById('langSwitcher');
+  var open = sw.classList.toggle('open');
+  if (open) {
+    setTimeout(function() {
+      document.addEventListener('click', bfCloseLang, {once:true});
+    }, 10);
   }
 }
 
-function closeLangMenu(e) {
-  const sw = document.getElementById('langSwitcher');
-  if (sw && !sw.contains(e.target)) {
-    sw.classList.remove('open');
-    document.getElementById('langBtn').classList.remove('open');
-  }
+function bfCloseLang() {
+  var sw = document.getElementById('langSwitcher');
+  if (sw) sw.classList.remove('open');
+}
+
+function bfApply(lang) {
+  var t = BF_TR[lang] || BF_TR.pl;
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+  // Update flag button
+  var flagEl = document.getElementById('curFlag');
+  var codeEl = document.getElementById('curCode');
+  if (flagEl) flagEl.innerHTML = BF_FLAGS[lang] || BF_FLAGS.pl;
+  if (codeEl) codeEl.textContent = BF_CODES[lang] || 'PL';
+  // Active state
+  document.querySelectorAll('.lang-opt').forEach(function(o) {
+    o.classList.toggle('active', o.getAttribute('data-lang') === lang);
+  });
+  document.documentElement.lang = lang;
 }
 
 function setLang(lang) {
-  if (lang === currentLang) {
-    document.getElementById('langSwitcher').classList.remove('open');
-    return;
-  }
-  const fromLang = currentLang;
-  currentLang = lang;
-  localStorage.setItem('bf_lang', lang);
-  document.getElementById('langSwitcher').classList.remove('open');
-  playFunnelAnimation(fromLang, lang, () => applyTranslations(lang));
+  if (lang === BF_LANG) { bfCloseLang(); return; }
+  var fromLang = BF_LANG;
+  BF_LANG = lang;
+  try { localStorage.setItem('bf_lang', lang); } catch(e) {}
+  bfCloseLang();
+  bfRunFunnel(fromLang, lang, function() { bfApply(lang); });
 }
 
-function applyTranslations(lang) {
-  const t = TRANSLATIONS[lang] || TRANSLATIONS.pl;
-  const set = (sel, html) => {
-    const els = document.querySelectorAll('[data-i18n="' + sel + '"]');
-    els.forEach(el => el.innerHTML = html);
+function bfRunFunnel(fromLang, toLang, cb) {
+  var ov = document.getElementById('langOverlay');
+  var cv = ov ? ov.querySelector('canvas') : null;
+  if (!ov || !cv) { cb(); return; }
+
+  var W = cv.width  = window.innerWidth;
+  var H = cv.height = window.innerHeight;
+  var ctx = cv.getContext('2d');
+  var CX = W/2, CY = H/2;
+  var MAX_R = Math.sqrt(CX*CX+CY*CY)*1.05;
+
+  // Color pairs per language [top, bottom]
+  var COLS = {
+    pl:[['#fff','#dc143c']],
+    en:[['#012169','#c8102e']],
+    uk:[['#005bbb','#ffd500']],
+    ru:[['#007c00','#cf101a']]
   };
-  Object.entries(t).forEach(([k,v]) => set(k, v));
-  // Flag + code
-  document.getElementById('currentFlag').innerHTML = FLAG_SVGS[lang];
-  document.getElementById('currentLangCode').textContent = LANG_NAMES[lang];
-  // Active state
-  document.querySelectorAll('.lang-option').forEach(o => {
-    o.classList.toggle('active', o.getAttribute('onclick').includes("'" + lang + "'"));
-  });
-  // html lang
-  document.documentElement.lang = lang === 'ru' ? 'ru' : lang === 'uk' ? 'uk' : lang === 'en' ? 'en' : 'pl';
-}
+  var fromC = COLS[fromLang]||COLS.pl;
+  var toC   = COLS[toLang]  ||COLS.pl;
 
-// ── FUNNEL ANIMATION ──
-function playFunnelAnimation(fromLang, toLang, callback) {
-  const overlay = document.getElementById('lang-transition');
-  const canvas = overlay.querySelector('canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width  = window.innerWidth;
-  const H = canvas.height = window.innerHeight;
-  overlay.style.display = 'block';
+  ov.style.display='block';
+  ov.style.opacity='1';
 
-  const FLAG_COLORS = {
-    pl: [['#fff','#dc143c'], 'PL'],
-    en: [['#012169','#c8102e'], 'EN'],
-    uk: [['#005bbb','#ffd500'], 'UK'],
-    ru: [['#cf101a','#007c00'], 'RU'],
-  };
+  var phase='suck', t0=null;
+  var SUCK=400, GAP=80, EXPAND=380;
 
-  let progress = 0;
-  const CX = W/2, CY = H/2;
-  const MAX_R = Math.sqrt(CX*CX + CY*CY) * 1.1;
+  function ease(x) { return x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
 
-  function drawFlag(colors, progress, phase) {
-    ctx.save();
+  function frame(ts) {
+    if (!t0) t0=ts;
+    var el=ts-t0;
+
     ctx.clearRect(0,0,W,H);
-    
-    if (phase === 'suck') {
-      // Старый флаг засасывается в центр — воронка сужается
-      const r = MAX_R * (1 - progress);
-      const c1 = colors[0][0], c2 = colors[0][1];
-      // Полосы флага
+
+    if (phase==='suck') {
+      var p = Math.min(el/SUCK,1);
+      var ep = ease(p);
+      var r = MAX_R*(1-ep);
+      // Draw shrinking flag
+      ctx.save();
       ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.clip();
-      ctx.fillStyle = c1; ctx.fillRect(CX-r,CY-r,r*2,r);
-      ctx.fillStyle = c2; ctx.fillRect(CX-r,CY,r*2,r);
-      
-      // Воронка — spiral lines
-      for (let i=0;i<12;i++) {
-        const angle = (i/12)*Math.PI*2 + progress*Math.PI*4;
-        const len = r * (1-progress*.4);
-        ctx.beginPath();
-        ctx.moveTo(CX,CY);
-        ctx.lineTo(CX + Math.cos(angle)*len, CY + Math.sin(angle)*len);
-        ctx.strokeStyle = 'rgba(0,0,0,'+(progress*.25)+')';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      ctx.fillStyle=fromC[0][0]; ctx.fillRect(CX-r,CY-r,r*2,r);
+      ctx.fillStyle=fromC[0][1]; ctx.fillRect(CX-r,CY,r*2,r);
+      // Spiral vortex
+      for(var i=0;i<10;i++) {
+        var a=(i/10)*Math.PI*2+ep*Math.PI*5;
+        var len=r*(1-ep*0.5);
+        ctx.beginPath();ctx.moveTo(CX,CY);
+        ctx.lineTo(CX+Math.cos(a)*len,CY+Math.sin(a)*len);
+        ctx.strokeStyle='rgba(0,0,0,'+(ep*0.3)+')';
+        ctx.lineWidth=1.5;ctx.stroke();
       }
-      
-      // Dark vignette to center
-      const grad = ctx.createRadialGradient(CX,CY,0,CX,CY,r);
-      grad.addColorStop(0, 'rgba(0,0,0,'+(progress*.9)+')');
-      grad.addColorStop(.4, 'rgba(0,0,0,'+(progress*.3)+')');
-      grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.restore(); ctx.save();
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.fill();
-      
-    } else {
-      // Новый флаг разворачивается из центра
-      const r = MAX_R * progress;
-      const c1 = colors[1][0], c2 = colors[1][1];
-      ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.clip();
-      ctx.fillStyle = c1; ctx.fillRect(0,0,W,H/2);
-      ctx.fillStyle = c2; ctx.fillRect(0,H/2,W,H/2);
-      
-      // Glow burst
-      const grad = ctx.createRadialGradient(CX,CY,0,CX,CY,r);
-      grad.addColorStop(0,'rgba(255,255,255,'+(0.5*(1-progress))+')');
-      grad.addColorStop(.3,'rgba(255,255,255,0)');
-      grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.restore(); ctx.save();
-      ctx.fillStyle = grad;
+      // Center dark
+      var g=ctx.createRadialGradient(CX,CY,0,CX,CY,r);
+      g.addColorStop(0,'rgba(0,0,0,'+(ep*0.95)+')');
+      g.addColorStop(0.5,'rgba(0,0,0,'+(ep*0.3)+')');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.restore();
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.fill();
+      if (p>=1) { phase='gap'; t0=ts; cb(); }
+
+    } else if (phase==='gap') {
+      // Black flash
+      ctx.fillStyle='rgba(0,0,0,'+(1-el/GAP)+')';
       ctx.fillRect(0,0,W,H);
-    }
-    ctx.restore();
-  }
+      if (el>=GAP) { phase='expand'; t0=ts; }
 
-  const SUCK_DUR = 420;
-  const EXPAND_DUR = 420;
-  const HOLD_DUR = 180;
-  let startTime = null;
-  let phase = 'suck';
-
-  function animate(ts) {
-    if (!startTime) startTime = ts;
-    const elapsed = ts - startTime;
-
-    if (phase === 'suck') {
-      progress = Math.min(elapsed / SUCK_DUR, 1);
-      const ease = 1 - Math.pow(1-progress, 3);
-      drawFlag(FLAG_COLORS, ease, 'suck');
-      if (progress >= 1) {
-        phase = 'expand';
-        startTime = ts;
-        progress = 0;
-        callback();
-      }
-      requestAnimationFrame(animate);
-
-    } else if (phase === 'expand') {
-      progress = Math.min(elapsed / EXPAND_DUR, 1);
-      const ease = 1 - Math.pow(1-progress, 2.5);
-      drawFlag(FLAG_COLORS, ease, 'expand');
-      if (progress >= 1) {
-        phase = 'hold';
-        startTime = ts;
-      }
-      requestAnimationFrame(animate);
-
-    } else if (phase === 'hold') {
-      if (elapsed >= HOLD_DUR) {
-        // Fade out overlay
-        let fadeStart = ts;
+    } else if (phase==='expand') {
+      var p2=Math.min(el/EXPAND,1);
+      var ep2=ease(p2);
+      var r2=MAX_R*ep2;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(CX,CY,r2,0,Math.PI*2); ctx.clip();
+      ctx.fillStyle=toC[0][0]; ctx.fillRect(0,0,W,H/2);
+      ctx.fillStyle=toC[0][1]; ctx.fillRect(0,H/2,W,H/2);
+      // Burst glow
+      var g2=ctx.createRadialGradient(CX,CY,0,CX,CY,r2*0.6);
+      g2.addColorStop(0,'rgba(255,255,255,'+(0.6*(1-ep2))+')');
+      g2.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.restore();
+      ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
+      if (p2>=1) {
+        // Fade out
+        var fo0=null;
         function fadeOut(ts2) {
-          const fp = Math.min((ts2-fadeStart)/300, 1);
-          overlay.style.opacity = 1 - fp;
-          if (fp < 1) requestAnimationFrame(fadeOut);
-          else { overlay.style.display='none'; overlay.style.opacity=1; }
+          if(!fo0)fo0=ts2;
+          var fp=Math.min((ts2-fo0)/280,1);
+          ov.style.opacity=1-fp;
+          if(fp<1) requestAnimationFrame(fadeOut);
+          else { ov.style.display='none'; ov.style.opacity='1'; ctx.clearRect(0,0,W,H); }
         }
-        requestAnimationFrame(fadeOut);
-      } else {
-        requestAnimationFrame(animate);
+        requestAnimationFrame(fadeOut); return;
       }
     }
+    requestAnimationFrame(frame);
   }
-  requestAnimationFrame(animate);
+  requestAnimationFrame(frame);
 }
 
 // ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  applyTranslations(currentLang);
-});
+(function() {
+  var saved = 'pl';
+  try { saved = localStorage.getItem('bf_lang') || 'pl'; } catch(e) {}
+  if (!BF_TR[saved]) saved = 'pl';
+  BF_LANG = saved;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { bfApply(BF_LANG); });
+  } else {
+    bfApply(BF_LANG);
+  }
+})();
 </script>
 
 </body>
