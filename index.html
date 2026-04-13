@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Barabash Flow — Profesjonalny Portal Klienta dla Agencji i Freelancerów</title>
-<meta name="description" content="Barabash Flow to gotowy portal klienta — czat na żywo, projekty, dokumenty, wideorozmowy i powiadomienia. Pod Twoją domeną. Pierwsze 30 dni bezpłatnie, bez karty kredytowej.">
+<title>Barabash Flow — Panel klienta nowej generacji</title>
+<meta name="description" content="Profesjonalny portal klienta dla agencji i freelancerów. Czat, projekty, dokumenty, kalendarz i powiadomienia w jednym miejscu.">
 <link rel="shortcut icon" href="assets/images/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,63 +18,21 @@
   --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
 }
 
-/* ARCHIVO EXPANDED — все заголовки */
-h1,h2,.nav-logo,.pc-name,.hs-t,.fc-title,.big-feat-title,.solution-title,.cta-h,.mt,.msuccess-t,.fl,.m-brand,.ad-num,.s-num,.tc-name,.demo-text-block h3{
+/* ARCHIVO EXPANDED */
+h1,h2,.nav-logo,.pc-name,.hs-t,.fc-title,.mt,.msuccess-t,.fl,.m-brand,.s-num,.tc-name,.demo-text-block h3{
   font-family:'Archivo',sans-serif;
-  font-variation-settings:'wdth' 125;font-weight:900;
+  font-variation-settings:'wdth' 125;
+  font-weight:900;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Archivo',sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-
-
-/* ── LANGUAGE SWITCHER ── */
-.lang-switcher{position:relative;display:flex;align-items:center}
-.lang-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);transition:all .2s;white-space:nowrap;font-family:'Archivo',sans-serif}
-.lang-btn:hover{background:rgba(255,255,255,.09);color:var(--text)}
-.lang-flag{width:18px;height:13px;border-radius:2px;display:inline-block;overflow:hidden;flex-shrink:0}
-.lang-flag svg{width:100%;height:100%;display:block}
-.lang-arrow{font-size:10px;opacity:.6;transition:transform .2s}
-.lang-btn.open .lang-arrow{transform:rotate(180deg)}
-.lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:rgba(15,15,20,.96);border:1px solid var(--border2);border-radius:14px;padding:6px;min-width:160px;opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:all .22s cubic-bezier(.16,1,.3,1);z-index:999;backdrop-filter:blur(20px)}
-.lang-switcher.open .lang-dropdown{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
-.lang-option{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:all .15s}
-.lang-option:hover{background:rgba(0,89,255,.1);color:var(--text)}
-.lang-option.active{color:var(--a);background:rgba(0,89,255,.08)}
-.lang-option .lang-flag{width:20px;height:15px}
-
-/* ── FUNNEL ANIMATION ── */
-#lang-transition{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;display:none}
-#lang-transition canvas{position:absolute;inset:0;width:100%;height:100%}
-
-/* ── LANG SWITCHER ── */
-.lang-switcher{position:relative}
-.lang-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);transition:all .2s;font-family:'Archivo',sans-serif;white-space:nowrap}
-.lang-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
-.lang-flag{width:20px;height:14px;border-radius:2px;overflow:hidden;display:inline-flex;flex-shrink:0}
-.lang-flag svg{width:100%;height:100%;display:block}
-.lang-arrow{font-size:9px;opacity:.5;transition:transform .2s;margin-left:1px}
-.lang-dropdown{position:absolute;top:calc(100% + 10px);right:0;min-width:158px;background:rgba(12,12,18,.97);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px;opacity:0;transform:translateY(-6px) scale(.96);pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;backdrop-filter:blur(24px)}
-.lang-switcher.open .lang-dropdown{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
-.lang-switcher.open .lang-arrow{transform:rotate(180deg)}
-.lang-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:background .15s,color .15s;user-select:none}
-.lang-opt:hover{background:rgba(0,89,255,.12);color:var(--text)}
-.lang-opt.active{color:var(--a);background:rgba(0,89,255,.1);font-weight:600}
-/* ── FUNNEL OVERLAY ── */
-#langOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;display:none}
-#langOverlay canvas{position:absolute;inset:0;width:100%;height:100%}
-
-/* ── INTERACTIVE BACKGROUND ── */
-#bg-canvas{
-  position:fixed;inset:0;width:100%;height:100%;
-  pointer-events:none;z-index:0;opacity:1;
-}
 /* GRAIN */
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay}
 
 /* ORBS */
-.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;display:none}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
 .orb1{width:700px;height:700px;background:radial-gradient(circle at 40% 40%,rgba(0,89,255,.18),transparent 70%);top:-250px;right:-200px;animation:fo 10s ease-in-out infinite alternate}
 .orb2{width:500px;height:500px;background:radial-gradient(circle at 60% 60%,rgba(4,26,83,.15),transparent 70%);bottom:-100px;left:-100px;animation:fo 14s ease-in-out infinite alternate-reverse}
 @keyframes fo{from{transform:scale(1) translate(0,0)}to{transform:scale(1.15) translate(30px,40px)}}
@@ -96,13 +54,15 @@ nav.scrolled{background:rgba(9,9,12,.88);backdrop-filter:blur(24px) saturate(1.4
 .nav-cta:hover{box-shadow:0 4px 24px rgba(0,89,255,.5);transform:translateY(-1px)}
 
 /* ──── HERO ──── */
-.hero{min-height:100svh;display:flex;align-items:center;padding:100px 0 60px;position:relative}
-.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-50%{opacity:.2;transform:scale(1.5)}}
-h1{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 125;font-weight:900;font-size:clamp(52px,7.5vw,100px);line-height:1.0;letter-spacing:-.03em;margin-bottom:20px;opacity:0;animation:fup .6s .2s ease forwards}
+.hero{min-height:100svh;display:flex;align-items:center;padding:130px 0 90px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(0,89,255,.08);border:1px solid rgba(0,89,255,.2);border-radius:100px;font-size:12px;font-weight:600;color:var(--a);letter-spacing:.5px;margin-bottom:22px;opacity:0;animation:fup .5s .1s ease forwards}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2;transform:scale(1.5)}}
+h1{font-family:'Archivo',sans-serif;font-size:clamp(52px,7.5vw,100px);font-weight:800;line-height:1.06;letter-spacing:-.03em;margin-bottom:22px;opacity:0;animation:fup .6s .2s ease forwards}
 .h1-grad{background:linear-gradient(125deg,var(--a) 0%,#a855f7 50%,var(--b) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block}
-.hero-p{font-size:18px;color:var(--t2);line-height:1.7;max-width:520px;margin-bottom:28px;font-weight:400;opacity:0;animation:fup .6s .3s ease forwards}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;opacity:0;animation:fup .6s .4s ease forwards;margin-bottom:36px}
+.hero-p{font-size:17px;color:var(--t2);line-height:1.75;max-width:460px;margin-bottom:36px;font-weight:300;opacity:0;animation:fup .6s .3s ease forwards}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;opacity:0;animation:fup .6s .4s ease forwards}
 .btn-fill{padding:14px 30px;background:linear-gradient(135deg,var(--a),var(--b));border:none;border-radius:100px;color:#fff;font-family:'Archivo',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .25s;box-shadow:0 4px 28px rgba(0,89,255,.35);letter-spacing:-.01em}
 .btn-fill:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,89,255,.55)}
 .btn-ghost{padding:14px 28px;background:transparent;border:1.5px solid var(--border2);border-radius:100px;color:var(--text);font-family:'Archivo',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;letter-spacing:-.01em}
@@ -162,7 +122,7 @@ h1{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 125;font-weig
 /* ──── SECTION COMMON ──── */
 .section{padding:100px 0;position:relative;z-index:1}
 .stag{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--a);display:inline-block;margin-bottom:14px;padding:4px 12px;background:rgba(0,89,255,.07);border-radius:100px;border:1px solid rgba(0,89,255,.15)}
-h2{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 125;font-weight:900;font-size:clamp(34px,4.2vw,58px);font-weight:900;line-height:1.1;letter-spacing:-.025em;margin-bottom:14px}
+h2{font-family:'Archivo',sans-serif;font-size:clamp(30px,3.8vw,50px);font-weight:800;line-height:1.1;letter-spacing:-.025em;margin-bottom:14px}
 h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .sub{font-size:16px;color:var(--t2);line-height:1.75;font-weight:300}
 
@@ -176,7 +136,7 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 .fc-tag{position:absolute;top:14px;right:14px;font-size:9px;font-weight:700;padding:3px 9px;border-radius:100px}
 .fc-tag.hot{background:rgba(0,89,255,.12);color:var(--a);border:1px solid rgba(0,89,255,.2)}
 .fc-tag.soon{background:rgba(74,222,128,.08);color:var(--green);border:1px solid rgba(74,222,128,.15)}
-.fc-ico{width:44px;height:44px;border-radius:12px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--a)}
+.fc-ico{width:44px;height:44px;border-radius:12px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
 .fc-title{font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
 .fc-desc{font-size:13px;color:var(--t2);line-height:1.65}
 
@@ -198,7 +158,7 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 .demo-text-block p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:16px}
 .demo-feat-list{display:flex;flex-direction:column;gap:8px}
 .dfl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--t2)}
-.dfl-ico{width:28px;height:28px;border-radius:8px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--a)}
+.dfl-ico{width:28px;height:28px;border-radius:8px;background:rgba(0,89,255,.1);border:1px solid rgba(0,89,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 
 /* Admin dashboard preview */
 .admin-dash{padding:14px}
@@ -304,7 +264,7 @@ h2 .g{background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-cl
 /* ──── CTA ──── */
 .cta-sec{padding:120px 0;text-align:center;position:relative;overflow:hidden}
 .cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(0,89,255,.1),transparent);pointer-events:none}
-.cta-h{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 125;font-size:clamp(44px,5.5vw,72px);font-weight:900;letter-spacing:-.03em;line-height:1.05;margin-bottom:20px}
+.cta-h{font-family:'Archivo',sans-serif;font-size:clamp(34px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-bottom:18px}
 .cta-sub{font-size:17px;color:var(--t2);margin:0 auto 40px;max-width:480px;font-weight:300;line-height:1.7}
 .cta-trust{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:22px;flex-wrap:wrap}
 .ct-item{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px}
@@ -361,7 +321,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 .hmv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .hmv-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:16px;position:relative;overflow:hidden}
 .hmv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--a),var(--b))}
-.hmv-ico{margin-bottom:8px;color:var(--a);display:flex;align-items:center}
+.hmv-ico{font-size:22px;margin-bottom:8px}
 .hmv-title{font-family:'Archivo',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
 .hmv-desc{font-size:11px;color:var(--t3);line-height:1.4}
 .hmv-chat{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:14px;position:relative;overflow:hidden}
@@ -400,20 +360,35 @@ footer{border-top:1px solid var(--border);padding:36px 0}
   .nav-cta{padding:9px 14px;font-size:13px;flex-shrink:0}
   .nav-logo-name{font-size:15px}
   nav.scrolled{padding:12px 0}
-  h1{font-size:clamp(40px,12vw,58px)}
-  .cta-h{font-size:clamp(28px,8vw,42px);word-break:break-word;overflow-wrap:break-word}
+  h1{font-size:clamp(52px,7.5vw,100px);word-break:break-word;overflow-wrap:break-word}
   .hero-btns{flex-direction:column;align-items:stretch}
   .btn-fill,.btn-ghost{text-align:center;justify-content:center}
   .section{padding:64px 0}
   .cta-sec{padding:72px 0}
 }
+
+/* ── LANG SWITCHER ── */
+.lang-switcher{position:relative;display:flex;align-items:center}
+.lang-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);transition:all .2s;white-space:nowrap}
+.lang-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.lang-flag{width:20px;height:14px;border-radius:2px;overflow:hidden;display:inline-flex;flex-shrink:0}
+.lang-flag svg{width:100%;height:100%;display:block}
+.lang-arrow{font-size:9px;opacity:.5;transition:transform .2s;margin-left:1px}
+.lang-dropdown{position:absolute;top:calc(100% + 10px);right:0;min-width:158px;background:rgba(12,12,18,.97);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px;opacity:0;transform:translateY(-6px) scale(.96);pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;backdrop-filter:blur(24px)}
+.lang-switcher.open .lang-dropdown{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.lang-switcher.open .lang-arrow{transform:rotate(180deg)}
+.lang-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:background .15s,color .15s;user-select:none}
+.lang-opt:hover{background:rgba(0,89,255,.12);color:var(--text)}
+.lang-opt.active{color:var(--a);background:rgba(0,89,255,.1);font-weight:600}
+/* ── BG CANVAS ── */
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:1}
+#langOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;display:none}
+#langOverlay canvas{position:absolute;inset:0;width:100%;height:100%}
 </style>
 </head>
 <body>
-
 <canvas id="bg-canvas"></canvas>
-<div id="langOverlay" style="position:fixed;inset:0;z-index:99999;pointer-events:none;display:none"><canvas></canvas></div>
-
+<div id="langOverlay"><canvas></canvas></div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
@@ -429,7 +404,8 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <a href="#funkcje" data-i18n="nav_features">Funkcje</a>
         <a href="#jak-dziala" data-i18n="nav_how">Jak działa</a>
         <a href="#cennik" data-i18n="nav_pricing">Cennik</a>
-      </div><div class="lang-switcher" id="langSwitcher"><button class="lang-btn" id="langBtn" onclick="bfToggleLang(event)"><span class="lang-flag" id="curFlag"><svg viewBox="0 0 20 13" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg></span><span id="curCode">PL</span><span class="lang-arrow">&#9662;</span></button><div class="lang-dropdown" id="langDropdown"><div class="lang-opt" data-lang="pl" onclick="setLang('pl')"><span class="lang-flag"><svg viewBox="0 0 20 13" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg></span> Polski</div><div class="lang-opt" data-lang="en" onclick="setLang('en')"><span class="lang-flag"><svg viewBox="0 0 20 13" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="13" fill="#012169"/><path d="M0 0 L20 13 M20 0 L0 13" stroke="#fff" stroke-width="3"/><path d="M0 0 L20 13 M20 0 L0 13" stroke="#c8102e" stroke-width="1.5"/><path d="M10 0 L10 13 M0 6.5 L20 6.5" stroke="#fff" stroke-width="5"/><path d="M10 0 L10 13 M0 6.5 L20 6.5" stroke="#c8102e" stroke-width="2.5"/></svg></span> English</div><div class="lang-opt" data-lang="uk" onclick="setLang('uk')"><span class="lang-flag"><svg viewBox="0 0 20 13" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="6.5" fill="#005bbb"/><rect y="6.5" width="20" height="6.5" fill="#ffd500"/></svg></span> &#1059;&#1082;&#1088;&#1072;&#1111;&#1085;&#1089;&#1100;&#1082;&#1072;</div><div class="lang-opt" data-lang="ru" onclick="setLang('ru')"><span class="lang-flag"><svg viewBox="0 0 20 13" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="13" fill="#cf101a"/><rect y="8.67" width="20" height="4.33" fill="#007c00"/><rect width="2.67" height="13" fill="#007c00"/><rect x="0.44" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="2.17" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="4.33" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="6.5" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="8.67" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="10.83" width="1.78" height="1.44" fill="#cf101a"/><rect x="1.33" y="0.72" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="2.89" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="5.06" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="7.22" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="9.39" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="11.56" width="1.78" height="1.44" fill="#fff"/></svg></span> &#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</div></div></div><button class="nav-cta" onclick="openModal()"><span data-i18n="nav_cta">Chcę wypróbować</span></button>
+      </div>
+      <div class="lang-switcher" id="langSwitcher"><button class="lang-btn" id="langBtn" onclick="bfToggleLang(event)"><span class="lang-flag" id="curFlag"><svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg></span><span id="curCode">PL</span><span class="lang-arrow">&#9662;</span></button><div class="lang-dropdown" id="langDropdown"><div class="lang-opt" data-lang="pl" onclick="setLang('pl')"><span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#fff"/><rect y="6.5" width="20" height="6.5" fill="#dc143c"/></svg></span> Polski</div><div class="lang-opt" data-lang="en" onclick="setLang('en')"><span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#012169"/><path d="M0 0 L20 13 M20 0 L0 13" stroke="#fff" stroke-width="3"/><path d="M0 0 L20 13 M20 0 L0 13" stroke="#c8102e" stroke-width="1.5"/><path d="M10 0 L10 13 M0 6.5 L20 6.5" stroke="#fff" stroke-width="5"/><path d="M10 0 L10 13 M0 6.5 L20 6.5" stroke="#c8102e" stroke-width="2.5"/></svg></span> English</div><div class="lang-opt" data-lang="uk" onclick="setLang('uk')"><span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="6.5" fill="#005bbb"/><rect y="6.5" width="20" height="6.5" fill="#ffd500"/></svg></span> &#1059;&#1082;&#1088;&#1072;&#1111;&#1085;&#1089;&#1100;&#1082;&#1072;</div><div class="lang-opt" data-lang="ru" onclick="setLang('ru')"><span class="lang-flag"><svg viewBox="0 0 20 13"><rect width="20" height="13" fill="#cf101a"/><rect y="8.67" width="20" height="4.33" fill="#007c00"/><rect width="2.67" height="13" fill="#007c00"/><rect x="0.44" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="2.17" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="4.33" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="6.5" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="8.67" width="1.78" height="1.44" fill="#cf101a"/><rect x="0.44" y="10.83" width="1.78" height="1.44" fill="#cf101a"/><rect x="1.33" y="0.72" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="2.89" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="5.06" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="7.22" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="9.39" width="1.78" height="1.44" fill="#fff"/><rect x="1.33" y="11.56" width="1.78" height="1.44" fill="#fff"/></svg></span> &#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</div></div></div><button class="nav-cta" onclick="openModal()"><span data-i18n="nav_cta">Chcę wypróbować</span></button>
     </div>
   </div>
 </nav>
@@ -448,22 +424,22 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         <div class="hero-mobile-visual">
           <div class="hmv-grid">
             <div class="hmv-card">
-              <div class="hmv-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="hmv-ico">💬</div>
               <div class="hmv-title">Czat na żywo</div>
               <div class="hmv-desc">Pliki, linki i wskaźnik pisania</div>
             </div>
             <div class="hmv-card">
-              <div class="hmv-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+              <div class="hmv-ico">🎥</div>
               <div class="hmv-title">Wideorozmowy</div>
               <div class="hmv-desc">Bezpośrednio w panelu</div>
             </div>
             <div class="hmv-card">
-              <div class="hmv-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="hmv-ico">📁</div>
               <div class="hmv-title">Projekty</div>
               <div class="hmv-desc">Posty, pliki, dokumenty</div>
             </div>
             <div class="hmv-card">
-              <div class="hmv-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+              <div class="hmv-ico">📅</div>
               <div class="hmv-title">Kalendarz</div>
               <div class="hmv-desc">Sync z Apple Calendar</div>
             </div>
@@ -531,12 +507,12 @@ footer{border-top:1px solid var(--border);padding:36px 0}
           </div>
           <div class="float-badges-row">
             <div class="float-badge">
-              <span style="color:var(--a);display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg></span>
-              <div><div style="font-size:11px;font-weight:700">Nowy projekt dodany</div><div style="font-size:10px;color:var(--t3)">przez Dmytrii Barabash</div></div>
+              <span style="font-size:14px">✨</span>
+              <div><div style="font-size:11px;font-weight:700" data-i18n="badge_new_project">Nowy projekt dodany</div><div style="font-size:10px;color:var(--t3)" data-i18n="badge_by">przez Dmytrii Barabash</div></div>
             </div>
             <div class="float-badge">
-              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0"></span>
-              <span style="font-size:11px;font-weight:600;color:var(--green)">Klient aktywny teraz</span>
+              <div class="fb-dot" style="background:var(--green)"></div>
+              <span style="font-size:11px;font-weight:600;color:var(--green)" data-i18n="badge_online">Klient aktywny teraz</span>
             </div>
           </div>
         </div>
@@ -579,50 +555,50 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     </div>
     <div class="feat-grid">
       <div class="fc fc-hot rv d1">
-        <div class="fc-tag hot">⭐ Ulubiona</div>
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <div class="fc-title">Czat z plikami i linkami</div>
-        <div class="fc-desc">Komunikacja w czasie rzeczywistym. Zdjęcia, PDF-y, dokumenty — bezpośrednio w czacie. Linki podświetlane automatycznie, wskaźnik pisania jak w Messengerze.</div>
+        <div class="fc-tag hot" data-i18n="feat_fav">⭐ Ulubiona</div>
+        <div class="fc-ico">💬</div>
+        <div class="fc-title" data-i18n="feat1_title">Czat z plikami i linkami</div>
+        <div class="fc-desc" data-i18n="feat1_desc">Komunikacja w czasie rzeczywistym. Zdjęcia, PDF-y, dokumenty — bezpośrednio w czacie. Linki podświetlane automatycznie, wskaźnik pisania jak w Messengerze.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
-        <div class="fc-title">Wideorozmowy w panelu</div>
-        <div class="fc-desc">Połączenie wideo bezpośrednio w panelu klienta — bez wychodzenia do zewnętrznych aplikacji. Zaplanuj, klikasz i rozmawiasz.</div>
+        <div class="fc-ico">🎥</div>
+        <div class="fc-title" data-i18n="feat2_title">Wideorozmowy w panelu</div>
+        <div class="fc-desc" data-i18n="feat2_desc">Połączenie wideo bezpośrednio w panelu klienta — bez wychodzenia do zewnętrznych aplikacji. Zaplanuj, klikasz i rozmawiasz.</div>
       </div>
       <div class="fc rv d3">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-        <div class="fc-title">Projekty i materiały</div>
-        <div class="fc-desc">Każdy projekt ma swoją przestrzeń. Publikuj posty, linki, pliki i PDF-y. Klient na bieżąco widzi postęp — bez wysyłania maila z pytaniem "co słychać".</div>
+        <div class="fc-ico">📁</div>
+        <div class="fc-title" data-i18n="feat3_title">Projekty i materiały</div>
+        <div class="fc-desc" data-i18n="feat3_desc">Każdy projekt ma swoją przestrzeń. Publikuj posty, linki, pliki i PDF-y. Klient na bieżąco widzi postęp — bez wysyłania maila z pytaniem "co słychać".</div>
       </div>
       <div class="fc rv d1">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="fc-title">Kalendarz + Apple Calendar</div>
-        <div class="fc-desc">Zaplanuj spotkanie w panelu, wyślij zaproszenie klientowi — automatycznie pojawia się w Twoim Apple Calendar. Klient dostaje popup z odliczaniem do spotkania.</div>
+        <div class="fc-ico">📅</div>
+        <div class="fc-title" data-i18n="feat4_title">Kalendarz + Apple Calendar</div>
+        <div class="fc-desc" data-i18n="feat4_desc">Zaplanuj spotkanie w panelu, wyślij zaproszenie klientowi — automatycznie pojawia się w Twoim Apple Calendar. Klient dostaje popup z odliczaniem do spotkania.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-        <div class="fc-title">Inteligentne powiadomienia</div>
-        <div class="fc-desc">Klient nie sprawdza panelu? Dostaje popup w oknie. Nie ma go na stronie? Dostaje maila. System throttlingu sprawia że powiadomienia nigdy nie są spamem.</div>
+        <div class="fc-ico">🔔</div>
+        <div class="fc-title" data-i18n="feat5_title">Inteligentne powiadomienia</div>
+        <div class="fc-desc" data-i18n="feat5_desc">Klient nie sprawdza panelu? Dostaje popup w oknie. Nie ma go na stronie? Dostaje maila. System throttlingu sprawia że powiadomienia nigdy nie są spamem.</div>
       </div>
       <div class="fc rv d3">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-        <div class="fc-title">Dokumenty i faktury</div>
-        <div class="fc-desc">Ty uploadujesz faktury i umowy, klient przesyła swoje materiały. Pliki posegregowane przy projekcie, zawsze pod ręką — bez szukania w mailach.</div>
+        <div class="fc-ico">📂</div>
+        <div class="fc-title" data-i18n="feat6_title">Dokumenty i faktury</div>
+        <div class="fc-desc" data-i18n="feat6_desc">Ty uploadujesz faktury i umowy, klient przesyła swoje materiały. Pliki posegregowane przy projekcie, zawsze pod ręką — bez szukania w mailach.</div>
       </div>
       <div class="fc rv d1">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div class="fc-title">Etapy i postęp projektu</div>
-        <div class="fc-desc">Wizualny pasek postępu z etapami. Klient widzi w którym miejscu jest projekt i co na niego czeka. Zero pytań o status.</div>
+        <div class="fc-ico">📊</div>
+        <div class="fc-title" data-i18n="feat7_title">Etapy i postęp projektu</div>
+        <div class="fc-desc" data-i18n="feat7_desc">Wizualny pasek postępu z etapami. Klient widzi w którym miejscu jest projekt i co na niego czeka. Zero pytań o status.</div>
       </div>
       <div class="fc rv d2">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        <div class="fc-title">Zadania i checklisty</div>
-        <div class="fc-desc">Lista zadań w projekcie z terminami. Klient widzi co trwa, co jest zrobione. Wewnętrzny czat między administratorami z grupami i prywatnymi kanałami.</div>
+        <div class="fc-ico">✅</div>
+        <div class="fc-title" data-i18n="feat8_title">Zadania i checklisty</div>
+        <div class="fc-desc" data-i18n="feat8_desc">Lista zadań w projekcie z terminami. Klient widzi co trwa, co jest zrobione. Wewnętrzny czat między administratorami z grupami i prywatnymi kanałami.</div>
       </div>
       <div class="fc rv d3">
-        <div class="fc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <div class="fc-title">Oceny i feedback</div>
-        <div class="fc-desc">Po projekcie klient ocenia współpracę gwiazdkami i zostawia komentarz. Budujesz portfolio referencji bez wysiłku.</div>
+        <div class="fc-ico">⭐</div>
+        <div class="fc-title" data-i18n="feat9_title">Oceny i feedback</div>
+        <div class="fc-desc" data-i18n="feat9_desc">Po projekcie klient ocenia współpracę gwiazdkami i zostawia komentarz. Budujesz portfolio referencji bez wysiłku.</div>
       </div>
     </div>
   </div>
@@ -639,9 +615,9 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     <div class="demo-grid rv">
       <div>
         <div class="demo-tabs">
-          <button class="demo-tab active" onclick="switchDemo('admin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="2" y1="20" x2="22" y2="20"/></svg> Panel admina</button>
-          <button class="demo-tab" onclick="switchDemo('video')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Wideorozmowy</button>
-          <button class="demo-tab" onclick="switchDemo('docs')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Dokumenty</button>
+          <button class="demo-tab active" onclick="switchDemo('admin')">👑 Panel admina</button>
+          <button class="demo-tab" onclick="switchDemo('video')">🎥 Wideorozmowy</button>
+          <button class="demo-tab" onclick="switchDemo('docs')">📂 Dokumenty</button>
         </div>
         <div class="demo-screen">
           <!-- Admin screen -->
@@ -774,29 +750,29 @@ footer{border-top:1px solid var(--border);padding:36px 0}
           <h3>Panel administratora<br>w pełnej kontroli</h3>
           <p>Widzisz wszystkich klientów, kto jest online, kto czeka na odpowiedź. Zarządzaj wieloma adminami z różnymi rolami i uprawnieniami — każdy widzi tylko to co ma widzieć.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>Główny i zwykli administratorzy</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Status online klientów w czasie rzeczywistym</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>Wewnętrzny czat między adminami</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>Statystyki i raporty aktywności</div>
+            <div class="dfl"><div class="dfl-ico">👑</div>Główny i zwykli administratorzy</div>
+            <div class="dfl"><div class="dfl-ico">🟢</div>Status online klientów w czasie rzeczywistym</div>
+            <div class="dfl"><div class="dfl-ico">💬</div>Wewnętrzny czat między adminami</div>
+            <div class="dfl"><div class="dfl-ico">📊</div>Statystyki i raporty aktywności</div>
           </div>
         </div>
         <div id="demo-text-video" class="demo-text-block" style="display:none">
           <h3>Wideorozmowy<br>bez opuszczania panelu</h3>
           <p>Koniec z "wejdź na Meet, podaj linka, zaloguj się...". Klient klika jeden przycisk w panelu i od razu jesteście w rozmowie wideo. Nagranie trafia automatycznie do historii projektu.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>HD wideo bezpośrednio w panelu</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>Planowanie przez kalendarz</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>Dedykowany link per projekt</div>
+            <div class="dfl"><div class="dfl-ico">🎥</div>HD wideo bezpośrednio w panelu</div>
+            <div class="dfl"><div class="dfl-ico">📅</div>Planowanie przez kalendarz</div>
+            <div class="dfl"><div class="dfl-ico">🔗</div>Dedykowany link per projekt</div>
           </div>
         </div>
         <div id="demo-text-docs" class="demo-text-block" style="display:none">
           <h3>Dokumenty i faktury<br>zawsze pod ręką</h3>
           <p>Wrzuć jednocześnie wiele plików — faktury, projekty, zdjęcia, umowy. Klient widzi wszystko posegregowane przy swoim projekcie, bez szukania w e-mailach i folderach.</p>
           <div class="demo-feat-list">
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>Upload wielu plików naraz</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/><line x1="12" y1="16" x2="8" y2="16"/></svg></div>Faktury z numerem, kwotą i terminem</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>Podgląd PDF i zdjęć inline</div>
-            <div class="dfl"><div class="dfl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>Klient też może uploadować pliki</div>
+            <div class="dfl"><div class="dfl-ico">📤</div>Upload wielu plików naraz</div>
+            <div class="dfl"><div class="dfl-ico">🧾</div>Faktury z numerem, kwotą i terminem</div>
+            <div class="dfl"><div class="dfl-ico">👁️</div>Podgląd PDF i zdjęć inline</div>
+            <div class="dfl"><div class="dfl-ico">📥</div>Klient też może uploadować pliki</div>
           </div>
         </div>
       </div>
@@ -815,23 +791,23 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     <div class="how-grid">
       <div class="hs rv d1">
         <div class="hs-n">1</div>
-        <div class="hs-t">Stawiamy panel</div>
-        <div class="hs-d">Instalujemy Barabash Flow na Twojej domenie. Zero konfiguracji serwerów z Twojej strony — to nasze zadanie.</div>
+        <div class="hs-t" data-i18n="how1_title">Stawiamy panel</div>
+        <div class="hs-d" data-i18n="how1_desc">Instalujemy Barabash Flow na Twojej domenie. Zero konfiguracji serwerów z Twojej strony — to nasze zadanie.</div>
       </div>
       <div class="hs rv d2">
         <div class="hs-n">2</div>
-        <div class="hs-t">Dodajesz klienta</div>
-        <div class="hs-d">Jeden formularz — imię, email, hasło. Klient dostaje piękny mail z zaproszeniem i od razu ma dostęp.</div>
+        <div class="hs-t" data-i18n="how2_title">Dodajesz klienta</div>
+        <div class="hs-d" data-i18n="how2_desc">Jeden formularz — imię, email, hasło. Klient dostaje piękny mail z zaproszeniem i od razu ma dostęp.</div>
       </div>
       <div class="hs rv d3">
         <div class="hs-n">3</div>
-        <div class="hs-t">Tworzysz projekt</div>
-        <div class="hs-d">Dodajesz projekt, publikujesz pierwsze materiały. Klient widzi wszystko w swoim panelu, w czasie rzeczywistym.</div>
+        <div class="hs-t" data-i18n="how3_title">Tworzysz projekt</div>
+        <div class="hs-d" data-i18n="how3_desc">Dodajesz projekt, publikujesz pierwsze materiały. Klient widzi wszystko w swoim panelu, w czasie rzeczywistym.</div>
       </div>
       <div class="hs rv d4">
         <div class="hs-n">4</div>
-        <div class="hs-t">Komunikujesz się</div>
-        <div class="hs-d">Czat, wideo, dokumenty, kalendarz — w jednym miejscu. Koniec z przeszukiwaniem dziesiątek maili i wiadomości.</div>
+        <div class="hs-t" data-i18n="how4_title">Komunikujesz się</div>
+        <div class="hs-d" data-i18n="how4_desc">Czat, wideo, dokumenty, kalendarz — w jednym miejscu. Koniec z przeszukiwaniem dziesiątek maili i wiadomości.</div>
       </div>
     </div>
   </div>
@@ -849,25 +825,25 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div class="compare-col bad">
         <div class="compare-header" data-i18n="compare_bad">❌ Bez Barabash Flow</div>
         <div class="compare-list">
-          <div class="cl-item no">Maile z pytaniem "co z projektem?"</div>
-          <div class="cl-item no">WhatsApp zmieszany z pracą i życiem prywatnym</div>
-          <div class="cl-item no">Faktury wysyłane osobnym mailem</div>
-          <div class="cl-item no">Linki Google Meet kopiowane ręcznie</div>
-          <div class="cl-item no">Pliki zgubione w Dysku Google</div>
-          <div class="cl-item no">Brak historii projektu po zakończeniu</div>
-          <div class="cl-item no">Nieporofesjonalne pierwsze wrażenie</div>
+          <div class="cl-item no" data-i18n="cmp_n1">Maile z pytaniem "co z projektem?"</div>
+          <div class="cl-item no" data-i18n="cmp_n2">WhatsApp zmieszany z pracą i życiem prywatnym</div>
+          <div class="cl-item no" data-i18n="cmp_n3">Faktury wysyłane osobnym mailem</div>
+          <div class="cl-item no" data-i18n="cmp_n4">Linki Google Meet kopiowane ręcznie</div>
+          <div class="cl-item no" data-i18n="cmp_n5">Pliki zgubione w Dysku Google</div>
+          <div class="cl-item no" data-i18n="cmp_n6">Brak historii projektu po zakończeniu</div>
+          <div class="cl-item no" data-i18n="cmp_n7">Nieporofesjonalne pierwsze wrażenie</div>
         </div>
       </div>
       <div class="compare-col good">
         <div class="compare-header" data-i18n="compare_good">✓ Z Barabash Flow</div>
         <div class="compare-list">
-          <div class="cl-item yes">Klient sam sprawdza status w panelu</div>
-          <div class="cl-item yes">Czat, wideo i dokumenty w jednym miejscu</div>
-          <div class="cl-item yes">Faktury z podglądem bezpośrednio w projekcie</div>
-          <div class="cl-item yes">Wideo jednym klikiem z poziomu panelu</div>
-          <div class="cl-item yes">Pliki posegregowane przy projekcie</div>
-          <div class="cl-item yes">Archiwum z pełną historią na zawsze</div>
-          <div class="cl-item yes">Profesjonalny branding pod Twoją domeną</div>
+          <div class="cl-item yes" data-i18n="cmp_y1">Klient sam sprawdza status w panelu</div>
+          <div class="cl-item yes" data-i18n="cmp_y2">Czat, wideo i dokumenty w jednym miejscu</div>
+          <div class="cl-item yes" data-i18n="cmp_y3">Faktury z podglądem bezpośrednio w projekcie</div>
+          <div class="cl-item yes" data-i18n="cmp_y4">Wideo jednym klikiem z poziomu panelu</div>
+          <div class="cl-item yes" data-i18n="cmp_y5">Pliki posegregowane przy projekcie</div>
+          <div class="cl-item yes" data-i18n="cmp_y6">Archiwum z pełną historią na zawsze</div>
+          <div class="cl-item yes" data-i18n="cmp_y7">Profesjonalny branding pod Twoją domeną</div>
         </div>
       </div>
     </div>
@@ -880,20 +856,20 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     <div class="rv" style="text-align:center;max-width:520px;margin:0 auto">
       <div class="stag" data-i18n="sec_pricing_tag">Cennik</div>
       <h2 data-i18n="pricing_h2">Cennik bez ukrytych opłat —<br><span class="g">płacisz za narzędzie, nie obrót</span></h2>
-      <p class="sub">Bez ukrytych opłat. Bez prowizji od projektów. Płacisz za narzędzie, nie od obrotu.</p>
+      <p class="sub" data-i18n="pricing_sub">Bez ukrytych opłat. Bez prowizji od projektów. Płacisz za narzędzie, nie od obrotu.</p>
     </div>
     <div class="price-grid">
 
       <!-- STARTER -->
       <div class="pc rv d1">
-        <div class="pc-name">🚀 Starter</div>
+        <div class="pc-name" data-i18n="pc1_name">🚀 Starter</div>
         <div class="pc-desc">Dla freelancerów i małych agencji porządkujących komunikację z klientami.</div>
         <div class="pc-price">
           <span class="pc-cur">PLN</span>
           <span class="pc-num">124</span>
           <span class="pc-per">/mies. netto</span>
         </div>
-        <div class="pc-note">Instalacja w 24h · bez karty kredytowej</div>
+        <div class="pc-note">Pierwsze 30 dni gratis · bez karty kredytowej</div>
         <div class="pc-limits">
           <div class="pc-limit-row"><span class="pc-limit-lbl">👥 Klientów</span><span class="pc-limit-val">do 50</span></div>
           <div class="pc-limit-row"><span class="pc-limit-lbl">🛡️ Administratorów</span><span class="pc-limit-val">do 5</span></div>
@@ -918,14 +894,14 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <!-- PRO -->
       <div class="pc pop rv d2">
         <div class="pc-badge">⭐ Najpopularniejszy</div>
-        <div class="pc-name">⚡ Pro</div>
+        <div class="pc-name" data-i18n="pc2_name">⚡ Pro</div>
         <div class="pc-desc">Dla agencji obsługujących setki klientów z pełnym arsenałem narzędzi.</div>
         <div class="pc-price">
           <span class="pc-cur">PLN</span>
           <span class="pc-num">369</span>
           <span class="pc-per">/mies. netto</span>
         </div>
-        <div class="pc-note">Instalacja w 24h · bez karty kredytowej</div>
+        <div class="pc-note">Pierwsze 30 dni gratis · bez karty kredytowej</div>
         <div class="pc-limits">
           <div class="pc-limit-row"><span class="pc-limit-lbl">👥 Klientów</span><span class="pc-limit-val">do 500</span></div>
           <div class="pc-limit-row"><span class="pc-limit-lbl">🛡️ Administratorów</span><span class="pc-limit-val">do 30</span></div>
@@ -949,7 +925,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
 
       <!-- AGENCY -->
       <div class="pc rv d3">
-        <div class="pc-name">🏢 Agency</div>
+        <div class="pc-name" data-i18n="pc3_name">🏢 Agency</div>
         <div class="pc-desc">Dla dużych agencji i firm bez żadnych kompromisów i ograniczeń.</div>
         <div class="pc-price" style="align-items:center">
           <span class="pc-num" style="font-size:28px;color:var(--a)">Skontaktuj się</span>
@@ -991,7 +967,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
     <div class="tg">
       <div class="tc rv d1">
         <div class="tc-stars">⭐⭐⭐⭐⭐</div>
-        <div class="tc-text">"Moi klienci przestali wysyłać maile z pytaniem «co z projektem». Teraz sami wchodzą i sprawdzają status. To jest właśnie to czego potrzebowałem od lat."</div>
+        <div class="tc-text" data-i18n="rev1_text">"Moi klienci przestali wysyłać maile z pytaniem «co z projektem». Teraz sami wchodzą i sprawdzają status. To jest właśnie to czego potrzebowałem od lat."</div>
         <div class="tc-auth">
           <div class="tc-av">M</div>
           <div><div class="tc-name">Michał K.</div><div class="tc-role">Freelancer · Web Design</div></div>
@@ -999,7 +975,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       </div>
       <div class="tc rv d2">
         <div class="tc-stars">⭐⭐⭐⭐⭐</div>
-        <div class="tc-text">"Onboarding klienta trwa teraz 3 minuty. Tworzę konto, dodaję projekt, klient dostaje maila i od razu widzi co robimy. Profesjonalne pierwsze wrażenie gwarantowane."</div>
+        <div class="tc-text" data-i18n="rev2_text">"Onboarding klienta trwa teraz 3 minuty. Tworzę konto, dodaję projekt, klient dostaje maila i od razu widzi co robimy. Profesjonalne pierwsze wrażenie gwarantowane."</div>
         <div class="tc-auth">
           <div class="tc-av">A</div>
           <div><div class="tc-name">Anna W.</div><div class="tc-role">Agencja marketingowa</div></div>
@@ -1007,7 +983,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       </div>
       <div class="tc rv d3">
         <div class="tc-stars">⭐⭐⭐⭐⭐</div>
-        <div class="tc-text">"Integracja z Apple Calendar to hit. Tworzę spotkanie w panelu, klientowi leci powiadomienie, a w moim kalendarzu pojawia się event automatycznie. Magia."</div>
+        <div class="tc-text" data-i18n="rev3_text">"Integracja z Apple Calendar to hit. Tworzę spotkanie w panelu, klientowi leci powiadomienie, a w moim kalendarzu pojawia się event automatycznie. Magia."</div>
         <div class="tc-auth">
           <div class="tc-av">P</div>
           <div><div class="tc-name">Piotr R.</div><div class="tc-role">Studio UX/UI</div></div>
@@ -1027,10 +1003,10 @@ footer{border-top:1px solid var(--border);padding:36px 0}
         Chcę wypróbować za darmo →
       </button>
       <div class="cta-trust">
-        <div class="ct-item"><span data-i18n="trust1">Pierwsze 30 dni gratis</span></div>
-        <div class="ct-item"><span data-i18n="trust2">Bez karty kredytowej</span></div>
+        <div class="ct-item" data-i18n="trust1">Pierwsze 30 dni gratis</div>
+        <div class="ct-item" data-i18n="trust2">Bez karty kredytowej</div>
         <div class="ct-item" data-i18n="trust3">Instalacja w 24h</div>
-        <div class="ct-item"><span data-i18n="trust4">Wsparcie 1:1</span></div>
+        <div class="ct-item" data-i18n="trust4">Wsparcie 1:1</div>
       </div>
     </div>
   </div>
@@ -1074,7 +1050,7 @@ footer{border-top:1px solid var(--border);padding:36px 0}
       <div class="fg"><label class="fl2">Co chcesz osiągnąć? (opcjonalnie)</label><textarea class="fi2 fta" id="fm" placeholder="np. Mam 10 klientów i chcę dać im profesjonalny panel..."></textarea></div>
       <div class="ferr" id="ferr"></div>
       <button class="sbtn" id="sbtn" onclick="submitForm()">Wyślij zgłoszenie →</button>
-      <div class="mprivacy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Twoje dane są bezpieczne. Bez spamu. Kontakt w ciągu 24h.</div>
+      <div class="mprivacy">🔒 Twoje dane są bezpieczne. Bez spamu. Kontakt w ciągu 24h.</div>
     </div>
     <div id="msuccess" class="msuccess" style="display:none">
       <span class="msuccess-ico">🎉</span>
@@ -1171,402 +1147,54 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>
 </script>
 
 <script>
-(function(){
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, mouse = {x:-9999,y:-9999}, raf;
-
-  // ── CONFIG ──
-  const PARTICLE_COUNT = 80;
-  const CONNECTION_DIST = 140;
-  const MOUSE_REPEL_DIST = 120;
-  const MOUSE_ATTRACT_DIST = 200;
-  const COLOR_PRIMARY = [0, 89, 255];    // #0059FF
-  const COLOR_ACCENT  = [124, 58, 237];  // purple
-
-  function resize(){
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  // Mouse
-  window.addEventListener('mousemove', e => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-  window.addEventListener('mouseleave', () => {
-    mouse.x = -9999; mouse.y = -9999;
-  });
-
-  // ── PARTICLES ──
-  class Particle {
-    constructor(){
-      this.reset(true);
-    }
-    reset(init){
-      this.x  = Math.random() * W;
-      this.y  = init ? Math.random() * H : (Math.random() > .5 ? -10 : H+10);
-      this.vx = (Math.random()-.5) * .5;
-      this.vy = (Math.random()-.5) * .5;
-      this.size = Math.random() * 1.8 + .6;
-      this.alpha = Math.random() * .5 + .15;
-      this.baseAlpha = this.alpha;
-      // color mix
-      const t = Math.random();
-      this.r = Math.round(COLOR_PRIMARY[0]*(1-t)+COLOR_ACCENT[0]*t);
-      this.g = Math.round(COLOR_PRIMARY[1]*(1-t)+COLOR_ACCENT[1]*t);
-      this.b = Math.round(COLOR_PRIMARY[2]*(1-t)+COLOR_ACCENT[2]*t);
-    }
-    update(){
-      // Mouse interaction
-      const dx = mouse.x - this.x;
-      const dy = mouse.y - this.y;
-      const dist = Math.sqrt(dx*dx+dy*dy);
-
-      if(dist < MOUSE_REPEL_DIST && dist > 0){
-        // Repel from mouse
-        const force = (MOUSE_REPEL_DIST - dist) / MOUSE_REPEL_DIST;
-        this.vx -= (dx/dist) * force * .8;
-        this.vy -= (dy/dist) * force * .8;
-        this.alpha = Math.min(1, this.baseAlpha + force * .6);
-      } else if(dist < MOUSE_ATTRACT_DIST && dist > MOUSE_REPEL_DIST){
-        // Slight attract
-        const force = (MOUSE_ATTRACT_DIST - dist) / MOUSE_ATTRACT_DIST * .08;
-        this.vx += (dx/dist) * force;
-        this.vy += (dy/dist) * force;
-        this.alpha = this.baseAlpha + (1 - dist/MOUSE_ATTRACT_DIST) * .2;
-      } else {
-        this.alpha += (this.baseAlpha - this.alpha) * .05;
-      }
-
-      // Friction
-      this.vx *= .97;
-      this.vy *= .97;
-
-      // Move
-      this.x += this.vx;
-      this.y += this.vy;
-
-      // Wrap edges
-      if(this.x < -20) this.x = W+20;
-      if(this.x > W+20) this.x = -20;
-      if(this.y < -20) this.y = H+20;
-      if(this.y > H+20) this.y = -20;
-    }
-    draw(){
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${this.alpha})`;
-      ctx.fill();
-    }
-  }
-
-  const particles = Array.from({length: PARTICLE_COUNT}, () => new Particle());
-
-  // ── MOUSE TRAIL ──
-  const trail = [];
-  const TRAIL_MAX = 22;
-  window.addEventListener('mousemove', e => {
-    trail.push({x:e.clientX, y:e.clientY, t:Date.now()});
-    if(trail.length > TRAIL_MAX) trail.shift();
-  });
-
-  // ── GLOW ORBS — slow drifting ──
-  const orbs = [
-    {x:W*.2, y:H*.2, vx:.18, vy:.12, r:260, t:0},
-    {x:W*.8, y:H*.7, vx:-.14, vy:.16, r:200, t:1.5},
-    {x:W*.5, y:H*.5, vx:.10, vy:-.12, r:180, t:3},
-  ];
-
-  function drawOrbs(){
-    orbs.forEach(o => {
-      // Follow mouse loosely
-      const dx = mouse.x - o.x;
-      const dy = mouse.y - o.y;
-      o.x += o.vx + dx * .00025;
-      o.y += o.vy + dy * .00025;
-      // Bounce
-      if(o.x < 0 || o.x > W) o.vx *= -1;
-      if(o.y < 0 || o.y > H) o.vy *= -1;
-      o.t += .008;
-
-      const pulse = Math.sin(o.t) * .015 + .045;
-      const grad = ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
-      grad.addColorStop(0, `rgba(0,89,255,${pulse})`);
-      grad.addColorStop(.5, `rgba(124,58,237,${pulse*.4})`);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(o.x, o.y, o.r, 0, Math.PI*2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-    });
-  }
-
-  function drawConnections(){
-    for(let i=0; i<particles.length; i++){
-      for(let j=i+1; j<particles.length; j++){
-        const a=particles[i], b=particles[j];
-        const dx=a.x-b.x, dy=a.y-b.y;
-        const dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist < CONNECTION_DIST){
-          const alpha = (1 - dist/CONNECTION_DIST) * .18;
-          // Extra glow near mouse
-          const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
-          const mdx=mouse.x-mx, mdy=mouse.y-my;
-          const md=Math.sqrt(mdx*mdx+mdy*mdy);
-          const boost = md < 180 ? (1-md/180)*.5 : 0;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(0,89,255,${alpha+boost})`;
-          ctx.lineWidth = dist < 60 ? 1.2 : .6;
-          ctx.stroke();
-        }
-      }
-    }
-  }
-
-  function drawTrail(){
-    if(trail.length < 2) return;
-    const now = Date.now();
-    for(let i=1; i<trail.length; i++){
-      const p = trail[i-1], c = trail[i];
-      const age = (now - c.t) / 600; // 0=new, 1=old
-      if(age > 1) continue;
-      const alpha = (1-age) * .35;
-      const t = i/trail.length;
-      const r = Math.round(0*(1-t)+124*t);
-      const g = Math.round(89*(1-t)+58*t);
-      const b = Math.round(255*(1-t)+237*t);
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(c.x, c.y);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
-      ctx.lineWidth = (1-age) * 2.5;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-    }
-    // Tip glow
-    if(trail.length > 0){
-      const tip = trail[trail.length-1];
-      const g = ctx.createRadialGradient(tip.x,tip.y,0,tip.x,tip.y,28);
-      g.addColorStop(0,'rgba(0,89,255,.2)');
-      g.addColorStop(1,'rgba(0,89,255,0)');
-      ctx.beginPath();
-      ctx.arc(tip.x,tip.y,28,0,Math.PI*2);
-      ctx.fillStyle=g;
-      ctx.fill();
-    }
-  }
-
-  // ── GRID DOTS (subtle) ──
-  function drawGrid(){
-    const step = 80;
-    const offX = (mouse.x * .015) % step;
-    const offY = (mouse.y * .015) % step;
-    ctx.fillStyle = 'rgba(0,89,255,.06)';
-    for(let x=offX; x<W; x+=step){
-      for(let y=offY; y<H; y+=step){
-        ctx.beginPath();
-        ctx.arc(x,y,1,0,Math.PI*2);
-        ctx.fill();
-      }
-    }
-  }
-
-  function tick(){
-    ctx.clearRect(0,0,W,H);
-
-    drawGrid();
-    drawOrbs();
-    drawConnections();
-    particles.forEach(p=>{p.update();p.draw();});
-    drawTrail();
-
-    raf = requestAnimationFrame(tick);
-  }
-  tick();
-})();
+var BF_TR={"pl": {"nav_features": "Funkcje", "nav_how": "Jak dzia&#322;a", "nav_pricing": "Cennik", "nav_cta": "Chc&#281; wypr&#xF3;bowa&#263;", "h1": "Profesjonalny <span class=\"h1-grad\">portal klienta</span> dla agencji i freelancer&#xF3;w", "hero_p": "Daj klientom dedykowany panel z czatem, projektami, dokumentami i wideorozmowami &#8212; wszystko pod Twoj&#261; domen&#261;. Koniec z mailami, WhatsApp i rozproszeniem. Pierwsze 30 dni bezp&#322;atnie.", "btn_try": "Wypr&#xF3;buj za darmo &#8212; 30 dni gratis &#8594;", "btn_how": "&#9658; Jak to dzia&#322;a", "proof": "<strong>Pierwsi u&#380;ytkownicy</strong> ju&#380; korzystaj&#261; z panelu", "stats_s1": "% mniej maili<br>z pytaniami od klient&#xF3;w", "stats_s2": "minuty do onboardingu<br>nowego klienta", "stats_s3": "godziny na dob&#281;<br>klient ma dost&#281;p do panelu", "stats_s4": "miejsce dla czatu,<br>projekt&#xF3;w i dokument&#xF3;w", "sec_features_tag": "Funkcje", "features_h2": "Wszystko w jednym miejscu &#8212;<br><span class=\"g\">czat, projekty, dokumenty</span>", "features_sub": "Jeden portal klienta zast&#281;puje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoj&#261; domen&#261; w ci&#261;gu 24 godzin.", "sec_how_tag": "Jak to dzia&#322;a", "how_h2": "Tw&#xF3;j panel klienta gotowy<br><span class=\"g\">w 4 prostych krokach</span>", "how_sub": "Od pierwszego kontaktu do dzia&#322;aj&#261;cego panelu klienta &#8212; w mniej ni&#380; godzin&#281;.", "compare_tag": "Dlaczego Barabash Flow", "compare_h2": "Zast&#261;p 5 narz&#281;dzi<br><span class=\"g\">jednym portalem klienta</span>", "compare_bad": "&#10060; Bez Barabash Flow", "compare_good": "&#10003; Z Barabash Flow", "sec_pricing_tag": "Cennik", "pricing_h2": "Cennik bez ukrytych op&#322;at &#8212;<br><span class=\"g\">p&#322;acisz za narz&#281;dzie, nie obr&#xF3;t</span>", "pricing_sub": "Bez ukrytych op&#322;at. Bez prowizji od projekt&#xF3;w.", "sec_reviews_tag": "Opinie", "reviews_h2": "Co m&#xF3;wi&#261; agencje<br><span class=\"g\">korzystaj&#261;ce z Barabash Flow</span>", "sec_demo_tag": "Podgl&#261;d", "demo_h2": "Zobaczm jak to <span class=\"g\">wygl&#261;da w akcji</span>", "cta_h": "Zacznij w 24 godziny &#8212;<br><span class=\"g\">pierwsze 30 dni za darmo</span>", "cta_sub": "Do&#322;&#261;cz do pierwszych u&#380;ytkownik&#xF3;w Barabash Flow. Pierwsze 30 dni ca&#322;kowicie bezp&#322;atnie, bez karty kredytowej.", "cta_btn_main": "Chc&#281; wypr&#xF3;bowa&#263; za darmo &#8594;", "trust1": "Pierwsze 30 dni gratis", "trust2": "Bez karty kredytowej", "trust3": "Instalacja w 24h", "trust4": "Wsparcie 1:1", "modal_title": "Chc&#281; wypr&#xF3;bowa&#263; &#128640;", "modal_sub": "Skontaktuj&#281; si&#281; z Tob&#261; i razem ustawimy panel. Pierwsze 30 dni bezp&#322;atnie.", "feat_fav": "&#11088; Ulubiona", "feat1_title": "Czat z plikami i linkami", "feat1_desc": "Komunikacja w czasie rzeczywistym. Zdj&#281;cia, PDF-y, dokumenty &#8212; bezpo&#347;rednio w czacie. Wska&#378;nik pisania jak w Messengerze.", "feat2_title": "Wideorozmowy w panelu", "feat2_desc": "Po&#322;&#261;czenie wideo bezpo&#347;rednio w panelu klienta &#8212; bez wychodzenia do zewn&#281;trznych aplikacji.", "feat3_title": "Projekty i materia&#322;y", "feat3_desc": "Ka&#380;dy projekt ma swoj&#261; przestrze&#324;. Posty, linki, pliki i PDF-y. Klient na bie&#380;&#261;co widzi post&#281;p.", "feat4_title": "Kalendarz + Apple Calendar", "feat4_desc": "Zaplanuj spotkanie w panelu &#8212; automatycznie pojawia si&#281; w Twoim Apple Calendar. Klient dostaje popup z odliczaniem.", "feat5_title": "Inteligentne powiadomienia", "feat5_desc": "Klient nie sprawdza panelu? Dostaje popup. Nie ma go na stronie? Dostaje maila. Zero spamu.", "feat6_title": "Dokumenty i faktury", "feat6_desc": "Ty uploadujesz faktury i umowy, klient przesy&#322;a swoje materia&#322;y. Pliki posegregowane przy projekcie.", "feat7_title": "Etapy i post&#281;p projektu", "feat7_desc": "Wizualny pasek post&#281;pu z etapami. Klient widzi gdzie jest projekt. Zero pyta&#324; o status.", "feat8_title": "Zadania i checklisty", "feat8_desc": "Lista zada&#324; z terminami. Klient widzi co trwa, co jest zrobione.", "feat9_title": "Oceny i feedback", "feat9_desc": "Po projekcie klient ocenia wsp&#xF3;&#322;prac&#281; gwiazdkami i zostawia komentarz.", "how1_title": "Stawiamy panel", "how1_desc": "Instalujemy Barabash Flow na Twojej domenie. Zero konfiguracji z Twojej strony &#8212; to nasze zadanie.", "how2_title": "Dodajesz klienta", "how2_desc": "Jeden formularz &#8212; imi&#281;, email, has&#322;o. Klient dostaje pi&#281;kny mail z zaproszeniem i od razu ma dost&#281;p.", "how3_title": "Tworzysz projekt", "how3_desc": "Dodajesz projekt, publikujesz pierwsze materia&#322;y. Klient widzi wszystko w swoim panelu, w czasie rzeczywistym.", "how4_title": "Komunikujesz si&#281;", "how4_desc": "Czat, wideo, dokumenty, kalendarz &#8212; w jednym miejscu. Koniec z dziesi&#261;tkami maili.", "cmp_n1": "Maile z pytaniem \"co z projektem?\"", "cmp_n2": "WhatsApp zmieszany z &#380;yciem prywatnym", "cmp_n3": "Faktury wysy&#322;ane osobnym mailem", "cmp_n4": "Linki Google Meet kopiowane r&#281;cznie", "cmp_n5": "Pliki zgubione w Dysku Google", "cmp_n6": "Brak historii projektu po zako&#324;czeniu", "cmp_n7": "Nieprofesjonalne pierwsze wra&#380;enie", "cmp_y1": "Klient sam sprawdza status w panelu", "cmp_y2": "Czat, wideo i dokumenty w jednym miejscu", "cmp_y3": "Faktury z podgl&#261;dem bezpo&#347;rednio w projekcie", "cmp_y4": "Wideo jednym klikiem z poziomu panelu", "cmp_y5": "Pliki posegregowane przy projekcie", "cmp_y6": "Archiwum z pe&#322;n&#261; histori&#261; na zawsze", "cmp_y7": "Profesjonalny branding pod Twoj&#261; domen&#261;", "pc1_name": "&#128640; Starter", "pc2_name": "&#9889; Pro", "pc3_name": "&#127970; Agency", "rev1_text": "\"Moi klienci przestali wysy&#322;a&#263; maile z pytaniem &laquo;co z projektem&raquo;. Teraz sami wchodz&#261; i sprawdzaj&#261; status.\"", "rev2_text": "\"Onboarding klienta trwa teraz 3 minuty. Profesjonalne pierwsze wra&#380;enie gwarantowane.\"", "rev3_text": "\"Integracja z Apple Calendar to hit. Tworz&#281; spotkanie, klientowi leci powiadomienie. Magia.\"", "badge_new_project": "Nowy projekt dodany", "badge_by": "przez Dmytrii Barabash", "badge_online": "Klient aktywny teraz"}, "en": {"nav_features": "Features", "nav_how": "How it works", "nav_pricing": "Pricing", "nav_cta": "Try for free", "h1": "Professional <span class=\"h1-grad\">client portal</span> for agencies and freelancers", "hero_p": "Give clients a dedicated portal with live chat, projects, documents and video calls &mdash; all under your domain. No more email chaos. First 30 days free.", "btn_try": "Try free &mdash; 30 days gratis &rarr;", "btn_how": "&#9658; How it works", "proof": "<strong>First users</strong> are already using the platform", "stats_s1": "% fewer emails<br>asking for updates", "stats_s2": "minutes to onboard<br>a new client", "stats_s3": "hours a day<br>clients have portal access", "stats_s4": "place for chat,<br>projects and documents", "sec_features_tag": "Features", "features_h2": "Everything in one place &mdash;<br><span class=\"g\">chat, projects, documents</span>", "features_sub": "One client portal replaces emails, WhatsApp, Google Drive and Trello. Set up under your domain within 24 hours.", "sec_how_tag": "How it works", "how_h2": "Your client portal ready<br><span class=\"g\">in 4 simple steps</span>", "how_sub": "From first contact to a working client portal &mdash; in less than an hour.", "compare_tag": "Why Barabash Flow", "compare_h2": "Replace 5 tools<br><span class=\"g\">with one client portal</span>", "compare_bad": "&#10060; Without Barabash Flow", "compare_good": "&#10003; With Barabash Flow", "sec_pricing_tag": "Pricing", "pricing_h2": "Transparent pricing &mdash;<br><span class=\"g\">pay for the tool, not the revenue</span>", "pricing_sub": "No hidden fees. No commissions on projects.", "sec_reviews_tag": "Reviews", "reviews_h2": "What agencies say<br><span class=\"g\">about Barabash Flow</span>", "sec_demo_tag": "Preview", "demo_h2": "See how it <span class=\"g\">looks in action</span>", "cta_h": "Start in 24 hours &mdash;<br><span class=\"g\">first 30 days free</span>", "cta_sub": "Join the first users of Barabash Flow. First 30 days completely free, no credit card required.", "cta_btn_main": "Try for free &rarr;", "trust1": "First 30 days free", "trust2": "No credit card", "trust3": "Setup in 24h", "trust4": "1:1 support", "modal_title": "I want to try it &#128640;", "modal_sub": "I will contact you and we will set up the portal together. First 30 days free.", "feat_fav": "&#11088; Favorite", "feat1_title": "Chat with files & links", "feat1_desc": "Real-time communication. Photos, PDFs, documents &mdash; directly in chat. Typing indicator, history always available.", "feat2_title": "Video calls in the portal", "feat2_desc": "Video directly in the client portal &mdash; no Google Meet, no leaving to other apps.", "feat3_title": "Projects & materials", "feat3_desc": "Each project has its own space. Posts, links, files, stages. Client sees progress in real time.", "feat4_title": "Calendar + Apple Calendar", "feat4_desc": "Schedule a meeting &mdash; it automatically appears in your Apple Calendar. Client gets a countdown popup.", "feat5_title": "Smart notifications", "feat5_desc": "Client not checking? Gets a popup. Not on the page? Gets an email. Zero spam.", "feat6_title": "Documents & invoices", "feat6_desc": "You upload invoices and contracts, client uploads their materials. Files organized per project.", "feat7_title": "Project stages & progress", "feat7_desc": "Visual progress bar with stages. Client sees where the project stands. Zero status questions.", "feat8_title": "Tasks & checklists", "feat8_desc": "Task list with deadlines. Client sees what's in progress and done.", "feat9_title": "Ratings & feedback", "feat9_desc": "After the project, client rates with stars and leaves a comment.", "how1_title": "We set up the portal", "how1_desc": "We install Barabash Flow on your domain. Zero configuration on your end.", "how2_title": "You add a client", "how2_desc": "One form &mdash; name, email, password. Client gets a beautiful invitation email.", "how3_title": "You create a project", "how3_desc": "Add a project, publish first materials. Client sees everything in real time.", "how4_title": "You communicate", "how4_desc": "Chat, video, documents, calendar &mdash; in one place.", "cmp_n1": "Emails asking \"what about the project?\"", "cmp_n2": "WhatsApp mixed with personal life", "cmp_n3": "Invoices sent by separate email", "cmp_n4": "Google Meet links copied manually", "cmp_n5": "Files lost in Google Drive", "cmp_n6": "No project history after completion", "cmp_n7": "Unprofessional first impression", "cmp_y1": "Client checks project status themselves", "cmp_y2": "Chat, video and documents in one place", "cmp_y3": "Invoices with preview directly in project", "cmp_y4": "Video in one click from the portal", "cmp_y5": "Files organized per project", "cmp_y6": "Archive with full history forever", "cmp_y7": "Professional branding under your domain", "pc1_name": "&#128640; Starter", "pc2_name": "&#9889; Pro", "pc3_name": "&#127970; Agency", "rev1_text": "\"My clients stopped emailing. Now they check the status themselves.\"", "rev2_text": "\"Client onboarding now takes 3 minutes. Professional first impression guaranteed.\"", "rev3_text": "\"Apple Calendar integration is magic. I schedule a meeting, client gets a notification.\"", "badge_new_project": "New project added", "badge_by": "by Dmytrii Barabash", "badge_online": "Client online now"}, "uk": {"nav_features": "Функції", "nav_how": "Як це працює", "nav_pricing": "Ціни", "nav_cta": "Спробувати безкоштовно", "h1": "Професійний <span class=\"h1-grad\">портал клієнта</span> для агенцій і фрілансерів", "hero_p": "Дайте клієнтам окремий портал із чатом, проєктами, документами та відеодзвінками — все під вашим доменом. Перші 30 днів безкоштовно.", "btn_try": "Спробуй безкоштовно — 30 днів →", "btn_how": "&#9658; Як це працює", "proof": "<strong>Перші користувачі</strong> вже використовують платформу", "stats_s1": "% менше листів<br>із запитаннями від клієнтів", "stats_s2": "хвилини на онбординг<br>нового клієнта", "stats_s3": "години на добу<br>клієнт має доступ до порталу", "stats_s4": "місце для чату,<br>проєктів і документів", "sec_features_tag": "Функції", "features_h2": "Все в одному місці —<br><span class=\"g\">чат, проєкти, документи</span>", "features_sub": "Один портал замінює листи, WhatsApp, Google Drive і Trello. Налаштований за 24 години.", "sec_how_tag": "Як це працює", "how_h2": "Ваш портал клієнта готовий<br><span class=\"g\">у 4 простих кроки</span>", "how_sub": "Від першого контакту до готового порталу — менше ніж за годину.", "compare_tag": "Чому Barabash Flow", "compare_h2": "Замініть 5 інструментів<br><span class=\"g\">одним порталом клієнта</span>", "compare_bad": "&#10060; без Barabash Flow", "compare_good": "&#10003; з Barabash Flow", "sec_pricing_tag": "Ціни", "pricing_h2": "Прозорі ціни —<br><span class=\"g\">платите за інструмент</span>", "pricing_sub": "Без прихованих платежів. Без комісій з проєктів.", "sec_reviews_tag": "Відгуки", "reviews_h2": "Що кажуть агенції<br><span class=\"g\">про Barabash Flow</span>", "sec_demo_tag": "Перегляд", "demo_h2": "Побачте <span class=\"g\">як це виглядає</span>", "cta_h": "Почніть за 24 години —<br><span class=\"g\">перші 30 днів безкоштовно</span>", "cta_sub": "Приєднуйтесь до Barabash Flow. Перші 30 днів повністю безкоштовно.", "cta_btn_main": "Спробувати безкоштовно →", "trust1": "Перші 30 днів безкоштовно", "trust2": "Без картки", "trust3": "Налаштування за 24 год", "trust4": "Підтримка 1:1", "modal_title": "Хочу спробувати &#128640;", "modal_sub": "Зв'яжусь із вами і разом налаштуємо портал. Перші 30 днів безкоштовно.", "feat_fav": "&#11088; Улюблена", "feat1_title": "Чат з файлами та посиланнями", "feat1_desc": "Спілкування в реальному часі. Фото, PDF, документи — прямо в чаті.", "feat2_title": "Відеодзвінки в порталі", "feat2_desc": "Відео прямо в порталі клієнта — без Google Meet.", "feat3_title": "Проєкти та матеріали", "feat3_desc": "Кожен проєкт має свій простір. Клієнт бачить прогрес в реальному часі.", "feat4_title": "Календар + Apple Calendar", "feat4_desc": "Заплануйте зустріч — автоматично з'являється в Apple Calendar.", "feat5_title": "Розумні сповіщення", "feat5_desc": "Клієнт не перевіряє? Отримує спливаюче вікно. Немає на сайті? Отримує лист.", "feat6_title": "Документи та рахунки", "feat6_desc": "Ви завантажуєте рахунки, клієнт ділиться матеріалами. Все посортовано по проєкту.", "feat7_title": "Етапи та прогрес проєкту", "feat7_desc": "Візуальна шкала прогресу. Нуль питань про статус.", "feat8_title": "Завдання та чеклісти", "feat8_desc": "Список завдань із дедлайнами. Клієнт бачить що в процесі.", "feat9_title": "Оцінки та відгуки", "feat9_desc": "Після проєкту клієнт оцінює зірками і залишає коментар.", "how1_title": "Встановлюємо портал", "how1_desc": "Встановлюємо Barabash Flow на ваш домен. Жодної конфігурації з вашого боку.", "how2_title": "Ви додаєте клієнта", "how2_desc": "Одна форма — ім'я, email, пароль. Клієнт отримує лист-запрошення.", "how3_title": "Ви створюєте проєкт", "how3_desc": "Додаєте проєкт, публікуєте перші матеріали.", "how4_title": "Ви спілкуєтесь", "how4_desc": "Чат, відео, документи, календар — в одному місці.", "cmp_n1": "Листи з питанням \"що з проєктом?\"", "cmp_n2": "WhatsApp змішаний з особистим життям", "cmp_n3": "Рахунки надсилаються окремим листом", "cmp_n4": "Посилання Google Meet копіюються вручну", "cmp_n5": "Файли загублені в Google Drive", "cmp_n6": "Немає історії проєкту після завершення", "cmp_n7": "Непрофесійне перше враження", "cmp_y1": "Клієнт сам перевіряє статус у порталі", "cmp_y2": "Чат, відео і документи в одному місці", "cmp_y3": "Рахунки з попереднім переглядом у проєкті", "cmp_y4": "Відео одним кліком з порталу", "cmp_y5": "Файли посортовані по проєкту", "cmp_y6": "Архів з повною історією назавжди", "cmp_y7": "Професійний брендинг під вашим доменом", "pc1_name": "&#128640; Starter", "pc2_name": "&#9889; Pro", "pc3_name": "&#127970; Agency", "rev1_text": "\"Мої клієнти перестали надсилати листи. Тепер самі перевіряють статус.\"", "rev2_text": "\"Онбординг клієнта тепер займає 3 хвилини. Професійне перше враження гарантоване.\"", "rev3_text": "\"Інтеграція з Apple Calendar — магія!\"", "badge_new_project": "Новий проєкт додано", "badge_by": "від Dmytrii Barabash", "badge_online": "Клієнт онлайн зараз"}, "ru": {"nav_features": "Функции", "nav_how": "Как работает", "nav_pricing": "Тарифы", "nav_cta": "Попробовать бесплатно", "h1": "Профессиональный <span class=\"h1-grad\">портал клиента</span> для агентств и фрилансеров", "hero_p": "Дайте клиентам отдельный портал с чатом, проектами, документами и видеозвонками — всё под вашим доменом. Первые 30 дней бесплатно.", "btn_try": "Попробовать бесплатно — 30 дней →", "btn_how": "&#9658; Как это работает", "proof": "<strong>Первые пользователи</strong> уже используют платформу", "stats_s1": "% меньше писем<br>с вопросами от клиентов", "stats_s2": "минуты на онбординг<br>нового клиента", "stats_s3": "часа в сутки<br>клиент имеет доступ к порталу", "stats_s4": "место для чата,<br>проектов и документов", "sec_features_tag": "Функции", "features_h2": "Всё в одном месте —<br><span class=\"g\">чат, проекты, документы</span>", "features_sub": "Один портал заменяет письма, WhatsApp, Google Drive и Trello. Настроен за 24 часа.", "sec_how_tag": "Как работает", "how_h2": "Ваш портал клиента готов<br><span class=\"g\">за 4 простых шага</span>", "how_sub": "От первого контакта до рабочего портала — менее чем за час.", "compare_tag": "Почему Barabash Flow", "compare_h2": "Замените 5 инструментов<br><span class=\"g\">одним порталом клиента</span>", "compare_bad": "&#10060; без Barabash Flow", "compare_good": "&#10003; с Barabash Flow", "sec_pricing_tag": "Тарифы", "pricing_h2": "Прозрачные тарифы —<br><span class=\"g\">платите за инструмент</span>", "pricing_sub": "Без скрытых платежей. Без комиссий с проектов.", "sec_reviews_tag": "Отзывы", "reviews_h2": "Что говорят агентства<br><span class=\"g\">о Barabash Flow</span>", "sec_demo_tag": "Превью", "demo_h2": "Посмотрите <span class=\"g\">как это выглядит</span>", "cta_h": "Начните за 24 часа —<br><span class=\"g\">первые 30 дней бесплатно</span>", "cta_sub": "Присоединяйтесь к Barabash Flow. Первые 30 дней полностью бесплатно.", "cta_btn_main": "Попробовать бесплатно →", "trust1": "Первые 30 дней бесплатно", "trust2": "Без карты", "trust3": "Настройка за 24 ч", "trust4": "Поддержка 1:1", "modal_title": "Хочу попробовать &#128640;", "modal_sub": "Свяжусь с вами и вместе настроим портал. Первые 30 дней бесплатно.", "feat_fav": "&#11088; Любимая", "feat1_title": "Чат с файлами и ссылками", "feat1_desc": "Общение в реальном времени. Фото, PDF, документы — прямо в чате.", "feat2_title": "Видеозвонки в портале", "feat2_desc": "Видео прямо в портале клиента — без Google Meet.", "feat3_title": "Проекты и материалы", "feat3_desc": "Каждый проект имеет своё пространство. Клиент видит прогресс в реальном времени.", "feat4_title": "Календарь + Apple Calendar", "feat4_desc": "Запланируйте встречу — автоматически появляется в Apple Calendar.", "feat5_title": "Умные уведомления", "feat5_desc": "Клиент не проверяет? Получает всплывающее окно. Нет на сайте? Получает письмо.", "feat6_title": "Документы и счета", "feat6_desc": "Вы загружаете счета, клиент делится материалами. Всё отсортировано по проекту.", "feat7_title": "Этапы и прогресс проекта", "feat7_desc": "Визуальная шкала прогресса. Ноль вопросов о статусе.", "feat8_title": "Задачи и чеклисты", "feat8_desc": "Список задач с дедлайнами. Клиент видит что в процессе.", "feat9_title": "Оценки и отзывы", "feat9_desc": "После проекта клиент оценивает звёздами и оставляет комментарий.", "how1_title": "Устанавливаем портал", "how1_desc": "Устанавливаем Barabash Flow на ваш домен. Никакой настройки с вашей стороны.", "how2_title": "Вы добавляете клиента", "how2_desc": "Одна форма — имя, email, пароль. Клиент получает письмо-приглашение.", "how3_title": "Вы создаёте проект", "how3_desc": "Добавляете проект, публикуете первые материалы.", "how4_title": "Вы общаетесь", "how4_desc": "Чат, видео, документы, календарь — в одном месте.", "cmp_n1": "Письма с вопросом \"что с проектом?\"", "cmp_n2": "WhatsApp смешан с личной жизнью", "cmp_n3": "Счета отправляются отдельным письмом", "cmp_n4": "Ссылки Google Meet копируются вручную", "cmp_n5": "Файлы потеряны в Google Drive", "cmp_n6": "Нет истории проекта после завершения", "cmp_n7": "Непрофессиональное первое впечатление", "cmp_y1": "Клиент сам проверяет статус в портале", "cmp_y2": "Чат, видео и документы в одном месте", "cmp_y3": "Счета с предпросмотром в проекте", "cmp_y4": "Видео одним кликом из портала", "cmp_y5": "Файлы отсортированы по проекту", "cmp_y6": "Архив с полной историей навсегда", "cmp_y7": "Профессиональный брендинг под вашим доменом", "pc1_name": "&#128640; Starter", "pc2_name": "&#9889; Pro", "pc3_name": "&#127970; Agency", "rev1_text": "\"Мои клиенты перестали писать письма. Теперь сами проверяют статус.\"", "rev2_text": "\"Онбординг клиента занимает 3 минуты. Профессиональное первое впечатление гарантировано.\"", "rev3_text": "\"Интеграция с Apple Calendar — просто магия!\"", "badge_new_project": "Новый проект добавлен", "badge_by": "от Dmytrii Barabash", "badge_online": "Клиент онлайн сейчас"}};
+var BF_FLAGS={pl:"<svg viewBox=\"0 0 20 13\"><rect width=\"20\" height=\"6.5\" fill=\"#fff\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#dc143c\"/></svg>",en:"<svg viewBox=\"0 0 20 13\"><rect width=\"20\" height=\"13\" fill=\"#012169\"/><path d=\"M0 0 L20 13 M20 0 L0 13\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M0 0 L20 13 M20 0 L0 13\" stroke=\"#c8102e\" stroke-width=\"1.5\"/><path d=\"M10 0 L10 13 M0 6.5 L20 6.5\" stroke=\"#fff\" stroke-width=\"5\"/><path d=\"M10 0 L10 13 M0 6.5 L20 6.5\" stroke=\"#c8102e\" stroke-width=\"2.5\"/></svg>",uk:"<svg viewBox=\"0 0 20 13\"><rect width=\"20\" height=\"6.5\" fill=\"#005bbb\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#ffd500\"/></svg>",ru:"<svg viewBox=\"0 0 20 13\"><rect width=\"20\" height=\"13\" fill=\"#cf101a\"/><rect y=\"8.67\" width=\"20\" height=\"4.33\" fill=\"#007c00\"/><rect width=\"2.67\" height=\"13\" fill=\"#007c00\"/><rect x=\"0.44\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"2.17\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"4.33\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"6.5\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"8.67\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"10.83\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"1.33\" y=\"0.72\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"2.89\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"5.06\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"7.22\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"9.39\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"11.56\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/></svg>"};
+var BF_CODES={pl:'PL',en:'EN',uk:'UK',ru:'RU'};
+var BF_LANG='pl';
+function bfToggleLang(e){e.stopPropagation();var sw=document.getElementById('langSwitcher');sw.classList.toggle('open');if(sw.classList.contains('open'))setTimeout(function(){document.addEventListener('click',bfCloseLang,{once:true})},10);}
+function bfCloseLang(){var sw=document.getElementById('langSwitcher');if(sw)sw.classList.remove('open');}
+function bfApply(lang){var t=BF_TR[lang]||BF_TR.pl;document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t[k]!==undefined)el.innerHTML=t[k];});var f=document.getElementById('curFlag');var c=document.getElementById('curCode');if(f)f.innerHTML=BF_FLAGS[lang]||BF_FLAGS.pl;if(c)c.textContent=BF_CODES[lang]||'PL';document.querySelectorAll('.lang-opt').forEach(function(o){o.classList.toggle('active',o.getAttribute('data-lang')===lang);});document.documentElement.lang=lang;}
+function setLang(lang){if(lang===BF_LANG){bfCloseLang();return;}var from=BF_LANG;BF_LANG=lang;try{localStorage.setItem('bf_lang',lang);}catch(e){}bfCloseLang();bfRunFunnel(from,lang,function(){bfApply(lang);});}
+function bfRunFunnel(from,to,cb){var ov=document.getElementById('langOverlay');var cv=ov?ov.querySelector('canvas'):null;if(!ov||!cv){cb();return;}var W=cv.width=window.innerWidth;var H=cv.height=window.innerHeight;var ctx=cv.getContext('2d');var CX=W/2,CY=H/2,MAX_R=Math.sqrt(CX*CX+CY*CY)*1.05;var COLS={pl:['#fff','#dc143c'],en:['#012169','#c8102e'],uk:['#005bbb','#ffd500'],ru:['#007c00','#cf101a']};var fC=COLS[from]||COLS.pl;var tC=COLS[to]||COLS.pl;ov.style.display='block';ov.style.opacity='1';var phase='suck',t0=null;var SUCK=400,GAP=80,EXP=380;function ease(x){return x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;}function frame(ts){if(!t0)t0=ts;var el=ts-t0;ctx.clearRect(0,0,W,H);if(phase==='suck'){var p=Math.min(el/SUCK,1);var ep=ease(p);var r=MAX_R*(1-ep);ctx.save();ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);ctx.clip();ctx.fillStyle=fC[0];ctx.fillRect(CX-r,CY-r,r*2,r);ctx.fillStyle=fC[1];ctx.fillRect(CX-r,CY,r*2,r);for(var i=0;i<10;i++){var a=(i/10)*Math.PI*2+ep*Math.PI*5;var len=r*(1-ep*.5);ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(a)*len,CY+Math.sin(a)*len);ctx.strokeStyle='rgba(0,0,0,'+(ep*.3)+')';ctx.lineWidth=1.5;ctx.stroke();}var g=ctx.createRadialGradient(CX,CY,0,CX,CY,r);g.addColorStop(0,'rgba(0,0,0,'+(ep*.95)+')');g.addColorStop(.5,'rgba(0,0,0,'+(ep*.3)+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.restore();ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);ctx.fill();if(p>=1){phase='gap';t0=ts;cb();}}else if(phase==='gap'){ctx.fillStyle='rgba(0,0,0,'+(1-el/GAP)+')';ctx.fillRect(0,0,W,H);if(el>=GAP){phase='expand';t0=ts;}}else if(phase==='expand'){var p2=Math.min(el/EXP,1);var ep2=ease(p2);var r2=MAX_R*ep2;ctx.save();ctx.beginPath();ctx.arc(CX,CY,r2,0,Math.PI*2);ctx.clip();ctx.fillStyle=tC[0];ctx.fillRect(0,0,W,H/2);ctx.fillStyle=tC[1];ctx.fillRect(0,H/2,W,H/2);var g2=ctx.createRadialGradient(CX,CY,0,CX,CY,r2*.6);g2.addColorStop(0,'rgba(255,255,255,'+(0.6*(1-ep2))+')');g2.addColorStop(1,'rgba(255,255,255,0)');ctx.restore();ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);if(p2>=1){var fo0=null;function fadeOut(ts2){if(!fo0)fo0=ts2;var fp=Math.min((ts2-fo0)/280,1);ov.style.opacity=1-fp;if(fp<1)requestAnimationFrame(fadeOut);else{ov.style.display='none';ov.style.opacity='1';ctx.clearRect(0,0,W,H);}}requestAnimationFrame(fadeOut);return;}}requestAnimationFrame(frame);}requestAnimationFrame(frame);}
+(function(){var s='pl';try{s=localStorage.getItem('bf_lang')||'pl';}catch(e){}if(!BF_TR[s])s='pl';BF_LANG=s;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){bfApply(BF_LANG);});}else{bfApply(BF_LANG);}}());
 </script>
 
-
-
-
-
 <script>
-/* ── BARABASH FLOW: LANGUAGE SYSTEM ── */
-var BF_TR = {"pl": {"nav_features": "Funkcje", "nav_how": "Jak dzia&#322;a", "nav_pricing": "Cennik", "nav_cta": "Chc&#281; wypr&#xF3;bowa&#263;", "h1": "Profesjonalny <span class=\"h1-grad\">portal klienta</span> dla agencji i freelancer&#xF3;w", "hero_p": "Daj klientom dedykowany panel z czatem, projektami, dokumentami i wideorozmowami &#8212; wszystko pod Twoj&#261; domen&#261;. Koniec z mailami, WhatsApp i rozproszeniem. Pierwsze 30 dni bezp&#322;atnie.", "btn_try": "Wypr&#xF3;buj za darmo &#8212; 30 dni gratis &#8594;", "btn_how": "&#9658; Jak to dzia&#322;a", "proof": "<strong>Pierwsi u&#380;ytkownicy</strong> ju&#380; korzystaj&#261; z panelu", "stats_s1": "% mniej maili<br>z pytaniami od klient&#xF3;w", "stats_s2": "minuty do onboardingu<br>nowego klienta", "stats_s3": "godziny na dob&#281;<br>klient ma dost&#281;p do panelu", "stats_s4": "miejsce dla czatu,<br>projekt&#xF3;w i dokument&#xF3;w", "sec_features_tag": "Funkcje", "features_h2": "Wszystko w jednym miejscu &#8212;<br><span class=\"g\">czat, projekty, dokumenty</span>", "features_sub": "Jeden portal klienta zast&#281;puje maile, WhatsApp, Dysk Google i Trello. Skonfigurowany pod Twoj&#261; domen&#261; w ci&#261;gu 24 godzin.", "sec_how_tag": "Jak to dzia&#322;a", "how_h2": "Tw&#xF3;j panel klienta gotowy<br><span class=\"g\">w 4 prostych krokach</span>", "how_sub": "Od pierwszego kontaktu do dzia&#322;aj&#261;cego panelu klienta &#8212; w mniej ni&#380; godzin&#281;.", "compare_h2": "Zast&#261;p 5 narz&#281;dzi<br><span class=\"g\">jednym portalem klienta</span>", "sec_pricing_tag": "Cennik", "pricing_h2": "Cennik bez ukrytych op&#322;at &#8212;<br><span class=\"g\">p&#322;acisz za narz&#281;dzie, nie obr&#xF3;t</span>", "pricing_sub": "Bez ukrytych op&#322;at. Bez prowizji od projekt&#xF3;w.", "sec_reviews_tag": "Opinie", "reviews_h2": "Co m&#xF3;wi&#261; agencje<br><span class=\"g\">korzystaj&#261;ce z Barabash Flow</span>", "sec_demo_tag": "Podgl&#261;d", "demo_h2": "Zobaczm jak to <span class=\"g\">wygl&#261;da w akcji</span>", "cta_h": "Zacznij w 24 godziny &#8212;<br><span class=\"g\">pierwsze 30 dni za darmo</span>", "cta_sub": "Do&#322;&#261;cz do pierwszych u&#380;ytkownik&#xF3;w Barabash Flow. Pierwsze 30 dni ca&#322;kowicie bezp&#322;atnie, bez karty kredytowej.", "cta_btn": "Wypr&#xF3;buj za darmo &#8594;", "trust1": "Pierwsze 30 dni gratis", "trust2": "Bez karty kredytowej", "trust3": "Instalacja w 24h", "trust4": "Wsparcie 1:1", "compare_bad": "&#10060; Bez Barabash Flow", "compare_good": "&#10003; Z Barabash Flow", "modal_title": "Chc&#281; wypr&#xF3;bowa&#263; &#128640;", "modal_sub": "Skontaktuj&#281; si&#281; z Tob&#261; i razem ustawimy panel. Pierwsze 30 dni bezp&#322;atnie."}, "en": {"nav_features": "Features", "nav_how": "How it works", "nav_pricing": "Pricing", "nav_cta": "Try for free", "h1": "Professional <span class=\"h1-grad\">client portal</span> for agencies and freelancers", "hero_p": "Give clients a dedicated portal with live chat, projects, documents and video calls &mdash; all under your domain. No more email chaos and scattered tools. First 30 days free.", "btn_try": "Try free &mdash; 30 days gratis &rarr;", "btn_how": "&#9658; How it works", "proof": "<strong>First users</strong> are already using the platform", "stats_s1": "% fewer emails<br>asking for project updates", "stats_s2": "minutes to onboard<br>a new client", "stats_s3": "hours a day<br>clients have portal access", "stats_s4": "place for chat,<br>projects and documents", "sec_features_tag": "Features", "features_h2": "Everything in one place &mdash;<br><span class=\"g\">chat, projects, documents</span>", "features_sub": "One client portal replaces emails, WhatsApp, Google Drive and Trello. Set up under your domain within 24 hours.", "sec_how_tag": "How it works", "how_h2": "Your client portal ready<br><span class=\"g\">in 4 simple steps</span>", "how_sub": "From first contact to a working client portal &mdash; in less than an hour.", "compare_h2": "Replace 5 tools<br><span class=\"g\">with one client portal</span>", "sec_pricing_tag": "Pricing", "pricing_h2": "Transparent pricing &mdash;<br><span class=\"g\">pay for the tool, not the revenue</span>", "pricing_sub": "No hidden fees. No commissions on projects.", "sec_reviews_tag": "Reviews", "reviews_h2": "What agencies say<br><span class=\"g\">about Barabash Flow</span>", "sec_demo_tag": "Preview", "demo_h2": "See how it <span class=\"g\">looks in action</span>", "cta_h": "Start in 24 hours &mdash;<br><span class=\"g\">first 30 days free</span>", "cta_sub": "Join the first users of Barabash Flow. First 30 days completely free, no credit card required.", "cta_btn": "Try for free &rarr;", "trust1": "First 30 days free", "trust2": "No credit card", "trust3": "Setup in 24h", "trust4": "1:1 support", "compare_bad": "&#10060; Without Barabash Flow", "compare_good": "&#10003; With Barabash Flow", "modal_title": "I want to try it &#128640;", "modal_sub": "I will contact you and we will set up the portal together. First 30 days free."}, "uk": {"nav_features": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1110;&#1111;", "nav_how": "&#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "nav_pricing": "&#1062;&#1110;&#1085;&#1080;", "nav_cta": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;", "h1": "&#1055;&#1088;&#1086;&#1092;&#1077;&#1089;&#1110;&#1081;&#1085;&#1080;&#1081; <span class=\"h1-grad\">&#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;</span> &#1076;&#1083;&#1103; &#1072;&#1075;&#1077;&#1085;&#1094;&#1110;&#1081; &#1110; &#1092;&#1088;&#1110;&#1083;&#1072;&#1085;&#1089;&#1077;&#1088;&#1110;&#1074;", "hero_p": "&#1044;&#1072;&#1081;&#1090;&#1077; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;&#1084; &#1086;&#1082;&#1088;&#1077;&#1084;&#1080;&#1081; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1110;&#1079; &#1095;&#1072;&#1090;&#1086;&#1084;, &#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1072;&#1084;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1072;&#1084;&#1080; &#1090;&#1072; &#1074;&#1110;&#1076;&#1077;&#1086;&#1076;&#1079;&#1074;&#1110;&#1085;&#1082;&#1072;&#1084;&#1080; &#8212; &#1074;&#1089;&#1077; &#1087;&#1110;&#1076; &#1074;&#1072;&#1096;&#1080;&#1084; &#1076;&#1086;&#1084;&#1077;&#1085;&#1086;&#1084;. &#1050;&#1110;&#1085;&#1077;&#1094;&#1100; &#1093;&#1072;&#1086;&#1089;&#1091; &#1079; &#1083;&#1080;&#1089;&#1090;&#1072;&#1084;&#1080; &#1090;&#1072; WhatsApp. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;.", "btn_try": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1081; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086; &#8212; 30 &#1076;&#1085;&#1110;&#1074; &#8594;", "btn_how": "&#9658; &#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "proof": "<strong>&#1055;&#1077;&#1088;&#1096;&#1110; &#1082;&#1086;&#1088;&#1080;&#1089;&#1090;&#1091;&#1074;&#1072;&#1095;&#1110;</strong> &#1074;&#1078;&#1077; &#1074;&#1080;&#1082;&#1086;&#1088;&#1080;&#1089;&#1090;&#1086;&#1074;&#1091;&#1102;&#1090;&#1100; &#1087;&#1083;&#1072;&#1090;&#1092;&#1086;&#1088;&#1084;&#1091;", "stats_s1": "% &#1084;&#1077;&#1085;&#1096;&#1077; &#1083;&#1080;&#1089;&#1090;&#1110;&#1074;<br>&#1110;&#1079; &#1079;&#1072;&#1087;&#1080;&#1090;&#1072;&#1085;&#1085;&#1103;&#1084;&#1080; &#1074;&#1110;&#1076; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1110;&#1074;", "stats_s2": "&#1093;&#1074;&#1080;&#1083;&#1080;&#1085;&#1080; &#1085;&#1072; &#1086;&#1085;&#1073;&#1086;&#1088;&#1076;&#1080;&#1085;&#1075;<br>&#1085;&#1086;&#1074;&#1086;&#1075;&#1086; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;", "stats_s3": "&#1075;&#1086;&#1076;&#1080;&#1085;&#1080; &#1085;&#1072; &#1076;&#1086;&#1073;&#1091;<br>&#1082;&#1083;&#1110;&#1108;&#1085;&#1090; &#1084;&#1072;&#1108; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087; &#1076;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091;", "stats_s4": "&#1084;&#1110;&#1089;&#1094;&#1077; &#1076;&#1083;&#1103; &#1095;&#1072;&#1090;&#1091;,<br>&#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1110;&#1074; &#1110; &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1110;&#1074;", "sec_features_tag": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1110;&#1111;", "features_h2": "&#1042;&#1089;&#1077; &#1074; &#1086;&#1076;&#1085;&#1086;&#1084;&#1091; &#1084;&#1110;&#1089;&#1094;&#1110; &#8212;<br><span class=\"g\">&#1095;&#1072;&#1090;, &#1087;&#1088;&#1086;&#1108;&#1082;&#1090;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1080;</span>", "features_sub": "&#1054;&#1076;&#1080;&#1085; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1079;&#1072;&#1084;&#1110;&#1085;&#1102;&#1108; &#1083;&#1080;&#1089;&#1090;&#1080;, WhatsApp, Google Drive &#1110; Trello. &#1053;&#1072;&#1083;&#1072;&#1096;&#1090;&#1086;&#1074;&#1072;&#1085;&#1080;&#1081; &#1079;&#1072; 24 &#1075;&#1086;&#1076;&#1080;&#1085;&#1080;.", "sec_how_tag": "&#1071;&#1082; &#1094;&#1077; &#1087;&#1088;&#1072;&#1094;&#1102;&#1108;", "how_h2": "&#1042;&#1072;&#1096; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1075;&#1086;&#1090;&#1086;&#1074;&#1080;&#1081;<br><span class=\"g\">&#1091; 4 &#1087;&#1088;&#1086;&#1089;&#1090;&#1080;&#1093; &#1082;&#1088;&#1086;&#1082;&#1080;</span>", "how_sub": "&#1042;&#1110;&#1076; &#1087;&#1077;&#1088;&#1096;&#1086;&#1075;&#1086; &#1082;&#1086;&#1085;&#1090;&#1072;&#1082;&#1090;&#1091; &#1076;&#1086; &#1075;&#1086;&#1090;&#1086;&#1074;&#1086;&#1075;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091; &#8212; &#1084;&#1077;&#1085;&#1096;&#1077; &#1085;&#1110;&#1078; &#1079;&#1072; &#1075;&#1086;&#1076;&#1080;&#1085;&#1091;.", "compare_h2": "&#1047;&#1072;&#1084;&#1110;&#1085;&#1080;&#1090;&#1100; 5 &#1110;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;&#1110;&#1074;<br><span class=\"g\">&#1086;&#1076;&#1085;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1086;&#1084; &#1082;&#1083;&#1110;&#1108;&#1085;&#1090;&#1072;</span>", "sec_pricing_tag": "&#1062;&#1110;&#1085;&#1080;", "pricing_h2": "&#1055;&#1088;&#1086;&#1079;&#1086;&#1088;&#1110; &#1094;&#1110;&#1085;&#1080; &#8212;<br><span class=\"g\">&#1087;&#1083;&#1072;&#1090;&#1080;&#1090;&#1077; &#1079;&#1072; &#1110;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;</span>", "pricing_sub": "&#1073;&#1077;&#1079; &#1087;&#1088;&#1080;&#1093;&#1086;&#1074;&#1072;&#1085;&#1080;&#1093; &#1087;&#1083;&#1072;&#1090;&#1077;&#1078;&#1110;&#1074;. &#1073;&#1077;&#1079; &#1082;&#1086;&#1084;&#1110;&#1089;&#1110;&#1081;.", "sec_reviews_tag": "&#1042;&#1110;&#1076;&#1075;&#1091;&#1082;&#1080;", "reviews_h2": "&#1065;&#1086; &#1082;&#1072;&#1078;&#1091;&#1090;&#1100; &#1072;&#1075;&#1077;&#1085;&#1094;&#1110;&#1111;<br><span class=\"g\">&#1087;&#1088;&#1086; Barabash Flow</span>", "sec_demo_tag": "&#1055;&#1077;&#1088;&#1077;&#1075;&#1083;&#1103;&#1076;", "demo_h2": "&#1055;&#1086;&#1073;&#1072;&#1095;&#1090;&#1077; <span class=\"g\">&#1103;&#1082; &#1094;&#1077; &#1074;&#1080;&#1075;&#1083;&#1103;&#1076;&#1072;&#1108;</span>", "cta_h": "&#1055;&#1086;&#1095;&#1085;&#1110;&#1090;&#1100; &#1079;&#1072; 24 &#1075;&#1086;&#1076;&#1080;&#1085;&#1080; &#8212;<br><span class=\"g\">&#1087;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;</span>", "cta_sub": "&#1055;&#1088;&#1080;&#1108;&#1076;&#1085;&#1091;&#1081;&#1090;&#1077;&#1089;&#1100; &#1076;&#1086; Barabash Flow. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1087;&#1086;&#1074;&#1085;&#1110;&#1089;&#1090;&#1102; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;.", "cta_btn": "&#1057;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086; &#8594;", "trust1": "&#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;", "trust2": "&#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1082;&#1080;", "trust3": "&#1053;&#1072;&#1083;&#1072;&#1096;&#1090;&#1091;&#1074;&#1072;&#1085;&#1085;&#1103; &#1079;&#1072; 24 &#1075;&#1086;&#1076;", "trust4": "&#1055;&#1110;&#1076;&#1090;&#1088;&#1080;&#1084;&#1082;&#1072; 1:1", "compare_bad": "&#10060; &#1073;&#1077;&#1079; Barabash Flow", "compare_good": "&#10003; &#1079; Barabash Flow", "modal_title": "&#1061;&#1086;&#1095;&#1091; &#1089;&#1087;&#1088;&#1086;&#1073;&#1091;&#1074;&#1072;&#1090;&#1080; &#128640;", "modal_sub": "&#1047;&#1074;'&#1103;&#1078;&#1091;&#1089;&#1100; &#1079; &#1074;&#1072;&#1084;&#1080; &#1110; &#1088;&#1072;&#1079;&#1086;&#1084; &#1085;&#1072;&#1083;&#1072;&#1096;&#1090;&#1091;&#1108;&#1084;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;. &#1055;&#1077;&#1088;&#1096;&#1110; 30 &#1076;&#1085;&#1110;&#1074; &#1073;&#1077;&#1079;&#1082;&#1086;&#1096;&#1090;&#1086;&#1074;&#1085;&#1086;."}, "ru": {"nav_features": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;", "nav_how": "&#1050;&#1072;&#1082; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "nav_pricing": "&#1058;&#1072;&#1088;&#1080;&#1092;&#1099;", "nav_cta": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;", "h1": "&#1055;&#1088;&#1086;&#1092;&#1077;&#1089;&#1089;&#1080;&#1086;&#1085;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081; <span class=\"h1-grad\">&#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;</span> &#1076;&#1083;&#1103; &#1072;&#1075;&#1077;&#1085;&#1090;&#1089;&#1090;&#1074; &#1080; &#1092;&#1088;&#1080;&#1083;&#1072;&#1085;&#1089;&#1077;&#1088;&#1086;&#1074;", "hero_p": "&#1044;&#1072;&#1081;&#1090;&#1077; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;&#1084; &#1086;&#1090;&#1076;&#1077;&#1083;&#1100;&#1085;&#1099;&#1081; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1089; &#1095;&#1072;&#1090;&#1086;&#1084;, &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1072;&#1084;&#1080; &#1080; &#1074;&#1080;&#1076;&#1077;&#1086;&#1079;&#1074;&#1086;&#1085;&#1082;&#1072;&#1084;&#1080; &#8212; &#1074;&#1089;&#1105; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080;&#1084; &#1076;&#1086;&#1084;&#1077;&#1085;&#1086;&#1084;. &#1050;&#1086;&#1085;&#1077;&#1094; &#1093;&#1072;&#1086;&#1089;&#1091; &#1089; &#1087;&#1080;&#1089;&#1100;&#1084;&#1072;&#1084;&#1080; &#1080; WhatsApp. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;.", "btn_try": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086; &#8212; 30 &#1076;&#1085;&#1077;&#1081; &#8594;", "btn_how": "&#9658; &#1050;&#1072;&#1082; &#1101;&#1090;&#1086; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "proof": "<strong>&#1055;&#1077;&#1088;&#1074;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;</strong> &#1091;&#1078;&#1077; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1102;&#1090; &#1087;&#1083;&#1072;&#1090;&#1092;&#1086;&#1088;&#1084;&#1091;", "stats_s1": "% &#1084;&#1077;&#1085;&#1100;&#1096;&#1077; &#1087;&#1080;&#1089;&#1077;&#1084;<br>&#1089; &#1074;&#1086;&#1087;&#1088;&#1086;&#1089;&#1072;&#1084;&#1080; &#1086;&#1090; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1086;&#1074;", "stats_s2": "&#1084;&#1080;&#1085;&#1091;&#1090;&#1099; &#1085;&#1072; &#1086;&#1085;&#1073;&#1086;&#1088;&#1076;&#1080;&#1085;&#1075;<br>&#1085;&#1086;&#1074;&#1086;&#1075;&#1086; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;", "stats_s3": "&#1095;&#1072;&#1089;&#1072; &#1074; &#1089;&#1091;&#1090;&#1082;&#1080;<br>&#1082;&#1083;&#1080;&#1077;&#1085;&#1090; &#1080;&#1084;&#1077;&#1077;&#1090; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087; &#1082; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1091;", "stats_s4": "&#1084;&#1077;&#1089;&#1090;&#1086; &#1076;&#1083;&#1103; &#1095;&#1072;&#1090;&#1072;,<br>&#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1086;&#1074; &#1080; &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1086;&#1074;", "sec_features_tag": "&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;", "features_h2": "&#1042;&#1089;&#1105; &#1074; &#1086;&#1076;&#1085;&#1086;&#1084; &#1084;&#1077;&#1089;&#1090;&#1077; &#8212;<br><span class=\"g\">&#1095;&#1072;&#1090;, &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1099;, &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090;&#1099;</span>", "features_sub": "&#1054;&#1076;&#1080;&#1085; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1079;&#1072;&#1084;&#1077;&#1085;&#1103;&#1077;&#1090; &#1087;&#1080;&#1089;&#1100;&#1084;&#1072;, WhatsApp, Google Drive &#1080; Trello. &#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1077;&#1085; &#1079;&#1072; 24 &#1095;&#1072;&#1089;&#1072;.", "sec_how_tag": "&#1050;&#1072;&#1082; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090;", "how_h2": "&#1042;&#1072;&#1096; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083; &#1075;&#1086;&#1090;&#1086;&#1074;<br><span class=\"g\">&#1079;&#1072; 4 &#1087;&#1088;&#1086;&#1089;&#1090;&#1099;&#1093; &#1096;&#1072;&#1075;&#1072;</span>", "how_sub": "&#1054;&#1090; &#1087;&#1077;&#1088;&#1074;&#1086;&#1075;&#1086; &#1082;&#1086;&#1085;&#1090;&#1072;&#1082;&#1090;&#1072; &#1076;&#1086; &#1088;&#1072;&#1073;&#1086;&#1090;&#1072;&#1102;&#1097;&#1077;&#1075;&#1086; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1072; &#8212; &#1084;&#1077;&#1085;&#1077;&#1077; &#1095;&#1072;&#1089;&#1072;.", "compare_h2": "&#1047;&#1072;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100; 5 &#1080;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;&#1086;&#1074;<br><span class=\"g\">&#1086;&#1076;&#1085;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;&#1086;&#1084;</span>", "sec_pricing_tag": "&#1058;&#1072;&#1088;&#1080;&#1092;&#1099;", "pricing_h2": "&#1055;&#1088;&#1086;&#1079;&#1088;&#1072;&#1095;&#1085;&#1099;&#1077; &#1090;&#1072;&#1088;&#1080;&#1092;&#1099; &#8212;<br><span class=\"g\">&#1087;&#1083;&#1072;&#1090;&#1080;&#1090;&#1077; &#1079;&#1072; &#1080;&#1085;&#1089;&#1090;&#1088;&#1091;&#1084;&#1077;&#1085;&#1090;</span>", "pricing_sub": "&#1073;&#1077;&#1079; &#1089;&#1082;&#1088;&#1099;&#1090;&#1099;&#1093; &#1087;&#1083;&#1072;&#1090;&#1077;&#1078;&#1077;&#1081;. &#1073;&#1077;&#1079; &#1082;&#1086;&#1084;&#1080;&#1089;&#1089;&#1080;&#1081;.", "sec_reviews_tag": "&#1054;&#1090;&#1079;&#1099;&#1074;&#1099;", "reviews_h2": "&#1063;&#1090;&#1086; &#1075;&#1086;&#1074;&#1086;&#1088;&#1103;&#1090; &#1072;&#1075;&#1077;&#1085;&#1090;&#1089;&#1090;&#1074;&#1072;<br><span class=\"g\">&#1086; Barabash Flow</span>", "sec_demo_tag": "&#1055;&#1088;&#1077;&#1074;&#1100;&#1102;", "demo_h2": "&#1055;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1080;&#1090;&#1077; <span class=\"g\">&#1082;&#1072;&#1082; &#1101;&#1090;&#1086; &#1074;&#1099;&#1075;&#1083;&#1103;&#1076;&#1080;&#1090;</span>", "cta_h": "&#1053;&#1072;&#1095;&#1085;&#1080;&#1090;&#1077; &#1079;&#1072; 24 &#1095;&#1072;&#1089;&#1072; &#8212;<br><span class=\"g\">&#1087;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;</span>", "cta_sub": "&#1055;&#1088;&#1080;&#1089;&#1086;&#1077;&#1076;&#1080;&#1085;&#1103;&#1081;&#1090;&#1077;&#1089;&#1100; &#1082; Barabash Flow. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;, &#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1099;.", "cta_btn": "&#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086; &#8594;", "trust1": "&#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;", "trust2": "&#1073;&#1077;&#1079; &#1082;&#1072;&#1088;&#1090;&#1099;", "trust3": "&#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1072; &#1079;&#1072; 24 &#1095;", "trust4": "&#1055;&#1086;&#1076;&#1076;&#1077;&#1088;&#1078;&#1082;&#1072; 1:1", "compare_bad": "&#10060; &#1073;&#1077;&#1079; Barabash Flow", "compare_good": "&#10003; &#1089; Barabash Flow", "modal_title": "&#1061;&#1086;&#1095;&#1091; &#1087;&#1086;&#1087;&#1088;&#1086;&#1073;&#1086;&#1074;&#1072;&#1090;&#1100; &#128640;", "modal_sub": "&#1057;&#1074;&#1103;&#1078;&#1091;&#1089;&#1100; &#1089; &#1074;&#1072;&#1084;&#1080; &#1080; &#1074;&#1084;&#1077;&#1089;&#1090;&#1077; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1080;&#1084; &#1087;&#1086;&#1088;&#1090;&#1072;&#1083;. &#1055;&#1077;&#1088;&#1074;&#1099;&#1077; 30 &#1076;&#1085;&#1077;&#1081; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;."}};
-var BF_FLAGS = {"pl": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"6.5\" fill=\"#fff\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#dc143c\"/></svg>", "en": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"13\" fill=\"#012169\"/><path d=\"M0 0 L20 13 M20 0 L0 13\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M0 0 L20 13 M20 0 L0 13\" stroke=\"#c8102e\" stroke-width=\"1.5\"/><path d=\"M10 0 L10 13 M0 6.5 L20 6.5\" stroke=\"#fff\" stroke-width=\"5\"/><path d=\"M10 0 L10 13 M0 6.5 L20 6.5\" stroke=\"#c8102e\" stroke-width=\"2.5\"/></svg>", "uk": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"6.5\" fill=\"#005bbb\"/><rect y=\"6.5\" width=\"20\" height=\"6.5\" fill=\"#ffd500\"/></svg>", "ru": "<svg viewBox=\"0 0 20 13\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"20\" height=\"13\" fill=\"#cf101a\"/><rect y=\"8.67\" width=\"20\" height=\"4.33\" fill=\"#007c00\"/><rect width=\"2.67\" height=\"13\" fill=\"#007c00\"/><rect x=\"0.44\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"2.17\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"4.33\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"6.5\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"8.67\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"0.44\" y=\"10.83\" width=\"1.78\" height=\"1.44\" fill=\"#cf101a\"/><rect x=\"1.33\" y=\"0.72\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"2.89\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"5.06\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"7.22\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"9.39\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/><rect x=\"1.33\" y=\"11.56\" width=\"1.78\" height=\"1.44\" fill=\"#fff\"/></svg>"};
-var BF_CODES = {pl:'PL',en:'EN',uk:'UK',ru:'RU'};
-var BF_LANG = 'pl';
-
-function bfToggleLang(e) {
-  e.stopPropagation();
-  var sw = document.getElementById('langSwitcher');
-  var open = sw.classList.toggle('open');
-  if (open) {
-    setTimeout(function() {
-      document.addEventListener('click', bfCloseLang, {once:true});
-    }, 10);
-  }
-}
-
-function bfCloseLang() {
-  var sw = document.getElementById('langSwitcher');
-  if (sw) sw.classList.remove('open');
-}
-
-function bfApply(lang) {
-  var t = BF_TR[lang] || BF_TR.pl;
-  document.querySelectorAll('[data-i18n]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n');
-    if (t[key] !== undefined) el.innerHTML = t[key];
-  });
-  // Update flag button
-  var flagEl = document.getElementById('curFlag');
-  var codeEl = document.getElementById('curCode');
-  if (flagEl) flagEl.innerHTML = BF_FLAGS[lang] || BF_FLAGS.pl;
-  if (codeEl) codeEl.textContent = BF_CODES[lang] || 'PL';
-  // Active state
-  document.querySelectorAll('.lang-opt').forEach(function(o) {
-    o.classList.toggle('active', o.getAttribute('data-lang') === lang);
-  });
-  document.documentElement.lang = lang;
-}
-
-function setLang(lang) {
-  if (lang === BF_LANG) { bfCloseLang(); return; }
-  var fromLang = BF_LANG;
-  BF_LANG = lang;
-  try { localStorage.setItem('bf_lang', lang); } catch(e) {}
-  bfCloseLang();
-  bfRunFunnel(fromLang, lang, function() { bfApply(lang); });
-}
-
-function bfRunFunnel(fromLang, toLang, cb) {
-  var ov = document.getElementById('langOverlay');
-  var cv = ov ? ov.querySelector('canvas') : null;
-  if (!ov || !cv) { cb(); return; }
-
-  var W = cv.width  = window.innerWidth;
-  var H = cv.height = window.innerHeight;
-  var ctx = cv.getContext('2d');
-  var CX = W/2, CY = H/2;
-  var MAX_R = Math.sqrt(CX*CX+CY*CY)*1.05;
-
-  // Color pairs per language [top, bottom]
-  var COLS = {
-    pl:[['#fff','#dc143c']],
-    en:[['#012169','#c8102e']],
-    uk:[['#005bbb','#ffd500']],
-    ru:[['#007c00','#cf101a']]
-  };
-  var fromC = COLS[fromLang]||COLS.pl;
-  var toC   = COLS[toLang]  ||COLS.pl;
-
-  ov.style.display='block';
-  ov.style.opacity='1';
-
-  var phase='suck', t0=null;
-  var SUCK=400, GAP=80, EXPAND=380;
-
-  function ease(x) { return x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
-
-  function frame(ts) {
-    if (!t0) t0=ts;
-    var el=ts-t0;
-
+(function(){
+  var canvas=document.getElementById('bg-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W,H,mouse={x:-9999,y:-9999};
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY;});
+  window.addEventListener('mouseleave',function(){mouse.x=-9999;mouse.y=-9999;});
+  var CP=[0,89,255],CA=[124,58,237];
+  function Particle(){this.reset(true);}
+  Particle.prototype.reset=function(init){this.x=Math.random()*W;this.y=init?Math.random()*H:(Math.random()>.5?-10:H+10);this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5;this.size=Math.random()*1.8+.6;this.alpha=Math.random()*.5+.15;this.base=this.alpha;var t=Math.random();this.r=Math.round(CP[0]*(1-t)+CA[0]*t);this.g=Math.round(CP[1]*(1-t)+CA[1]*t);this.b=Math.round(CP[2]*(1-t)+CA[2]*t);};
+  Particle.prototype.update=function(){var dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy);if(d<120&&d>0){var f=(120-d)/120;this.vx-=(dx/d)*f*.8;this.vy-=(dy/d)*f*.8;this.alpha=Math.min(1,this.base+f*.6);}else if(d<200){var f2=(200-d)/200*.08;this.vx+=(dx/d)*f2;this.vy+=(dy/d)*f2;this.alpha=this.base+(1-d/200)*.2;}else{this.alpha+=(this.base-this.alpha)*.05;}this.vx*=.97;this.vy*=.97;this.x+=this.vx;this.y+=this.vy;if(this.x<-20)this.x=W+20;if(this.x>W+20)this.x=-20;if(this.y<-20)this.y=H+20;if(this.y>H+20)this.y=-20;};
+  Particle.prototype.draw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle='rgba('+this.r+','+this.g+','+this.b+','+this.alpha+')';ctx.fill();};
+  var pts=[];for(var i=0;i<80;i++)pts.push(new Particle());
+  var trail=[],TMAX=22;
+  window.addEventListener('mousemove',function(e){trail.push({x:e.clientX,y:e.clientY,t:Date.now()});if(trail.length>TMAX)trail.shift();});
+  var orbs=[{x:W*.2,y:H*.2,vx:.18,vy:.12,r:260,t:0},{x:W*.8,y:H*.7,vx:-.14,vy:.16,r:200,t:1.5},{x:W*.5,y:H*.5,vx:.10,vy:-.12,r:180,t:3}];
+  function tick(){
     ctx.clearRect(0,0,W,H);
-
-    if (phase==='suck') {
-      var p = Math.min(el/SUCK,1);
-      var ep = ease(p);
-      var r = MAX_R*(1-ep);
-      // Draw shrinking flag
-      ctx.save();
-      ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.clip();
-      ctx.fillStyle=fromC[0][0]; ctx.fillRect(CX-r,CY-r,r*2,r);
-      ctx.fillStyle=fromC[0][1]; ctx.fillRect(CX-r,CY,r*2,r);
-      // Spiral vortex
-      for(var i=0;i<10;i++) {
-        var a=(i/10)*Math.PI*2+ep*Math.PI*5;
-        var len=r*(1-ep*0.5);
-        ctx.beginPath();ctx.moveTo(CX,CY);
-        ctx.lineTo(CX+Math.cos(a)*len,CY+Math.sin(a)*len);
-        ctx.strokeStyle='rgba(0,0,0,'+(ep*0.3)+')';
-        ctx.lineWidth=1.5;ctx.stroke();
-      }
-      // Center dark
-      var g=ctx.createRadialGradient(CX,CY,0,CX,CY,r);
-      g.addColorStop(0,'rgba(0,0,0,'+(ep*0.95)+')');
-      g.addColorStop(0.5,'rgba(0,0,0,'+(ep*0.3)+')');
-      g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.restore();
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(CX,CY,r,0,Math.PI*2); ctx.fill();
-      if (p>=1) { phase='gap'; t0=ts; cb(); }
-
-    } else if (phase==='gap') {
-      // Black flash
-      ctx.fillStyle='rgba(0,0,0,'+(1-el/GAP)+')';
-      ctx.fillRect(0,0,W,H);
-      if (el>=GAP) { phase='expand'; t0=ts; }
-
-    } else if (phase==='expand') {
-      var p2=Math.min(el/EXPAND,1);
-      var ep2=ease(p2);
-      var r2=MAX_R*ep2;
-      ctx.save();
-      ctx.beginPath(); ctx.arc(CX,CY,r2,0,Math.PI*2); ctx.clip();
-      ctx.fillStyle=toC[0][0]; ctx.fillRect(0,0,W,H/2);
-      ctx.fillStyle=toC[0][1]; ctx.fillRect(0,H/2,W,H/2);
-      // Burst glow
-      var g2=ctx.createRadialGradient(CX,CY,0,CX,CY,r2*0.6);
-      g2.addColorStop(0,'rgba(255,255,255,'+(0.6*(1-ep2))+')');
-      g2.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.restore();
-      ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
-      if (p2>=1) {
-        // Fade out
-        var fo0=null;
-        function fadeOut(ts2) {
-          if(!fo0)fo0=ts2;
-          var fp=Math.min((ts2-fo0)/280,1);
-          ov.style.opacity=1-fp;
-          if(fp<1) requestAnimationFrame(fadeOut);
-          else { ov.style.display='none'; ov.style.opacity='1'; ctx.clearRect(0,0,W,H); }
-        }
-        requestAnimationFrame(fadeOut); return;
-      }
-    }
-    requestAnimationFrame(frame);
+    // grid
+    var step=80,offX=(mouse.x*.015)%step,offY=(mouse.y*.015)%step;
+    ctx.fillStyle='rgba(0,89,255,.06)';
+    for(var gx=offX;gx<W;gx+=step)for(var gy=offY;gy<H;gy+=step){ctx.beginPath();ctx.arc(gx,gy,1,0,Math.PI*2);ctx.fill();}
+    // orbs
+    orbs.forEach(function(o){var dx=mouse.x-o.x,dy=mouse.y-o.y;o.x+=o.vx+dx*.00025;o.y+=o.vy+dy*.00025;if(o.x<0||o.x>W)o.vx*=-1;if(o.y<0||o.y>H)o.vy*=-1;o.t+=.008;var p=Math.sin(o.t)*.015+.045;var g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);g.addColorStop(0,'rgba(0,89,255,'+p+')');g.addColorStop(.5,'rgba(124,58,237,'+(p*.4)+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();});
+    // connections
+    for(var ii=0;ii<pts.length;ii++)for(var jj=ii+1;jj<pts.length;jj++){var a=pts[ii],b=pts[jj],dx2=a.x-b.x,dy2=a.y-b.y,dist=Math.sqrt(dx2*dx2+dy2*dy2);if(dist<140){var al=(1-dist/140)*.18;var mx2=(a.x+b.x)/2,my2=(a.y+b.y)/2,mdx=mouse.x-mx2,mdy=mouse.y-my2,md=Math.sqrt(mdx*mdx+mdy*mdy);var boost=md<180?(1-md/180)*.5:0;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='rgba(0,89,255,'+(al+boost)+')';ctx.lineWidth=dist<60?1.2:.6;ctx.stroke();}}
+    // particles
+    pts.forEach(function(p){p.update();p.draw();});
+    // trail
+    if(trail.length>1){var now=Date.now();for(var ti=1;ti<trail.length;ti++){var pp=trail[ti-1],cc=trail[ti];var age=(now-cc.t)/600;if(age>1)continue;var tal=(1-age)*.35;var tt=ti/trail.length;var rr=Math.round(0*(1-tt)+124*tt),gg=Math.round(89*(1-tt)+58*tt),bb=Math.round(255*(1-tt)+237*tt);ctx.beginPath();ctx.moveTo(pp.x,pp.y);ctx.lineTo(cc.x,cc.y);ctx.strokeStyle='rgba('+rr+','+gg+','+bb+','+tal+')';ctx.lineWidth=(1-age)*2.5;ctx.lineCap='round';ctx.stroke();}var tip=trail[trail.length-1];var tg=ctx.createRadialGradient(tip.x,tip.y,0,tip.x,tip.y,28);tg.addColorStop(0,'rgba(0,89,255,.2)');tg.addColorStop(1,'rgba(0,89,255,0)');ctx.beginPath();ctx.arc(tip.x,tip.y,28,0,Math.PI*2);ctx.fillStyle=tg;ctx.fill();}
+    requestAnimationFrame(tick);
   }
-  requestAnimationFrame(frame);
-}
-
-
-// Add missing keys
-if (BF_TR.pl) BF_TR.pl.compare_tag = 'Dlaczego Barabash Flow';
-if (BF_TR.en) BF_TR.en.compare_tag = 'Why Barabash Flow';
-if (BF_TR.uk) BF_TR.uk.compare_tag = '\u0427\u043e\u043c\u0443 Barabash Flow';
-if (BF_TR.ru) BF_TR.ru.compare_tag = '\u041f\u043e\u0447\u0435\u043c\u0443 Barabash Flow';
-if (BF_TR.pl) BF_TR.pl.pricing_sub = 'Bez ukrytych op\u0142at. Bez prowizji od projekt\u00f3w.';
-if (BF_TR.en) BF_TR.en.pricing_sub = 'No hidden fees. No commissions on projects.';
-if (BF_TR.uk) BF_TR.uk.pricing_sub = '\u0411\u0435\u0437 \u043f\u0440\u0438\u0445\u043e\u0432\u0430\u043d\u0438\u0445 \u043f\u043b\u0430\u0442\u0435\u0436\u0456\u0432.';
-if (BF_TR.ru) BF_TR.ru.pricing_sub = '\u0411\u0435\u0437 \u0441\u043a\u0440\u044b\u0442\u044b\u0445 \u043f\u043b\u0430\u0442\u0435\u0436\u0435\u0439.';
-
-// ── INIT ──
-(function() {
-  var saved = 'pl';
-  try { saved = localStorage.getItem('bf_lang') || 'pl'; } catch(e) {}
-  if (!BF_TR[saved]) saved = 'pl';
-  BF_LANG = saved;
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { bfApply(BF_LANG); });
-  } else {
-    bfApply(BF_LANG);
-  }
+  tick();
 })();
 </script>
 
